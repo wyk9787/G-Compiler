@@ -1,7 +1,7 @@
 # Copied from http://www.partow.net/programming/makefile/idx.html
 
-CXX      := -c++
-CXXFLAGS := -pedantic-errors -Wall -Wextra -Werror
+CXX      := clang++
+CXXFLAGS := 
 LDFLAGS  := -L/usr/lib -lstdc++ -lm
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
