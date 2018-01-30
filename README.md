@@ -8,10 +8,13 @@ This is a simple compiler written in C/C++ that will be able to compile a primit
 
 ## Building
 `make all`
+
 All the object files will store under `./build/objects`.
+
 All the executable files will store under `./build/apps`.
 
 ## Testing
+`make clean`
 
 ## Executing
 `./build/apps/compiler`
