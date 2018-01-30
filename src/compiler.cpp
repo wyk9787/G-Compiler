@@ -36,8 +36,8 @@ int main(int argc, char **argv) {
     // -h --help
     case 'h':
       printf("%s", usage);
-      printf("Available flags: \n");
-      printf("\t-l --length\t\tprints the lengths of each of the arguments \n");
+      printf("Available flags:\n");
+      printf("\t-l --length\t\tprints the lengths of each of the arguments\n");
       printf("\t-h --help\t\tprints the help message\n");
       break;
 
