@@ -1,15 +1,16 @@
 # Copied from http://www.partow.net/programming/makefile/idx.html
 
 CXX      := clang++
-CXXFLAGS :=
+CXXFLAGS := -std=c++11
 LDFLAGS  := -L/usr/lib -lstdc++ -lm
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/apps
 TEST_DIR := ./test
 TARGET   := compiler
-INCLUDE  := -Iinclude/
-SRC      := $(wildcard src/*.cpp)
+INCLUDE  := -Iinclude/lexer
+SRC      := $(wildcard src/*.cpp) \
+					  $(wildcard src/lexer/*.cpp) \
 
 OBJECTS := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
