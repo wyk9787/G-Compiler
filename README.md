@@ -10,13 +10,18 @@ This is a simple compiler written in C/C++ that will be able to compile a primit
 `./build/apps/compiler [flags] [args]`
 
 Available flags:
-	-f --file		take one argument as the filename of the input
-	-l --length		prints the lengths of each of the arguments
-	-h --help		prints the help message
+
+*  -f --file		take one argument as the filename of the input
+
+*	-l --length		prints the lengths of each of the arguments
+
+*	-h --help		prints the help message
 
 ### Option 2: Use echo to input from stdin
 
-If there is no `-f` or `--file` present in the flag list, the program will take input from stdin. See Example section down below.
+If there is no `-f` or `--file` present in the flag list, the program will take input from stdin.
+
+See Example section down below.
 
 ### Setup
 [None]
