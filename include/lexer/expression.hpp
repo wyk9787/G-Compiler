@@ -5,28 +5,37 @@
 
 class Exp {
 public:
-  virtual int evaluate() = 0;
-  virtual ~Exp() {};
+  virtual Result evaluate() = 0;
+  virtual ~Exp(){};
 };
 
 class EOperator : public Exp {
 private:
-
+  std::shared_ptr<Exp> e1, e2;
+  TokenKind id;
 
 public:
-  std::shared_ptr<Exp> e1, e2;
-  enum { Plus, Subtract, Multiply, Divide } id;
-  EOperator(Token t, std::shared_ptr<Exp> l, std::shared_ptr<Exp> r);
-  int evaluate();
+  EOperator(TokenKind t, std::shared_ptr<Exp> l, std::shared_ptr<Exp> r);
+  Result evaluate();
 };
 
 class ELit : public Exp {
 private:
-  int data;
+  Token data;
 
 public:
-  ELit(int val);
-  int evaluate();
+  ELit(Token val);
+  Result evaluate();
+};
+
+class EIf : public Exp {
+private:
+  std::shared_ptr<Exp> e1, e2, e3;
+
+public:
+  EIf(std::shared_ptr<Exp> e1, std::shared_ptr<Exp> e2,
+      std::shared_ptr<Exp> e3);
+  Result evaluate();
 };
 
 #endif

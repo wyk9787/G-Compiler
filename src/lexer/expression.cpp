@@ -1,52 +1,141 @@
 #include "expression.hpp"
 #include "lexing.hpp"
+#include <iostream>
 #include <stdlib.h>
 
-EOperator::EOperator(Token t, std::shared_ptr<Exp> l, std::shared_ptr<Exp> r)
-    : e1(l), e2(r) {
-  switch (t.id) {
-  case Token::Plus:
-    this->id = EOperator::Plus;
-    break;
-  case Token::Subtract:
-    this->id = EOperator::Subtract;
-    break;
-  case Token::Divide:
-    this->id = EOperator::Divide;
-    break;
-  case Token::Multiply:
-    this->id = EOperator::Multiply;
-    break;
-  default:
-    break;
-  }
-}
+EOperator::EOperator(TokenKind t, std::shared_ptr<Exp> l,
+                     std::shared_ptr<Exp> r)
+    : id(t), e1(l), e2(r) {}
 
-int EOperator::evaluate() {
-  switch (this->id) {
-  case Plus:
-    return e1->evaluate() + e2->evaluate();
-  case Subtract:
-    return e1->evaluate() - e2->evaluate();
-  case Multiply:
-    return e1->evaluate() * e2->evaluate();
-  case Divide: {
-    int e2_val = e2->evaluate();
-    if (e2_val != 0) {
-      return e1->evaluate() / e2_val;
-    } else {
-      // TODO: throw exception for divide by 0
-      exit(2);
+Result EOperator::evaluate() {
+  Result e1_result = e1->evaluate();
+  Result e2_result = e2->evaluate();
+  Result result;
+  if (e1_result.id == Int && e2_result.id == Int) {
+    int e1_data = e1_result.int_data;
+    int e2_data = e2_result.int_data;
+    result.id = Int;
+    switch (id) {
+    case Plus:
+      result.int_data = e1_data + e2_data;
+      break;
+    case Subtract:
+      result.int_data = e1_data - e2_data;
+      break;
+    case Multiply:
+      result.int_data = e1_data * e2_data;
+      break;
+    case Divide: {
+      if (e2_data != 0) {
+        result.int_data = e1_data / e2_data;
+      } else if (e1_data == 0) { // e1_data = 0 and e2_data = 0
+        result.id = NaN;
+      } else {
+        fprintf(stderr, "Division by 0\n");
+        exit(1);
+      }
+      break;
     }
-  }
+    case Less_Than:
+      result.id = Bool;
+      result.bool_data = e1_data <= e2_data;
+      break;
+    default:
+      fprintf(stderr, "This should never happen!\nDebug: EOp(1)\n");
+      exit(1);
+      break;
+    }
+  } else if (e1_result.id == Bool || e2_result.id == Bool) {
+    fprintf(stderr, "Unexpected boolean value\n");
+    exit(1);
+  } else if (e1_result.id == NaN || e2_result.id == NaN) {
+    result.id = NaN;
+  } else if (e1_result.id == Float || e2_result.id == Float) {
+    double e1_data;
+    double e2_data;
+    if (e1_result.id == Int) { // e1 is Int
+      e1_data = (double)e1_result.int_data;
+      e2_data = e2_result.float_data;
+    } else if (e2_result.id == Int) { // e2 is Int
+      e2_data = (double)e2_result.int_data;
+      e1_data = e1_result.float_data;
+    } else { // neither of them is Int
+      e1_data = e1_result.float_data;
+      e2_data = e2_result.float_data;
+    }
 
-  default:
-    // TODO: throw exception for no matching 0
-    break;
+    result.id = Float;
+    switch (id) {
+    case Plus:
+      result.float_data = e1_data + e2_data;
+      break;
+    case Subtract:
+      result.float_data = e1_data - e2_data;
+      break;
+    case Multiply:
+      result.float_data = e1_data * e2_data;
+      break;
+    case Divide: {
+      if (e2_data != 0) {
+        result.float_data = e1_data / e2_data;
+      } else if (e1_data == 0) { // e1_data = 0 and e2_data = 0
+        result.id = NaN;
+      } else {
+        fprintf(stderr, "Division by 0\n");
+        exit(1);
+      }
+    }
+    case Less_Than:
+      result.id = Bool;
+      result.bool_data = e1_data <= e2_data;
+      break;
+    default:
+      fprintf(stderr, "This should never happen!\nDebug: EOp(2)\n");
+      exit(1);
+    }
+  } else {
+    fprintf(stderr, "This should never happen!\nDebug: EOp(3)\n");
+    exit(1);
   }
+  return result;
 }
 
-ELit::ELit(int val) : data(val) {}
-int ELit::evaluate() {
-  return data;
+ELit::ELit(Token val) : data(val) {}
+
+Result ELit::evaluate() {
+  int id = data.id;
+  Result result;
+  if (id == True || id == False) {
+    result.id = Bool;
+    result.bool_data = data.bool_data;
+  } else if (id == Num_Int) {
+    result.id = Int;
+    result.int_data = data.int_data;
+  } else if (id == Num_Float) {
+    result.id = Float;
+    result.float_data = data.float_data;
+  } else if (id == Lit_NaN) {
+    result.id = NaN;
+  } else {
+    fprintf(stderr, "This should never happen!\nDebug: ELit");
+    exit(1);
+  }
+  return result;
+}
+
+EIf::EIf(std::shared_ptr<Exp> first, std::shared_ptr<Exp> second,
+         std::shared_ptr<Exp> third)
+    : e1(first), e2(second), e3(third) {}
+
+Result EIf::evaluate() {
+  Result e1_result = e1->evaluate();
+  if (e1_result.id != Bool) {
+    fprintf(stderr,
+            "The first argument for the if statement should be a boolean.\n");
+    exit(1);
+  }
+  if (e1_result.bool_data)
+    return e2->evaluate();
+  else
+    return e3->evaluate();
 }
