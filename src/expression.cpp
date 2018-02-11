@@ -100,6 +100,11 @@ Result EOperator::evaluate() {
   return result;
 }
 
+std::string EOperator::string_of_exp() {
+  return "(" + enum_string[id] + " " + e1->string_of_exp() + " " +
+         e2->string_of_exp() + ")";
+}
+
 ELit::ELit(Token val) : data(val) {}
 
 Result ELit::evaluate() {
@@ -123,6 +128,17 @@ Result ELit::evaluate() {
   return result;
 }
 
+std::string ELit::string_of_exp() {
+  int id = data.id;
+  if (data.id == 6) {
+    return std::to_string(data.int_data);
+  } else if (data.id == 12) {
+    return std::to_string(data.float_data);
+  } else {
+    return enum_string[id];
+  }
+}
+
 EIf::EIf(std::shared_ptr<Exp> first, std::shared_ptr<Exp> second,
          std::shared_ptr<Exp> third)
     : e1(first), e2(second), e3(third) {}
@@ -138,4 +154,9 @@ Result EIf::evaluate() {
     return e2->evaluate();
   else
     return e3->evaluate();
+}
+
+std::string EIf::string_of_exp() {
+  return "(if " + e1->string_of_exp() + " " + e2->string_of_exp() + " " +
+         e3->string_of_exp() + ")";
 }

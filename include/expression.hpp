@@ -6,6 +6,7 @@
 class Exp {
 public:
   virtual Result evaluate() = 0;
+  virtual std::string string_of_exp() = 0;
   virtual ~Exp(){};
 };
 
@@ -17,6 +18,7 @@ private:
 public:
   EOperator(TokenKind t, std::shared_ptr<Exp> l, std::shared_ptr<Exp> r);
   Result evaluate();
+  std::string string_of_exp();
 };
 
 class ELit : public Exp {
@@ -26,6 +28,7 @@ private:
 public:
   ELit(Token val);
   Result evaluate();
+  std::string string_of_exp();
 };
 
 class EIf : public Exp {
@@ -36,6 +39,7 @@ public:
   EIf(std::shared_ptr<Exp> e1, std::shared_ptr<Exp> e2,
       std::shared_ptr<Exp> e3);
   Result evaluate();
+  std::string string_of_exp();
 };
 
 #endif

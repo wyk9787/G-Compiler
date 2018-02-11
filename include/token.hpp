@@ -5,8 +5,8 @@
 #define TOKEN_HPP
 
 const std::vector<std::string> enum_string = {
-    "LParen", "RParen", "Plus", "Subtract",  "Divide", "Multiply", "Int",
-    "True",   "False",  "If",   "Less_Than", "NaN",    "Float"};
+    "(", ")", "+", "-",  "/", "*", " ",
+    "true",   "false",  "if",   "<=", "NaN",    " "};
 
 typedef enum {
   LParen = 0,
