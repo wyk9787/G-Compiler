@@ -12,9 +12,9 @@ public:
 
 class EOperator : public Exp {
 private:
-  std::shared_ptr<Exp> e1, e2;
   TokenKind id;
-
+  std::shared_ptr<Exp> e1, e2;
+  
 public:
   EOperator(TokenKind t, std::shared_ptr<Exp> l, std::shared_ptr<Exp> r);
   Result evaluate();
@@ -41,5 +41,10 @@ public:
   Result evaluate();
   std::string string_of_exp();
 };
+
+// Alias for shared_ptr
+typedef std::shared_ptr<EOperator> Shared_EOperator;
+typedef std::shared_ptr<ELit> Shared_ELit;
+typedef std::shared_ptr<Exp> Shared_Exp;
 
 #endif

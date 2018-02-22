@@ -1,5 +1,6 @@
 #include "expression.hpp"
-#include "lexing.hpp"
+#include "interpreter.hpp"
+#include "parser_driver.h"
 #include "token.hpp"
 
 #include <cctype>
@@ -9,118 +10,86 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
 
-static char usage[] = "Usage: ./build/apps/compiler [-h|--help] "
-                      "[-f|--filename <filename>] [-L|--lex] [-p|--parse]  "
-                      "[-l|--length]\n";
+static std::string usage =
+    "Usage: ./build/compiler [-h|--help] "
+    "[-l|--length] [-f|--filename "
+    "<filename>] [-L|--lex] [-P|--PARSE] [-p|--parse]\n"
+    "NOTE:[-f|--filename <filename>] has to present to take the input file\n";
 
-void processing(int argc, char **argv, std::vector<Token> &tokens);
+static std::string flags =
+    "Available flags:\n"
+    "\t-f --file\t\ttake one argument as the filename of the input\n"
+    "\t-p --parse\t\tgenerate the abstract syntax tree from parsing\nThis is "
+    "the only option that will stops the compiler from interpreting the "
+    "output\n"
+    "\t-P --PARSE\t\tgenerate EXTREMELY verbose parsing stages (Debug use "
+    "only)\n"
+    "\t-L --lex\t\tgenerate the tokens and matching rules in .l file\n"
+    "\t-l --length\t\tprints the lengths of each of the arguments\n"
+    "\t-h --help\t\tprints the help message.\n";
 
-int main(int argc, char **argv) {
-  std::vector<Token> tokens;
-  processing(argc, argv, tokens);
-}
+void processing(int argc, char **argv);
 
-void processing(int argc, char **argv, std::vector<Token> &tokens) {
-  if (argc == 1) { // No argument, read from stdin
-    tokens = lex();
-    int pos = 0;
-    Shared_Exp ast = parse(tokens, pos);
-    interpret(ast);
+int main(int argc, char **argv) { processing(argc, argv); }
+
+void processing(int argc, char **argv) {
+  if (argc == 1) {
+    std::cout << usage << std::endl;
   }
-  int c;
+  parser_driver driver("-"); // Default as stdin input
   int long_optind = 0;
-  static struct option long_options[] = {
-      {"help", no_argument, 0, 'h'},       {"length", no_argument, 0, 'l'},
-      {"file", required_argument, 0, 'f'}, {"lex", no_argument, 0, 'L'},
-      {"parse", no_argument, 0, 'p'},      {0, 0, 0, 0}};
-  std::vector<char> options;
+  static struct option long_options[] = {{"help", no_argument, 0, 'h'},
+                                         {"length", no_argument, 0, 'l'},
+                                         {"file", required_argument, 0, 'f'},
+                                         {"parse", no_argument, 0, 'p'},
+                                         {"PARSE", no_argument, 0, 'P'},
+                                         {"lex", no_argument, 0, 'L'},
+                                         {0, 0, 0, 0}};
+  std::vector<char> options; // Store all the options into the vector options
   char *opt_arg;
-  // Store all the options into the vector options
-  while ((c = getopt_long(argc, argv, "lhf:Lp", long_options, &long_optind)) !=
+  int c;
+  while ((c = getopt_long(argc, argv, "lhf:LpP", long_options, &long_optind)) !=
          -1) {
     options.push_back(c);
     if (c == 'f') {
       opt_arg = strdup(optarg);
     }
   }
-  for (size_t i = 0; i < options.size(); i++) {
+  Shared_Exp prog;
+  // If '-p' presents, then we will not interpret the output
+  bool parse_only = find(options.begin(), options.end(), 'p') != options.end();
+  for (size_t i = 0; i < options.size(); i++) { // Processing flags
     c = options[i];
-    if (c == -1)
-      break;
-    switch (c) {
-    // -l --length
-    case 'l':
+    if (c == 'l') { // -l --length
       for (int i = optind; i < argc; i++) {
         printf("%lu\n", strlen(argv[i]));
       }
-      exit(0);
-    // -h --help
-    case 'h':
-      printf("%s", usage);
-      printf("Available flags:\n");
-
-      printf("\t-f --file\t\ttake one argument as the filename of the input\n");
-      printf("\t-e --lex\t\tgenerate the tokens from lexing\n");
-      printf(
-          "\t-p --parse\t\tgenerate the abstract syntax tree from parsing\n");
-      printf("\t-l --length\t\tprints the lengths of each of the arguments\n");
-      printf("\t-h --help\t\tprints the help message\n");
-      exit(0);
-    // -f --file
-    case 'f': {
-      // Copied from Charlie Curtsinger's CSC213 Shell lab starting code
-      // https://github.com/csc213/shell
-      int new_input = open(opt_arg, O_RDONLY);
-      if (new_input == -1) {
-        fprintf(stderr, "Failed to open input file %s\n", opt_arg);
-        free(opt_arg);
-        exit(1);
-      }
-      free(opt_arg);
-      if (dup2(new_input, STDIN_FILENO) == -1) {
-        fprintf(stderr, "Failed to set new file as input\n");
-        exit(2);
-      }
-      break;
-    }
-    case 'L': {
-      if (tokens.size() == 0) {
-        tokens = lex();
-      }
-      std::cout << "[";
-      for (size_t i = 0; i < tokens.size(); i++) {
-        int id = tokens[i].id;
-        if (id == 6) { // integer
-          std::cout << tokens[i].int_data;
-        } else if (id == 12) { // float
-          std::cout << tokens[i].float_data;
-        } else {
-          std::cout << enum_string[tokens[i].id];
-        }
-        std::cout << ", ";
-      }
-      std::cout << "]" << std::endl;
-      break;
-    }
-    case 'p': {
-      if (tokens.size() == 0) {
-        tokens = lex();
-      }
-      int pos = 0;
-      Shared_Exp ast = parse(tokens, pos);
-      std::cout << ast->string_of_exp() << std::endl;
-      break;
-    }
-    case '?':
+    } else if (c == 'h') { // -h --help
+      std::cout << usage << std::endl;
+      std::cout << flags << std::endl;
+    } else if (c == 'p') { // -p --parse
+      prog = driver.parse();
+      std::cout << prog->string_of_exp() << std::endl;
+      return;
+    } else if (c == 'P') { // -P --PARSE
+      driver.trace_parsing = true;
+    } else if (c == 'L') { // -L --lex
+      driver.trace_scanning = true;
+    } else if (c == 'f') { // -f --file
+      driver = parser_driver(opt_arg);
+    } else if (c == '?') {
       std::cout << "Please use --help for help page" << std::endl;
       exit(1);
-    default:
-      break;
     }
+  }
+  if (!parse_only) {
+    prog = driver.parse();
+    interpret(prog);
   }
 }

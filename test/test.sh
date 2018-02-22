@@ -1,25 +1,26 @@
 #!/bin/bash
 
-# # set up diff.txt
-test_result="./test/diff.txt"
-rm -f "$test_result"
-touch "$test_result"
-chmod 755 "$test_result"
+########### TEST PLAN ###########
+# test1: a comprehensive test1
+# test2: a comprehensive test2
+# test3: if then else
+# test4: arithmetic operation
+# test5: integer math
+# test6: floating math
+# test7: integer & floating
+# test8: math with NaN
+#################################
 
-# set up result.txt
-result="./test/result.txt"
+# # set up diff.txt
+result="./test/diff.txt"
 rm -f "$result"
 touch "$result"
 chmod 755 "$result"
 
-expected_result="./test/expected.out"
-
 # find each test file ending with .in
-for filename in ./test/*.in; do
-  # read each line from the file
-  while IFS='' read -r line || [[ -n "$line" ]]; do
-    echo "$line" | ./build/apps/compiler >> "$result"
-  done < "$filename"
+for filename in ./test/*.src; do
+  parse_output="${filename%.src}.parse.out"
+  output="${filename%.src}.out"
+  diff <(./build/compiler -f "$filename" -p) "$parse_output" >> "$result"
+  diff <(./build/compiler -f "$filename") "$output" >> "$result"
 done
-
-diff "$result" "$expected_result" >> "$test_result"
