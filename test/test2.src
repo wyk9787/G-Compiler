@@ -1,0 +1,6 @@
+if
+    if (2 <= 4)
+    then (true)
+    else NaN
+then 1.4 <= (3)
+else (false)

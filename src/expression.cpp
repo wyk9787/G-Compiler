@@ -1,5 +1,5 @@
 #include "expression.hpp"
-#include "lexing.hpp"
+#include "interpreter.hpp"
 #include <iostream>
 #include <stdlib.h>
 
@@ -31,7 +31,7 @@ Result EOperator::evaluate() {
       } else if (e1_data == 0) { // e1_data = 0 and e2_data = 0
         result.id = NaN;
       } else {
-        fprintf(stderr, "Division by 0\n");
+        fprintf(stderr, "Fatal: Division by 0\n");
         exit(1);
       }
       break;
@@ -84,6 +84,7 @@ Result EOperator::evaluate() {
         fprintf(stderr, "Division by 0\n");
         exit(1);
       }
+      break;
     }
     case Less_Than:
       result.id = Bool;
@@ -98,6 +99,11 @@ Result EOperator::evaluate() {
     exit(1);
   }
   return result;
+}
+
+std::string EOperator::string_of_exp() {
+  return "(" + enum_string[id] + " " + e1->string_of_exp() + " " +
+         e2->string_of_exp() + ")";
 }
 
 ELit::ELit(Token val) : data(val) {}
@@ -123,6 +129,17 @@ Result ELit::evaluate() {
   return result;
 }
 
+std::string ELit::string_of_exp() {
+  int id = data.id;
+  if (data.id == 6) {
+    return std::to_string(data.int_data);
+  } else if (data.id == 12) {
+    return std::to_string(data.float_data);
+  } else {
+    return enum_string[id];
+  }
+}
+
 EIf::EIf(std::shared_ptr<Exp> first, std::shared_ptr<Exp> second,
          std::shared_ptr<Exp> third)
     : e1(first), e2(second), e3(third) {}
@@ -134,8 +151,16 @@ Result EIf::evaluate() {
             "The first argument for the if statement should be a boolean.\n");
     exit(1);
   }
-  if (e1_result.bool_data)
+  if (e1_result.bool_data) {
     return e2->evaluate();
-  else
+  }
+  else {
     return e3->evaluate();
+  }
+
+}
+
+std::string EIf::string_of_exp() {
+  return "(if " + e1->string_of_exp() + " " + e2->string_of_exp() + " " +
+         e3->string_of_exp() + ")";
 }

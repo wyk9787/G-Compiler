@@ -1,5 +1,5 @@
 <a name="1.1.0"></a>
-# 1.1.0 (2018-02-07)
+# 1.1.0 (2018-02-22)
 
 
 ### Bug Fixes
@@ -12,8 +12,10 @@
 * add lexer, parser, and interpreter ([3768746](https://github.com/wyk9787/compiler/commit/3768746))
 * add Makefile ([c331a63](https://github.com/wyk9787/compiler/commit/c331a63))
 * add pre-commit hook ([5b69409](https://github.com/wyk9787/compiler/commit/5b69409))
+* add supports for --lex and --parse flags so we can test lexing and parsing parts respectively ([23b29c5](https://github.com/wyk9787/compiler/commit/23b29c5))
 * extend the compiler to support the extended language grammar ([6d42c97](https://github.com/wyk9787/compiler/commit/6d42c97))
 * finish parsing arguments and flags ([cf746b6](https://github.com/wyk9787/compiler/commit/cf746b6))
+* now supports infix syntax of arithmetic operation ([fe7011b](https://github.com/wyk9787/compiler/commit/fe7011b))
 
 
 

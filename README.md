@@ -5,50 +5,67 @@ This is a simple compiler written in C/C++ that will be able to compile a primit
 
 ## Usage
 
-### Option 1: Pass an input file
-
-`./build/apps/compiler [flags] [args]`
+```
+Usage: ./build/compiler [-h|--help] [-l|--length]
+                        [-f|--filename <filename>] [-L|--lex] [-P|--PARSE] [-p|--parse]
+NOTE:[-f|--filename <filename>] has to present to take the input file
+```
 
 Available flags:
 
-*  -f --file		take one argument as the filename of the input
+* -f --file   take one argument as the filename of the input
 
-*	-l --length		prints the lengths of each of the arguments
+* -p --parse   generate the abstract syntax tree from parsing
 
-*	-h --help		prints the help message
+  - This is the only option that will stop the compiler from interpreting the output
 
-### Option 2: Use echo to input from stdin
+* -P --PARSE   generate EXTREMELY verbose parsing stages (Debug use only)
 
-If there is no `-f` or `--file` present in the flag list, the program will take input from stdin.
+* -L --lex   generate the tokens and matching rules in .l file
 
-See Example section down below.
+* -l --length   prints the lengths of each of the arguments
+
+* -h --help   prints the help message
 
 ### Setup
-[None]
+
+You need to install both bison (version >= 3.0.4) and flex (version >= 2.6.4).
+
+* Bison: `brew install bison`
+* Flex: `brew install flex`
 
 ### Building
 `make all`
 
-All the object files will store under `./build/objects`.
-
-All the executable files will store under `./build/apps`.
-
 ### Testing
 `make test`
 
-If there is no error presents, that means all the inputs from `./test/test.in` are verified with expected output from `./test/expected.out`.
-
-Otherwise, you can find the error in `./test/diff.txt`
+If there are errors present, you can find the error in `./test/diff.txt`
 
 ### Cleaning
 `make clean`
 
-## Language Grammar
-`e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
-       | true | false | (<= e1 e2) | (if e1 e2 e3)
-       | f | NaN`
+## Language
 
-### Additional Rules:
+### Grammar
+
+```
+e ::= n | (e) | e1 + e2 | e1 - e2 | e1 / e2
+        | true | false | e1 <= e2 | if e1 then e2 else e3
+        | f | NaN
+```
+
+### Precedence
+
+```
+1. * /
+
+2. + -
+
+3. <=
+```
+
+### Additional Rules: (Since there is no type system yet)
 
 1. `f` is a floating point with the form `[0-9]+.[0-9]+`
 
@@ -57,25 +74,23 @@ Otherwise, you can find the error in `./test/diff.txt`
 3. `+`, `-`, `*`, `/`, and `<=` do not take boolean as input
 
 4. Any arithmetic expressions including `NaN` will be evaluated to `NaN`.
-   - e.g. `(+ 2 NaN)` will be evaluated to `NaN`
+   - e.g. `NaN + 2` will be evaluated to `NaN`
 
-5. `(/ 0 0)` is also evaluated to `NaN`
+5. `0 / 0` is also evaluated to `NaN`
 
 ## Example
-`echo "(* 1 (+ (/ 4 3) (- 2 5)))" | ./build/apps/compiler`
 
-The program will return -2
+`./build/compiler -f ./test/test1.src`
 
+The program will return `NaN`
 
-`echo "(if true (+ 2.34 3.2) (* 2 5))" | ./build/apps/compiler`
+`./build/compiler -f ./test/test1.src -p`
 
-The program will return 5.540000
+The program will return
 
-
-`./build/apps/compiler -f test/tests.in`
-
-The program's output is saved in test/result.txt
-
+```
+(if (if false (+ 1 3) false) (+ 10.230000 0.770000) (if false (+ 3 (/ 2.500000 2)) (/ 0 0)))
+```
 
 ## Author
 Garrett Wang

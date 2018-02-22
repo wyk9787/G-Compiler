@@ -1,45 +1,29 @@
-# Copied from http://www.partow.net/programming/makefile/idx.html
+SRC=src/compiler.cpp src/expression.cpp src/parser_driver.cpp src/interpreter.cpp
+LEX_OUTPUT=src/scanner.yy.cpp
+BISON_OUTPUT=src/parser.yy.cpp
+BISON_AUX=src/location.hh src/parser.yy.hpp src/position.hh src/stack.hh src/parser.h
+CC=clang++
+CC_FLAGS=-std=c++14 -O3 -Wall -Wno-deprecated-register
+INCLUDE=-Iinclude/ -Isrc/
+BUILD=./build
 
-CXX      := clang++
-CXXFLAGS := -std=c++11
-LDFLAGS  := -L/usr/lib -lstdc++ -lm
-BUILD    := ./build
-OBJ_DIR  := $(BUILD)/objects
-APP_DIR  := $(BUILD)/apps
-TEST_DIR := ./test
-TARGET   := compiler
-INCLUDE  := -Iinclude/lexer
-SRC      := $(wildcard src/*.cpp) \
-					  $(wildcard src/lexer/*.cpp) \
+.PHONY : all compiler clean test
 
-OBJECTS := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
-
-all: build $(APP_DIR)/$(TARGET)
-
-$(OBJ_DIR)/%.o: %.cpp
-	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
-
-$(APP_DIR)/$(TARGET): $(OBJECTS)
-	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LDFLAGS) -o $(APP_DIR)/$(TARGET) $(OBJECTS)
-
-.PHONY: all test build clean debug release
+all: compiler
 
 test:
-	$(TEST_DIR)/test.sh
+	./test/test.sh
 
-build:
-	@mkdir -p $(APP_DIR)
-	@mkdir -p $(OBJ_DIR)
+compiler : ${LEX_OUTPUT} ${BISON_OUTPUT} ${SRC}
+	${CC} ${INCLUDE} -o ${BUILD}/$@ ${CC_FLAGS} $^
 
-debug: CXXFLAGS += -DDEBUG -g
-debug: all
+src/scanner.yy.cpp : src/scanner.l
+	flex -o $@ $<
 
-release: CXXFLAGS += -O2
-release: all
+src/parser.yy.cpp : src/parser.yy
+	bison -o $@ $<
 
-clean:
-	-@rm -rf $(OBJ_DIR)/*
-	-@rm -rf $(APP_DIR)/*
-	-@rm -rf $(TEST_DIR)/*_o.out
+clean :
+	rm -rf compiler
+	rm -rf ${BISON_OUTPUT} ${BISON_AUX}
+	rm -rf ${LEX_OUTPUT}
