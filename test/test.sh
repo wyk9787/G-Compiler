@@ -24,3 +24,11 @@ for filename in ./test/*.src; do
   diff <(./build/compiler -f "$filename" -p) "$parse_output" >> "$result"
   diff <(./build/compiler -f "$filename") "$output" >> "$result"
 done
+
+if [ ! -s "$result" ]
+then
+	exit 0
+else
+	printf "Tests failed. Check ./test/diff.txt for details.\n"
+	exit 1
+fi

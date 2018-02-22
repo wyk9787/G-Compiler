@@ -7,9 +7,12 @@ CC_FLAGS=-std=c++14 -O3 -Wall -Wno-deprecated-register
 INCLUDE=-Iinclude/ -Isrc/
 BUILD=./build
 
-.PHONY : compiler clean
+.PHONY : all compiler clean test
 
 all: compiler
+
+test:
+	./test/test.sh
 
 compiler : ${LEX_OUTPUT} ${BISON_OUTPUT} ${SRC}
 	${CC} ${INCLUDE} -o ${BUILD}/$@ ${CC_FLAGS} $^
