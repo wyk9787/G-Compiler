@@ -6,7 +6,8 @@ This is a simple compiler written in C/C++ that will be able to compile a primit
 ## Usage
 
 ```
-Usage: ./build/compiler [-h|--help] [-l|--length] [-f|--filename <filename>] [-L|--lex] [-P|--PARSE] [-p|--parse]
+Usage: ./build/compiler [-h|--help] [-l|--length]
+                        [-f|--filename <filename>] [-L|--lex] [-P|--PARSE] [-p|--parse]
 NOTE:[-f|--filename <filename>] has to present to take the input file
 ```
 
@@ -16,7 +17,7 @@ Available flags:
 
 * -p --parse   generate the abstract syntax tree from parsing
 
-  - This is the only option that will stops the compiler from interpreting the output
+  - This is the only option that will stop the compiler from interpreting the output
 
 * -P --PARSE   generate EXTREMELY verbose parsing stages (Debug use only)
 
@@ -39,9 +40,7 @@ You need to install both bison (version >= 3.0.4) and flex (version >= 2.6.4).
 ### Testing
 `make test`
 
-If there is no error presents, that means all the inputs from `./test/test.in` are verified with expected output from `./test/expected.out`.
-
-Otherwise, you can find the error in `./test/diff.txt`
+If there are errors present, you can find the error in `./test/diff.txt`
 
 ### Cleaning
 `make clean`
@@ -58,11 +57,13 @@ e ::= n | (e) | e1 + e2 | e1 - e2 | e1 / e2
 
 ### Precedence
 
+```
 1. * /
 
 2. + -
 
 3. <=
+```
 
 ### Additional Rules: (Since there is no type system yet)
 
@@ -79,13 +80,17 @@ e ::= n | (e) | e1 + e2 | e1 - e2 | e1 / e2
 
 ## Example
 
-`./build/compiler -f ./test/test1.scr`
+`./build/compiler -f ./test/test1.src`
 
 The program will return `NaN`
 
-`./build/compiler -f ./test/test1.scr -p`
+`./build/compiler -f ./test/test1.src -p`
 
-The program will return `(if (if false (+ 1 3) false) (+ 10.230000 0.770000) (if false (+ 3 (/ 2.500000 2)) (/ 0 0)))`
+The program will return
+
+```
+(if (if false (+ 1 3) false) (+ 10.230000 0.770000) (if false (+ 3 (/ 2.500000 2)) (/ 0 0)))
+```
 
 ## Author
 Garrett Wang

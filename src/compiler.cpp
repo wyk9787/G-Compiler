@@ -26,7 +26,7 @@ static std::string flags =
     "Available flags:\n"
     "\t-f --file\t\ttake one argument as the filename of the input\n"
     "\t-p --parse\t\tgenerate the abstract syntax tree from parsing\nThis is "
-    "the only option that will stops the compiler from interpreting the "
+    "the only option that will stop the compiler from interpreting the "
     "output\n"
     "\t-P --PARSE\t\tgenerate EXTREMELY verbose parsing stages (Debug use "
     "only)\n"
