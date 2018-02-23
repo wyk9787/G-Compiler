@@ -1,29 +1,56 @@
-SRC=src/compiler.cpp src/expression.cpp src/parser_driver.cpp src/interpreter.cpp
-LEX_OUTPUT=src/scanner.yy.cpp
-BISON_OUTPUT=src/parser.yy.cpp
-BISON_AUX=src/location.hh src/parser.yy.hpp src/position.hh src/stack.hh src/parser.h
-CC=clang++
-CC_FLAGS=-std=c++14 -O3 -Wall -Wno-deprecated-register
-INCLUDE=-Iinclude/ -Isrc/
-BUILD=./build
+# Copied from http://www.partow.net/programming/makefile/idx.html
 
-.PHONY : all compiler clean test
+CXX       	 := clang++
+CXXFLAGS 	   := -std=c++11
+LDFLAGS      := -L/usr/lib -lstdc++ -lm
+BUILD        := ./build
+OBJ_DIR      := $(BUILD)/objects
+APP_DIR      := $(BUILD)/apps
+SRC_DIR      := ./src
+LEX_OUTPUT   := $(SRC_DIR)/scanner.yy.cpp
+BISON_OUTPUT := $(SRC_DIR)/parser.yy.cpp
+BISON_AUX    := $(SRC_DIR)/location.hh $(SRC_DIR)/parser.yy.hpp $(SRC_DIR)/position.hh $(SRC_DIR)/stack.hh
+TEST_DIR     := ./test
+TARGET       := compiler
+INCLUDE      := -Iinclude/ -Isrc/
+CORE         := $(SRC_DIR)/compiler.cpp $(SRC_DIR)/expression.cpp $(SRC_DIR)/interpreter.cpp $(SRC_DIR)/parser_driver.cpp
+SRC          := $(BISON_OUTPUT) $(LEX_OUTPUT) $(CORE)
 
-all: compiler
+all: build $(APP_DIR)/$(TARGET)
 
-test:
-	./test/test.sh
+OBJECTS := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
-compiler : ${LEX_OUTPUT} ${BISON_OUTPUT} ${SRC}
-	${CC} ${INCLUDE} -o ${BUILD}/$@ ${CC_FLAGS} $^
+$(OBJ_DIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
 
-src/scanner.yy.cpp : src/scanner.l
-	flex -o $@ $<
+$(APP_DIR)/$(TARGET): $(OBJECTS)
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LDFLAGS) -o $(APP_DIR)/$(TARGET) $(OBJECTS)
 
-src/parser.yy.cpp : src/parser.yy
+$(LEX_OUTPUT) : $(SRC_DIR)/scanner.l
+	flex  -o $@ $<
+
+$(BISON_OUTPUT) : $(SRC_DIR)/parser.yy
 	bison -o $@ $<
 
-clean :
-	rm -rf compiler
-	rm -rf ${BISON_OUTPUT} ${BISON_AUX}
-	rm -rf ${LEX_OUTPUT}
+.PHONY: all test build clean debug release
+
+test:
+	$(TEST_DIR)/test.sh
+
+build:
+	@mkdir -p $(APP_DIR)
+	@mkdir -p $(OBJ_DIR)
+
+debug: CXXFLAGS += -DDEBUG -g
+debug: all
+
+release: CXXFLAGS += -O2
+release: all
+
+clean:
+	-@rm -rf $(OBJ_DIR)/*
+	-@rm -rf $(APP_DIR)/*
+	-@rm -rf ${BISON_OUTPUT} ${BISON_AUX}
+	-@rm -rf ${LEX_OUTPUT}

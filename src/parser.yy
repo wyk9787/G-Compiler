@@ -61,16 +61,16 @@ using namespace std;
 
 %token <int> INT "int"
 %token <double> DOUBLE "double"
+
+%left "<="
+%left "+" "-"
+%left "*" "/"
+
 %type  < Shared_Exp > exp
 %parse-param {Shared_Exp *ret}
 %printer { yyoutput << $$->string_of_exp(); } exp;
 
-
 %%
-
-%left "<=";
-%left "+" "-";
-%left "*" "/";
 
 %start prog;
 
