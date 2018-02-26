@@ -21,8 +21,14 @@ chmod 755 "$result"
 for filename in ./test/*.src; do
   parse_output="${filename%.src}.parse.out"
   output="${filename%.src}.out"
-  diff <(./build/compiler -f "$filename" -p) "$parse_output" >> "$result"
-  diff <(./build/compiler -f "$filename") "$output" >> "$result"
+  if [[ $1 = "output" ]]
+  then
+    ./build/apps/compiler -f "$filename" -p > "$parse_output"
+    ./build/apps/compiler -f "$filename" > "$output"
+  else
+    diff <(./build/apps/compiler -f "$filename" -p) "$parse_output" >> "$result"
+    diff <(./build/apps/compiler -f "$filename") "$output" >> "$result"
+  fi
 done
 
 if [ ! -s "$result" ]

@@ -63,7 +63,7 @@ void processing(int argc, char **argv) {
   }
   Shared_Exp prog;
   // If '-p' presents, then we will not interpret the output
-  bool parse_only = find(options.begin(), options.end(), 'p') != options.end();
+  bool if_interpret = true;
   for (size_t i = 0; i < options.size(); i++) { // Processing flags
     c = options[i];
     if (c == 'l') { // -l --length
@@ -76,11 +76,17 @@ void processing(int argc, char **argv) {
     } else if (c == 'p') { // -p --parse
       prog = driver.parse();
       std::cout << prog->string_of_exp() << std::endl;
-      return;
+      if_interpret = false;
     } else if (c == 'P') { // -P --PARSE
       driver.trace_parsing = true;
+      prog = driver.parse();
+      driver.trace_parsing = false;
+      if_interpret = false;
     } else if (c == 'L') { // -L --lex
       driver.trace_scanning = true;
+      prog = driver.parse();
+      driver.trace_scanning = false;
+      if_interpret = false;
     } else if (c == 'f') { // -f --file
       driver = parser_driver(opt_arg);
     } else if (c == '?') {
@@ -88,7 +94,7 @@ void processing(int argc, char **argv) {
       exit(1);
     }
   }
-  if (!parse_only) {
+  if (if_interpret) {
     prog = driver.parse();
     interpret(prog);
   }

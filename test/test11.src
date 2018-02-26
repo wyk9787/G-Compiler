@@ -1,0 +1,16 @@
+let
+  fact = rec f n ->
+  if (n > 0) then
+    n * f (n-1)
+  else
+    1
+in fact (5)
+
++
+
+let max2 =
+  fun x -> fun y -> if x > y then x else y
+in
+let a = 5 in
+let b = 2 in
+max2 (a) (b)

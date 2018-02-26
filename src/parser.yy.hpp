@@ -50,7 +50,7 @@
 #include "token.hpp"
 #include "expression.hpp"
 class parser_driver;
-using namespace std;
+// using namespace std;
 
 #line 56 "src/parser.yy.hpp" // lalr1.cc:392
 
@@ -304,6 +304,9 @@ namespace yy {
 
       // "int"
       char dummy3[sizeof(int)];
+
+      // "var"
+      char dummy4[sizeof(std::string)];
 };
 
     /// Symbol semantic values.
@@ -331,17 +334,28 @@ namespace yy {
         TOK_SUBTRACT = 259,
         TOK_MULTIPLY = 260,
         TOK_DIVIDE = 261,
-        TOK_LEQ = 262,
-        TOK_LPAREN = 263,
-        TOK_RPAREN = 264,
-        TOK_NAN = 265,
-        TOK_IF = 266,
-        TOK_ELSE = 267,
-        TOK_THEN = 268,
-        TOK_TRUE = 269,
-        TOK_FALSE = 270,
-        TOK_INT = 271,
-        TOK_DOUBLE = 272
+        TOK_LESS = 262,
+        TOK_LEQ = 263,
+        TOK_EQUAL = 264,
+        TOK_GREATER = 265,
+        TOK_GEQ = 266,
+        TOK_LPAREN = 267,
+        TOK_RPAREN = 268,
+        TOK_NAN = 269,
+        TOK_IF = 270,
+        TOK_ELSE = 271,
+        TOK_THEN = 272,
+        TOK_TRUE = 273,
+        TOK_FALSE = 274,
+        TOK_FUNC = 275,
+        TOK_FUNC_BODY = 276,
+        TOK_LET = 277,
+        TOK_ASSIGN = 278,
+        TOK_IN = 279,
+        TOK_REC = 280,
+        TOK_INT = 281,
+        TOK_DOUBLE = 282,
+        TOK_VAR = 283
       };
     };
 
@@ -384,6 +398,8 @@ namespace yy {
   basic_symbol (typename Base::kind_type t, const double v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const int v, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l);
 
 
       /// Constructor for symbols with semantic value.
@@ -474,7 +490,23 @@ namespace yy {
 
     static inline
     symbol_type
+    make_LESS (const location_type& l);
+
+    static inline
+    symbol_type
     make_LEQ (const location_type& l);
+
+    static inline
+    symbol_type
+    make_EQUAL (const location_type& l);
+
+    static inline
+    symbol_type
+    make_GREATER (const location_type& l);
+
+    static inline
+    symbol_type
+    make_GEQ (const location_type& l);
 
     static inline
     symbol_type
@@ -510,11 +542,39 @@ namespace yy {
 
     static inline
     symbol_type
+    make_FUNC (const location_type& l);
+
+    static inline
+    symbol_type
+    make_FUNC_BODY (const location_type& l);
+
+    static inline
+    symbol_type
+    make_LET (const location_type& l);
+
+    static inline
+    symbol_type
+    make_ASSIGN (const location_type& l);
+
+    static inline
+    symbol_type
+    make_IN (const location_type& l);
+
+    static inline
+    symbol_type
+    make_REC (const location_type& l);
+
+    static inline
+    symbol_type
     make_INT (const int& v, const location_type& l);
 
     static inline
     symbol_type
     make_DOUBLE (const double& v, const location_type& l);
+
+    static inline
+    symbol_type
+    make_VAR (const std::string& v, const location_type& l);
 
 
     /// Build a parser object.
@@ -721,12 +781,12 @@ namespace yy {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 56,     ///< Last index in yytable_.
+      yylast_ = 138,     ///< Last index in yytable_.
       yynnts_ = 3,  ///< Number of nonterminal symbols.
-      yyfinal_ = 12, ///< Termination state number.
+      yyfinal_ = 19, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 18  ///< Number of tokens.
+      yyntokens_ = 29  ///< Number of tokens.
     };
 
 
@@ -771,9 +831,10 @@ namespace yy {
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28
     };
-    const unsigned int user_token_number_max_ = 272;
+    const unsigned int user_token_number_max_ = 283;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int>(t) <= yyeof_)
@@ -806,16 +867,20 @@ namespace yy {
   {
       switch (other.type_get ())
     {
-      case 20: // exp
+      case 31: // exp
         value.copy<  Shared_Exp  > (other.value);
         break;
 
-      case 17: // "double"
+      case 27: // "double"
         value.copy< double > (other.value);
         break;
 
-      case 16: // "int"
+      case 26: // "int"
         value.copy< int > (other.value);
+        break;
+
+      case 28: // "var"
+        value.copy< std::string > (other.value);
         break;
 
       default:
@@ -835,16 +900,20 @@ namespace yy {
     (void) v;
       switch (this->type_get ())
     {
-      case 20: // exp
+      case 31: // exp
         value.copy<  Shared_Exp  > (v);
         break;
 
-      case 17: // "double"
+      case 27: // "double"
         value.copy< double > (v);
         break;
 
-      case 16: // "int"
+      case 26: // "int"
         value.copy< int > (v);
+        break;
+
+      case 28: // "var"
+        value.copy< std::string > (v);
         break;
 
       default:
@@ -883,6 +952,13 @@ namespace yy {
     , location (l)
   {}
 
+  template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
 
   template <typename Base>
   inline
@@ -909,16 +985,20 @@ namespace yy {
     // Type destructor.
     switch (yytype)
     {
-      case 20: // exp
+      case 31: // exp
         value.template destroy<  Shared_Exp  > ();
         break;
 
-      case 17: // "double"
+      case 27: // "double"
         value.template destroy< double > ();
         break;
 
-      case 16: // "int"
+      case 26: // "int"
         value.template destroy< int > ();
+        break;
+
+      case 28: // "var"
+        value.template destroy< std::string > ();
         break;
 
       default:
@@ -944,16 +1024,20 @@ namespace yy {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 20: // exp
+      case 31: // exp
         value.move<  Shared_Exp  > (s.value);
         break;
 
-      case 17: // "double"
+      case 27: // "double"
         value.move< double > (s.value);
         break;
 
-      case 16: // "int"
+      case 26: // "int"
         value.move< int > (s.value);
+        break;
+
+      case 28: // "var"
+        value.move< std::string > (s.value);
         break;
 
       default:
@@ -1012,7 +1096,8 @@ namespace yy {
     yytoken_number_[] =
     {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270,   271,   272
+     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
+     275,   276,   277,   278,   279,   280,   281,   282,   283
     };
     return static_cast<token_type> (yytoken_number_[type]);
   }
@@ -1048,9 +1133,33 @@ namespace yy {
   }
 
   parser::symbol_type
+  parser::make_LESS (const location_type& l)
+  {
+    return symbol_type (token::TOK_LESS, l);
+  }
+
+  parser::symbol_type
   parser::make_LEQ (const location_type& l)
   {
     return symbol_type (token::TOK_LEQ, l);
+  }
+
+  parser::symbol_type
+  parser::make_EQUAL (const location_type& l)
+  {
+    return symbol_type (token::TOK_EQUAL, l);
+  }
+
+  parser::symbol_type
+  parser::make_GREATER (const location_type& l)
+  {
+    return symbol_type (token::TOK_GREATER, l);
+  }
+
+  parser::symbol_type
+  parser::make_GEQ (const location_type& l)
+  {
+    return symbol_type (token::TOK_GEQ, l);
   }
 
   parser::symbol_type
@@ -1102,6 +1211,42 @@ namespace yy {
   }
 
   parser::symbol_type
+  parser::make_FUNC (const location_type& l)
+  {
+    return symbol_type (token::TOK_FUNC, l);
+  }
+
+  parser::symbol_type
+  parser::make_FUNC_BODY (const location_type& l)
+  {
+    return symbol_type (token::TOK_FUNC_BODY, l);
+  }
+
+  parser::symbol_type
+  parser::make_LET (const location_type& l)
+  {
+    return symbol_type (token::TOK_LET, l);
+  }
+
+  parser::symbol_type
+  parser::make_ASSIGN (const location_type& l)
+  {
+    return symbol_type (token::TOK_ASSIGN, l);
+  }
+
+  parser::symbol_type
+  parser::make_IN (const location_type& l)
+  {
+    return symbol_type (token::TOK_IN, l);
+  }
+
+  parser::symbol_type
+  parser::make_REC (const location_type& l)
+  {
+    return symbol_type (token::TOK_REC, l);
+  }
+
+  parser::symbol_type
   parser::make_INT (const int& v, const location_type& l)
   {
     return symbol_type (token::TOK_INT, v, l);
@@ -1113,10 +1258,16 @@ namespace yy {
     return symbol_type (token::TOK_DOUBLE, v, l);
   }
 
+  parser::symbol_type
+  parser::make_VAR (const std::string& v, const location_type& l)
+  {
+    return symbol_type (token::TOK_VAR, v, l);
+  }
+
 
 
 } // yy
-#line 1120 "src/parser.yy.hpp" // lalr1.cc:392
+#line 1271 "src/parser.yy.hpp" // lalr1.cc:392
 
 
 
