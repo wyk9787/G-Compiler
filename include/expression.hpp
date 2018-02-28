@@ -206,10 +206,9 @@ class ELet : public Exp {
 private:
   std::string var;
   std::shared_ptr<Exp> e1, e2;
-  bool is_sub;
 
 public:
-  ELet(std::string _var, std::shared_ptr<Exp> _e1, std::shared_ptr<Exp> _e2, bool _is_sub);
+  ELet(std::string _var, std::shared_ptr<Exp> _e1, std::shared_ptr<Exp> _e2);
   std::shared_ptr<Exp> step();
   std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> t);
   std::string string_of_exp();
@@ -222,14 +221,11 @@ public:
 class EApp : public Exp {
 private:
   std::shared_ptr<Exp> function;
-  std::shared_ptr<Exp> rec_function;
   std::shared_ptr<Exp> e;
-  bool is_sub;
-  bool is_sub_rec;
 
 
 public:
-  EApp(std::shared_ptr<Exp> _function, std::shared_ptr<Exp> _rec_function, std::shared_ptr<Exp> _e, bool _is_sub, bool _is_sub_rec);
+  EApp(std::shared_ptr<Exp> _function, std::shared_ptr<Exp> _e);
   std::shared_ptr<Exp> step();
   std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> t);
   std::string string_of_exp();
@@ -253,6 +249,6 @@ typedef std::shared_ptr<EApp> Shared_EApp;
                                Helper
 *******************************************************************************/
 
-std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp);
+std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp, bool print_step);
 
 #endif

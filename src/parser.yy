@@ -111,8 +111,8 @@ exp:
 | exp "==" exp                    { $$ = std::make_shared<EComp>(TokenKind::Equal, $1, $3); }
 | exp ">" exp                     { $$ = std::make_shared<EComp>(TokenKind::Greater, $1, $3); }
 | exp ">=" exp                    { $$ = std::make_shared<EComp>(TokenKind::Geq, $1, $3); }
-| exp "(" exp ")"                 { $$ = std::make_shared<EApp>($1, $1, $3, false, false);}
-| "let" "var" "=" exp "in" exp    { $$ = std::make_shared<ELet>($2, $4, $6, false); }
+| exp "(" exp ")"                 { $$ = std::make_shared<EApp>($1, $3);}
+| "let" "var" "=" exp "in" exp    { $$ = std::make_shared<ELet>($2, $4, $6); }
 | "if" exp "then" exp "else" exp  { $$ = std::make_shared<EIf>($2, $4, $6); }
 | "(" exp ")"                     { $$ = $2; }
 

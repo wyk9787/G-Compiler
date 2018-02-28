@@ -3,13 +3,12 @@
 #include <iostream>
 #include <stdlib.h>
 
-std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp) {
+std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp, bool print_step) {
   while(!exp->is_value()) {
-    // std::cout << "Top Level: " << exp->string_of_exp() << std::endl;
+    if(print_step) {
+      std::cout << exp->string_of_exp() << std::endl;
+    }
     exp = exp->step();
-    // if(print_step) {
-    //   std::cout << exp->string_of_exp() << std::endl;
-    // }
   }
   return exp;
 }
@@ -53,7 +52,7 @@ Shared_Exp EOperator::evaluate_num(Shared_Exp e1_lit, Shared_Exp e2_lit,
     std::cout << e1->string_of_exp() << std::endl;
     std::cout << e2->string_of_exp() << std::endl;
     std::cout << id << std::endl;
-    std::cerr << "Here:Expecting arithmetic operation" << std::endl;
+    std::cerr << "Expecting arithmetic operation" << std::endl;
     exit(1);
   }
   if (_is_int) {
@@ -88,8 +87,7 @@ Shared_Exp EOperator::substitute(std::string var, Shared_Exp e) {
 }
 
 std::string EOperator::string_of_exp() {
-  return "(" + enum_string[id] + " " + e1->string_of_exp() + " " +
-         e2->string_of_exp() + ")";
+  return "(" + e1->string_of_exp() + " " + enum_string[id] + " " + e2->string_of_exp() + ")";
 }
 
 /******************************************************************************
@@ -152,8 +150,7 @@ Shared_Exp EComp::substitute(std::string var, Shared_Exp e) {
 }
 
 std::string EComp::string_of_exp() {
-  return "(" + enum_string[id] + " " + e1->string_of_exp() + " " +
-         e2->string_of_exp() + ")";
+  return "(" + e1->string_of_exp() + " " + enum_string[id] + " " + e2->string_of_exp() + ")";
 }
 
 /******************************************************************************
@@ -174,7 +171,8 @@ Shared_Exp ELit::substitute(std::string var, Shared_Exp e) {
 
 std::string ELit::string_of_exp() {
   return _is_NaN ? "NaN" :
-  _is_int ? std::to_string(int_data) : std::to_string(float_data);
+         _is_int ? std::to_string(int_data) :
+                   std::to_string(float_data);
 }
 
 bool ELit::is_value() { return true; }
@@ -198,7 +196,6 @@ std::string ELit::get_NaN() {return "NaN"; }
 EBool::EBool(bool _data) : data(_data) {};
 
 Shared_Exp EBool::step() {
-  printf("HERE\n");
   return std::make_shared<EBool>(data);
 }
 
@@ -258,9 +255,9 @@ Shared_Exp EFunc::substitute(std::string var, Shared_Exp e) {
 
 std::string EFunc::string_of_exp() {
   if (is_rec) {
-    return "(rec " + id + " " + param + " -> " + e->string_of_exp() + " )";
+    return "(rec " + id + " " + param + " -> " + e->string_of_exp() + ")";
   } else {
-    return "(fun " + param + " -> " + e->string_of_exp() + " )";
+    return "(fun " + param + " -> " + e->string_of_exp() + ")";
   }
 }
 
@@ -288,31 +285,15 @@ EIf::EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3)
     : e1(_e1), e2(_e2), e3(_e3) {}
 
 Shared_Exp EIf::step() {
-  // std::cout << "eif stepping: " << string_of_exp() << std::endl;
-  // std::cout << "eif e1 top: " << e1->string_of_exp() << "Is_value?: " << e1->is_value() << std::endl;
-
   if (!e1->is_value()) {
     e1 = e1->step();
-    // std::cout << "eif e1 stepping\n";
-    // std::cout << "eif e1 stepping: " << e1->string_of_exp() << std::endl;
     return std::make_shared<EIf>(e1, e2, e3);
   }
-  // std::cout << "XXXXXXXXXX:" << string_of_exp() << std::endl;
   if (e1->is_bool()) {
     if (e1->get_bool()) {
-      if (!e2->is_value()) {
-        e2 = e2->step();
-        return std::make_shared<EIf>(e1, e2, e3);
-      } else {
-        return e2;
-      }
+      return e2;
     } else {
-      if (!e3->is_value()) {
-        e3 = e3->step();
-        return std::make_shared<EIf>(e1, e2, e3);
-      } else {
-        return e3;
-      }
+      return e3;
     }
   } else {
     std::cerr << "Expecting a boolean!" << std::endl;
@@ -326,7 +307,7 @@ Shared_Exp EIf::substitute(std::string var, Shared_Exp t) {
 }
 
 std::string EIf::string_of_exp() {
-  return "(if " + e1->string_of_exp() + " " + e2->string_of_exp() + " " +
+  return "(if " + e1->string_of_exp() + " then " + e2->string_of_exp() + " else " +
          e3->string_of_exp() + ")";
 }
 
@@ -334,26 +315,21 @@ std::string EIf::string_of_exp() {
                         ELet Implementaion
 *******************************************************************************/
 
-ELet::ELet(std::string _var, Shared_Exp _e1, Shared_Exp _e2, bool _is_sub)
-    : var(_var), e1(_e1), e2(_e2), is_sub(_is_sub) {}
+ELet::ELet(std::string _var, Shared_Exp _e1, Shared_Exp _e2)
+    : var(_var), e1(_e1), e2(_e2) {}
 
 Shared_Exp ELet::step() {
   if (!e1->is_value()) {
     e1 = e1->step();
-  } else if (!is_sub) {
-    e2 = e2->substitute(var, e1);
-    is_sub = true;
-  } else if (!e2->is_value()) {
-    e2 = e2->step();
+    return std::make_shared<ELet>(var, e1, e2);
   } else {
-    return e2;
+    return e2->substitute(var, e1);
   }
-  return std::make_shared<ELet>(var, e1, e2, is_sub);
 }
 
 Shared_Exp ELet::substitute(std::string var, Shared_Exp t) {
   return std::make_shared<ELet>(this->var, e1->substitute(var, t),
-                                e2->substitute(var, t), is_sub);
+                                e2->substitute(var, t));
 }
 
 std::string ELet::string_of_exp() {
@@ -365,42 +341,25 @@ std::string ELet::string_of_exp() {
                         EApp Implementaion
 *******************************************************************************/
 
-EApp::EApp(Shared_Exp _function, Shared_Exp _rec_function, Shared_Exp _e, bool _is_sub, bool _is_sub_rec)
-    : function(_function), rec_function(_rec_function), e(_e), is_sub(_is_sub), is_sub_rec(_is_sub_rec) {}
+EApp::EApp(Shared_Exp _function, Shared_Exp _e)
+    : function(_function), e(_e) {}
 
 Shared_Exp EApp::step() {
   if (!function->is_value()) {
     function = function->step();
-    return std::make_shared<EApp>(function, rec_function, e, is_sub, is_sub_rec);
+    return std::make_shared<EApp>(function, e);
   }
 
   if (function->is_func()) {
     Shared_EFunc f = function->get_func();
     if (!e->is_value()) { // If the argument hasn't been evaluated yet
       e = e->step();
-      return std::make_shared<EApp>(function, rec_function, e, is_sub, is_sub_rec);
-    } else if (!is_sub) { // If the argument haven't been substitued yet
-      Shared_Exp new_f = std::make_shared<EFunc>(
-          f->get_param(), f->get_function_body()->substitute(f->get_param(), e),
-          f->get_is_rec(), f->get_id());
-      is_sub = true;
-      return std::make_shared<EApp>(new_f, rec_function, e, is_sub, is_sub_rec);
+      return std::make_shared<EApp>(function, e);
+    }
+    if(f->get_is_rec()) { // Recursive function needs to substitute one more time (substitute itself)
+      return f->get_function_body()->substitute(f->get_param(), e)->substitute(f->get_id(), f);
     } else {
-      if (f->get_is_rec()) { // Now we need to decide if we need to recursive
-                             // substitute itself
-        if (!is_sub_rec) {   // Have we done recursive substitution yet
-          Shared_Exp new_f = std::make_shared<EFunc>(
-              f->get_param(),
-              f->get_function_body()->substitute(f->get_id(), rec_function),
-              f->get_is_rec(), f->get_id());
-          is_sub_rec = true;
-          return std::make_shared<EApp>(new_f, rec_function, e, is_sub, is_sub_rec);
-        } else {
-          return f->get_function_body();
-        }
-      } else { // We can now evaluate to a value
-        return f->get_function_body();
-      }
+      return f->get_function_body()->substitute(f->get_param(), e);
     }
   } else {
     std::cerr << "Expecting a function for function application" << std::endl;
@@ -409,9 +368,9 @@ Shared_Exp EApp::step() {
 }
 
 Shared_Exp EApp::substitute(std::string var, Shared_Exp _e) {
-  return std::make_shared<EApp>(function->substitute(var, _e), rec_function->substitute(var, _e), e->substitute(var, _e), is_sub, is_sub_rec);
+  return std::make_shared<EApp>(function->substitute(var, _e), e->substitute(var, _e));
 }
 
 std::string EApp::string_of_exp() {
-  return "(" + function->string_of_exp() + "(" + e->string_of_exp() + "))";
+  return function->string_of_exp() + "(" + e->string_of_exp() + ")";
 }

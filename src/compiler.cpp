@@ -50,11 +50,12 @@ void processing(int argc, char **argv) {
                                          {"parse", no_argument, 0, 'p'},
                                          {"PARSE", no_argument, 0, 'P'},
                                          {"lex", no_argument, 0, 'L'},
+                                         {"step", no_argument, 0, 's'},
                                          {0, 0, 0, 0}};
   std::vector<char> options; // Store all the options into the vector options
   char *opt_arg;
   int c;
-  while ((c = getopt_long(argc, argv, "lhf:LpP", long_options, &long_optind)) !=
+  while ((c = getopt_long(argc, argv, "lhsf:LpP", long_options, &long_optind)) !=
          -1) {
     options.push_back(c);
     if (c == 'f') {
@@ -64,6 +65,7 @@ void processing(int argc, char **argv) {
   Shared_Exp prog;
   // If '-p' presents, then we will not interpret the output
   bool if_interpret = true;
+  bool print_step = false;
   for (size_t i = 0; i < options.size(); i++) { // Processing flags
     c = options[i];
     if (c == 'l') { // -l --length
@@ -89,6 +91,8 @@ void processing(int argc, char **argv) {
       if_interpret = false;
     } else if (c == 'f') { // -f --file
       driver = parser_driver(opt_arg);
+    } else if (c == 's') {
+      print_step = true;
     } else if (c == '?') {
       std::cout << "Please use --help for help page" << std::endl;
       exit(1);
@@ -96,6 +100,6 @@ void processing(int argc, char **argv) {
   }
   if (if_interpret) {
     prog = driver.parse();
-    interpret(prog);
+    interpret(prog, print_step);
   }
 }
