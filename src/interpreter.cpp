@@ -1,6 +1,7 @@
 #include "expression.hpp"
 #include "interpreter.hpp"
 #include "token.hpp"
+#include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -9,29 +10,23 @@
 #include <vector>
 
 void interpret(Shared_Exp root) {
-  Token result = root->evaluate();
-  int id = result.id;
-  switch (id) {
-  case Int:
-    std::cout << result.int_data << std::endl;
-    break;
-  case Float:
-    std::cout << result.float_data << std::endl;
-    break;
-  case Bool:
-    std::cout << (result.bool_data ? "true" : "false") << std::endl;
-    break;
-  case NaN:
-    std::cout << "NaN" << std::endl;
-    break;
-  case Var:
-    std::cout << result.var_data << std::endl;
-    break;
-  case Fun:
-    std::cout << "fun " + result.func_data.parameter + " -> " + result.func_data.e->string_of_exp() << std::endl;
-    break;
-  default:
-    printf("This should never happen!\nDebug:interpret");
+  Shared_Exp result = evaluate(root);
+  assert(result->is_value() == true);
+  if (result->is_NaN()) {
+    std::cout << result->get_NaN() << std::endl;
+  } else if (result->is_int()) {
+    std::cout << result->get_int() << std::endl;
+  } else if (result->is_float()) {
+    std::cout << result->get_float() << std::endl;
+  } else if (result->is_bool()) {
+    std::cout << (result->get_bool() ? "true" : "false") << std::endl;
+  } else if (result->is_var()) {
+    std::cout << result->get_var() << std::endl;
+  } else if (result->is_func()) {
+    std::cout << result->get_func()->string_of_exp() << std::endl;
+  } else {
+    std::cerr << "Debug: Error! Shoule be evaluated to a value" << std::endl;
+    exit(1);
   }
 }
 
@@ -83,12 +78,14 @@ and assignment2
 //                   << std::endl;
 //         exit(1);
 //       }
-//     } else if (id == Num_Int || id == Num_Float || id == True || id == False ||
+//     } else if (id == Num_Int || id == Num_Float || id == True || id == False
+//     ||
 //                id == Lit_NaN) {
 //       consume(tokens, pos, token.id, false);
 //       return std::make_shared<ELit>(token);
 //     } else {
-//       std::cerr << "Unexpected String: " << enum_string[token.id] << std::endl;
+//       std::cerr << "Unexpected String: " << enum_string[token.id] <<
+//       std::endl;
 //       exit(1);
 //     }
 //   } else {

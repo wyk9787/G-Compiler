@@ -3,25 +3,31 @@
 #include <iostream>
 #include <stdlib.h>
 
+std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp) {
+  while(!exp->is_value()) {
+    // std::cout << "Top Level: " << exp->string_of_exp() << std::endl;
+    exp = exp->step();
+    // if(print_step) {
+    //   std::cout << exp->string_of_exp() << std::endl;
+    // }
+  }
+  return exp;
+}
+
 /******************************************************************************
                         EOperator Implementaion
 *******************************************************************************/
-EOperator::EOperator(TokenKind _id, Shared_Exp _e1, std::shared_ptr<Exp> _e2)
+
+EOperator::EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2)
     : id(_id), e1(_e1), e2(_e2) {}
 
-void EOperator::evaluate_num(Token &result, Token e1_result, Token e2_result,
-                             bool is_int) {
-  auto e1_data = is_int ? e1_result.int_data : e1_result.float_data;
-  auto e2_data = is_int ? e2_result.int_data : e2_result.float_data;
-  if (!is_int) {
-    if (e1_result.id == Int) { // e1 is Int
-      e1_data = (double)e1_result.int_data;
-    } else if (e2_result.id == Int) { // e2 is Int
-      e2_data = (double)e2_result.int_data;
-    }
-  }
+// Private method
+Shared_Exp EOperator::evaluate_num(Shared_Exp e1_lit, Shared_Exp e2_lit,
+                                   bool _is_int) {
+  auto e1_data = e1->is_int() ? e1->get_int() : e1->get_float();
+  auto e2_data = e2->is_int() ? e2->get_int() : e2->get_float();
+  bool is_NaN = false;
   auto temp_data = e1_data + e2_data;
-  bool is_bool = false;
   switch (id) {
   case Plus:
     temp_data = e1_data + e2_data;
@@ -36,86 +42,49 @@ void EOperator::evaluate_num(Token &result, Token e1_result, Token e2_result,
     if (e2_data != 0) {
       temp_data = e1_data / e2_data;
     } else if (e1_data == 0) { // e1_data = 0 and e2_data = 0
-      result.id = NaN;
+      is_NaN = true;
     } else {
-      fprintf(stderr, "Fatal: Division by 0\n");
+      std::cerr << "Fatal: Division by 0" << std::endl;
       exit(1);
     }
     break;
   }
-  case Leq:
-    result.bool_data = e1_data <= e2_data;
-    is_bool = true;
-    break;
-  case Less:
-    result.bool_data = e1_data < e2_data;
-    is_bool = true;
-    break;
-  case Equal:
-    result.bool_data = e1_data == e2_data;
-    is_bool = true;
-    break;
-  case Greater:
-    result.bool_data = e1_data > e2_data;
-    is_bool = true;
-    break;
-  case Geq:
-    result.bool_data = e1_data >= e2_data;
-    is_bool = true;
-    break;
   default:
-    fprintf(stderr, "This should never happen!\nDebug: EOp(1)\n");
+    std::cout << e1->string_of_exp() << std::endl;
+    std::cout << e2->string_of_exp() << std::endl;
+    std::cout << id << std::endl;
+    std::cerr << "Here:Expecting arithmetic operation" << std::endl;
     exit(1);
-    break;
   }
-  if (is_bool) {
-    result.id = Bool;
+  if (_is_int) {
+    return std::make_shared<ELit>(_is_int, temp_data, 0, is_NaN);
   } else {
-    if (is_int)
-      result.int_data = temp_data;
-    else
-      result.float_data = temp_data;
+    return std::make_shared<ELit>(_is_int, 0, temp_data, is_NaN);
   }
-}
-
-Token EOperator::evaluate() {
-  Token e1_result = e1->evaluate();
-  Token e2_result = e2->evaluate();
-  Token result;
-  if (e1_result.id == Int && e2_result.id == Int) {
-    result.id = Int;
-    evaluate_num(result, e1_result, e2_result, true);
-  } else if (e1_result.id == Bool || e2_result.id == Bool) {
-    std::cerr << "Unexpected boolean value" << std::endl;
-    exit(1);
-  } else if (e1_result.id == Var || e2_result.id == Var) {
-    std::cerr << "Unexpected variable" << std::endl;
-    exit(1);
-  } else if (e1_result.id == NaN || e2_result.id == NaN) {
-    result.id = NaN;
-  } else if (e1_result.id == Float || e2_result.id == Float) {
-    result.id = Float;
-    evaluate_num(result, e1_result, e2_result, false);
-  } else {
-    fprintf(stderr, "This should never happen!\nDebug: EOp(3)\n");
-    exit(1);
-  }
-  return result;
 }
 
 Shared_Exp EOperator::step() {
-  if(!is_value(e1)) {
-    return std::make_shared<EOperator>(id, e1->step(), e2);
-  } else if (!is_value(e2)) {
-    return std::make_shared<EOperator>(id, e1, e2->step());
+  if (!e1->is_value()) {
+    e1 = e1->step();
+  } else if (!e2->is_value()) {
+    e2 = e2->step();
   } else {
-    return std::make_shared<EOperator>(id, e1, e2);
+    if(e1->is_NaN() || e2->is_NaN()) {
+      return std::make_shared<ELit>(false, 0, 0, true);
+    }
+    if (!e1->is_int() && !e2->is_int() && !e1->is_float() && !e2->is_float()) {
+      std::cerr << "Expecting a literal (integer or value)" << std::endl;
+      exit(1);
+    }
+    bool is_int = e1->is_int() && e2->is_int();
+    return evaluate_num(e1, e2, is_int);
   }
+  return std::make_shared<EOperator>(id, e1, e2);
 }
 
-Shared_Exp EOperator::substitute(std::string var, Token t) {
-  return std::make_shared<EOperator>(id, e1->substitute(var, t),
-                                     e2->substitute(var, t));
+Shared_Exp EOperator::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EOperator>(id, e1->substitute(var, e),
+                                     e2->substitute(var, e));
 }
 
 std::string EOperator::string_of_exp() {
@@ -124,89 +93,234 @@ std::string EOperator::string_of_exp() {
 }
 
 /******************************************************************************
+                        EComp Implementaion
+*******************************************************************************/
+EComp::EComp(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2)
+    : id(_id), e1(_e1), e2(_e2) {}
+
+// Private method
+Shared_Exp EComp::evaluate_bool(Shared_Exp e1, Shared_Exp e2) {
+  auto e1_data = e1->is_int() ? e1->get_int() : e1->get_float();
+  auto e2_data = e2->is_int() ? e2->get_int() : e2->get_float();
+
+  bool result;
+  switch (id) {
+  case Leq:
+    result = e1_data <= e2_data;
+    break;
+  case Less:
+    result = e1_data < e2_data;
+    break;
+  case Equal:
+    result = e1_data == e2_data;
+    break;
+  case Greater:
+    result = e1_data > e2_data;
+    break;
+  case Geq:
+    result = e1_data >= e2_data;
+    break;
+  default:
+    std::cerr << "Expecting literals (integer or float)" << std::endl;
+    exit(1);
+  }
+
+  return std::make_shared<EBool>(result);
+}
+
+Shared_Exp EComp::step() {
+  if (!e1->is_value()) {
+    e1 = e1->step();
+  } else if (!e2->is_value()) {
+    e2 = e2->step();
+  } else {
+    if(e1->is_NaN() || e2->is_NaN()) {
+      return std::make_shared<ELit>(false, 0, 0, true);
+    }
+    if (!e1->is_int() && !e2->is_int() && !e1->is_float() && !e2->is_float()) {
+      std::cerr << "Expecting a literal (integer or value)" << std::endl;
+      exit(1);
+    }
+    return evaluate_bool(e1, e2);
+  }
+  return std::make_shared<EComp>(id, e1, e2);
+}
+
+Shared_Exp EComp::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EComp>(id, e1->substitute(var, e),
+                                     e2->substitute(var, e));
+}
+
+std::string EComp::string_of_exp() {
+  return "(" + enum_string[id] + " " + e1->string_of_exp() + " " +
+         e2->string_of_exp() + ")";
+}
+
+/******************************************************************************
                         ELit Implementaion
 *******************************************************************************/
 
-ELit::ELit(Token val) : data(val) {}
-
-Token ELit::evaluate() { return data; }
+ELit::ELit(bool __is_int, int _int_data, double _float_data, bool __is_NaN)
+    : _is_int(__is_int), int_data(_int_data), float_data(_float_data),
+      _is_NaN(__is_NaN){};
 
 Shared_Exp ELit::step() {
-  return std::make_shared<ELit>(data);
+  return std::make_shared<ELit>(_is_int, int_data, float_data, _is_NaN);
 }
 
-Shared_Exp ELit::substitute(std::string var, Token t) {
-  if (data.id == Var && data.var_data == var) {
-    return std::make_shared<ELit>(t);
-  } else if (data.id == Fun) {
-    Token temp;
-    temp.id = Fun;
-    Func function;
-    function.parameter = data.func_data.parameter;
-    function.e = data.func_data.e->substitute(var, t);
-    temp.func_data = function;
-    return std::make_shared<ELit>(temp);
-  } else {
-    return std::make_shared<ELit>(data);
-  }
+Shared_Exp ELit::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<ELit>(_is_int, int_data, float_data, _is_NaN);
 }
 
 std::string ELit::string_of_exp() {
-  int id = data.id;
-  if (data.id == Int) {
-    return std::to_string(data.int_data);
-  } else if (data.id == Float) {
-    return std::to_string(data.float_data);
-  } else if (data.id == Bool) {
-    return data.bool_data ? "true" : "false";
-  } else if (data.id == Var) {
-    return data.var_data;
-  } else if (data.id == Fun) {
-    Func function = data.func_data;
-    if (function.is_recursive) {
-      return "(rec " + function.id + " " + function.parameter + " -> " +
-             function.e->string_of_exp() + " )";
-    } else {
-      return "(fun " + function.parameter + " -> " +
-             function.e->string_of_exp() + " )";
-    }
+  return _is_NaN ? "NaN" :
+  _is_int ? std::to_string(int_data) : std::to_string(float_data);
+}
+
+bool ELit::is_value() { return true; }
+
+bool ELit::is_int() { return _is_int; }
+
+int ELit::get_int() { return int_data; }
+
+bool ELit::is_float() { return !_is_int; }
+
+double ELit::get_float() { return float_data; }
+
+bool ELit::is_NaN() { return _is_NaN; }
+
+std::string ELit::get_NaN() {return "NaN"; }
+
+/******************************************************************************
+                        EBool Implementaion
+*******************************************************************************/
+
+EBool::EBool(bool _data) : data(_data) {};
+
+Shared_Exp EBool::step() {
+  printf("HERE\n");
+  return std::make_shared<EBool>(data);
+}
+
+Shared_Exp EBool::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EBool>(data);
+}
+
+std::string EBool::string_of_exp() { return data ? "true" : "false"; }
+
+bool EBool::is_value() { return true; }
+
+bool EBool::is_bool() { return true; }
+
+bool EBool::get_bool() { return data; }
+
+/******************************************************************************
+                        EVar Implementaion
+*******************************************************************************/
+
+EVar::EVar(std::string _data) : data(_data){};
+
+Shared_Exp EVar::step() {
+  return std::make_shared<EVar>(data);
+}
+
+Shared_Exp EVar::substitute(std::string var, Shared_Exp e) {
+  if (var == data) {
+    return e;
   } else {
-    return enum_string[id];
+    return std::make_shared<EVar>(data);
   }
 }
+
+std::string EVar::string_of_exp() { return data; }
+
+bool EVar::is_value() { return true; }
+
+bool EVar::is_var() { return true; }
+
+std::string EVar::get_var() { return data; }
+
+/******************************************************************************
+                        EFunc Implementaion
+*******************************************************************************/
+
+EFunc::EFunc(std::string _param, Shared_Exp _e, bool _is_rec, std::string _id)
+    : param(_param), e(_e), is_rec(_is_rec), id(_id){};
+
+Shared_Exp EFunc::step() {
+  return std::make_shared<EFunc>(param, e, is_rec, id);
+}
+
+Shared_Exp EFunc::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EFunc>(param, this->e->substitute(var, e), is_rec,
+                                 id);
+}
+
+std::string EFunc::string_of_exp() {
+  if (is_rec) {
+    return "(rec " + id + " " + param + " -> " + e->string_of_exp() + " )";
+  } else {
+    return "(fun " + param + " -> " + e->string_of_exp() + " )";
+  }
+}
+
+bool EFunc::is_value() { return true; }
+
+bool EFunc::is_func() { return true; }
+
+Shared_EFunc EFunc::get_func() {
+  return std::make_shared<EFunc>(param, e, is_rec, id);
+}
+
+Shared_Exp EFunc::get_function_body() { return e; }
+
+std::string EFunc::get_param() { return param; }
+
+bool EFunc::get_is_rec() { return is_rec; }
+
+std::string EFunc::get_id() { return id; }
 
 /******************************************************************************
                         EIf Implementaion
 *******************************************************************************/
 
-EIf::EIf(std::shared_ptr<Exp> _e1, std::shared_ptr<Exp> _e2,
-         std::shared_ptr<Exp> _e3)
+EIf::EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3)
     : e1(_e1), e2(_e2), e3(_e3) {}
 
-Token EIf::evaluate() {
-  Token e1_result = e1->evaluate();
-  if (e1_result.id != Bool) {
-    fprintf(stderr,
-            "The first argument for the if statement should be a boolean.\n");
+Shared_Exp EIf::step() {
+  // std::cout << "eif stepping: " << string_of_exp() << std::endl;
+  // std::cout << "eif e1 top: " << e1->string_of_exp() << "Is_value?: " << e1->is_value() << std::endl;
+
+  if (!e1->is_value()) {
+    e1 = e1->step();
+    // std::cout << "eif e1 stepping\n";
+    // std::cout << "eif e1 stepping: " << e1->string_of_exp() << std::endl;
+    return std::make_shared<EIf>(e1, e2, e3);
+  }
+  // std::cout << "XXXXXXXXXX:" << string_of_exp() << std::endl;
+  if (e1->is_bool()) {
+    if (e1->get_bool()) {
+      if (!e2->is_value()) {
+        e2 = e2->step();
+        return std::make_shared<EIf>(e1, e2, e3);
+      } else {
+        return e2;
+      }
+    } else {
+      if (!e3->is_value()) {
+        e3 = e3->step();
+        return std::make_shared<EIf>(e1, e2, e3);
+      } else {
+        return e3;
+      }
+    }
+  } else {
+    std::cerr << "Expecting a boolean!" << std::endl;
     exit(1);
   }
-  if (e1_result.bool_data) {
-    return e2->evaluate();
-  } else {
-    return e3->evaluate();
-  }
 }
 
-Shared_Exp EIf::step() {
-  if(!is_value(e1)) {
-    return std::make_shared<EIf>(e1->step(), e2, e3);
-  } else { // e1 is a value
-    // TODO: Implement this w/ or w/o exp_to_value?
-    return e1;
-  }
-}
-
-Shared_Exp EIf::substitute(std::string var, Token t) {
+Shared_Exp EIf::substitute(std::string var, Shared_Exp t) {
   return std::make_shared<EIf>(e1->substitute(var, t), e2->substitute(var, t),
                                e3->substitute(var, t));
 }
@@ -220,25 +334,26 @@ std::string EIf::string_of_exp() {
                         ELet Implementaion
 *******************************************************************************/
 
-ELet::ELet(std::string _var, std::shared_ptr<Exp> _e1, std::shared_ptr<Exp> _e2)
-    : var(_var), e1(_e1), e2(_e2) {}
-
-Token ELet::evaluate() {
-  return e2->substitute(var, e1->evaluate())->evaluate();
-}
+ELet::ELet(std::string _var, Shared_Exp _e1, Shared_Exp _e2, bool _is_sub)
+    : var(_var), e1(_e1), e2(_e2), is_sub(_is_sub) {}
 
 Shared_Exp ELet::step() {
-  if(!is_value(e1)) {
-    return std::make_shared<ELet>(var, e1->step(), e2);
+  if (!e1->is_value()) {
+    e1 = e1->step();
+  } else if (!is_sub) {
+    e2 = e2->substitute(var, e1);
+    is_sub = true;
+  } else if (!e2->is_value()) {
+    e2 = e2->step();
   } else {
-    // TODO: evaluate?
-    return e2->substitute(var, e1->evaluate());
+    return e2;
   }
+  return std::make_shared<ELet>(var, e1, e2, is_sub);
 }
 
-Shared_Exp ELet::substitute(std::string var, Token t) {
+Shared_Exp ELet::substitute(std::string var, Shared_Exp t) {
   return std::make_shared<ELet>(this->var, e1->substitute(var, t),
-                                e2->substitute(var, t));
+                                e2->substitute(var, t), is_sub);
 }
 
 std::string ELet::string_of_exp() {
@@ -250,54 +365,53 @@ std::string ELet::string_of_exp() {
                         EApp Implementaion
 *******************************************************************************/
 
-EApp::EApp(std::shared_ptr<Exp> _function, std::shared_ptr<Exp> _e)
-    : function(_function), e(_e) {}
-
-Token EApp::evaluate() {
-  Token t = function->evaluate();
-  if (t.id != Fun) {
-    std::cerr << "Requires a function for function application" << std::endl;
-    exit(1);
-  }
-  Func func_data = t.func_data;
-  if (func_data.is_recursive) {
-    return func_data.e->substitute(func_data.parameter, e->evaluate())
-        ->substitute(func_data.id, t)
-        ->evaluate();
-  } else {
-    return func_data.e->substitute(func_data.parameter, e->evaluate())
-        ->evaluate();
-  }
-}
+EApp::EApp(Shared_Exp _function, Shared_Exp _rec_function, Shared_Exp _e, bool _is_sub, bool _is_sub_rec)
+    : function(_function), rec_function(_rec_function), e(_e), is_sub(_is_sub), is_sub_rec(_is_sub_rec) {}
 
 Shared_Exp EApp::step() {
-  if(!is_value(function)) {
-    return std::make_shared<EApp>(function->step(), e);
-  } else if (!is_value(e)) {
-    return std::make_shared<EApp>(function, e->step());
+  if (!function->is_value()) {
+    function = function->step();
+    return std::make_shared<EApp>(function, rec_function, e, is_sub, is_sub_rec);
+  }
+
+  if (function->is_func()) {
+    Shared_EFunc f = function->get_func();
+    if (!e->is_value()) { // If the argument hasn't been evaluated yet
+      e = e->step();
+      return std::make_shared<EApp>(function, rec_function, e, is_sub, is_sub_rec);
+    } else if (!is_sub) { // If the argument haven't been substitued yet
+      Shared_Exp new_f = std::make_shared<EFunc>(
+          f->get_param(), f->get_function_body()->substitute(f->get_param(), e),
+          f->get_is_rec(), f->get_id());
+      is_sub = true;
+      return std::make_shared<EApp>(new_f, rec_function, e, is_sub, is_sub_rec);
+    } else {
+      if (f->get_is_rec()) { // Now we need to decide if we need to recursive
+                             // substitute itself
+        if (!is_sub_rec) {   // Have we done recursive substitution yet
+          Shared_Exp new_f = std::make_shared<EFunc>(
+              f->get_param(),
+              f->get_function_body()->substitute(f->get_id(), rec_function),
+              f->get_is_rec(), f->get_id());
+          is_sub_rec = true;
+          return std::make_shared<EApp>(new_f, rec_function, e, is_sub, is_sub_rec);
+        } else {
+          return f->get_function_body();
+        }
+      } else { // We can now evaluate to a value
+        return f->get_function_body();
+      }
+    }
   } else {
-    // TODO: Determine if it's a recursive call?
-    return e;
+    std::cerr << "Expecting a function for function application" << std::endl;
+    exit(1);
   }
 }
 
-Shared_Exp EApp::substitute(std::string var, Token t) {
-  return std::make_shared<EApp>(function->substitute(var, t),
-                                e->substitute(var, t));
+Shared_Exp EApp::substitute(std::string var, Shared_Exp _e) {
+  return std::make_shared<EApp>(function->substitute(var, _e), rec_function->substitute(var, _e), e->substitute(var, _e), is_sub, is_sub_rec);
 }
 
 std::string EApp::string_of_exp() {
   return "(" + function->string_of_exp() + "(" + e->string_of_exp() + "))";
-}
-
-/******************************************************************************
-                         Helper Functions
-*******************************************************************************/
-
-bool is_value(std::shared_ptr<Exp> e) {
-  if(dynamic_cast<ELit*>(e.get())){ // If e is of type ELit
-    return true;
-  } else {
-    return false;
-  }
 }

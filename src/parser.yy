@@ -73,10 +73,14 @@ class parser_driver;
 %token <double> DOUBLE "double"
 %token <std::string> VAR "var"
 
+%precedence "else"
+%precedence "then"
+%precedence "if"
 %left "<=" "<" ">=" ">"
 %left "=="
 %left "+" "-"
 %left "*" "/"
+%left "(" ")"
 
 %type  < Shared_Exp > exp
 %parse-param {Shared_Exp *ret}
@@ -90,58 +94,26 @@ prog:
   exp "eof"             { *ret = $1; }
 
 exp:
-  "int"                           { Token t;
-                                    t.id = Int;
-                                    t.int_data = $1;
-                                    $$ = std::make_shared<ELit>(t); }
-| "double"                        { Token t;
-                                    t.id = Float;
-                                    t.float_data = $1;
-                                    $$ = std::make_shared<ELit>(t); }
-| "true"                          { Token t;
-                                    t.id = Bool;
-                                    t.bool_data = true;
-                                    $$ = std::make_shared<ELit>(t); }
-| "false"                         { Token t;
-                                    t.id = Bool;
-                                    t.bool_data = false;
-                                    $$ = std::make_shared<ELit>(t); }
-| "NaN"                           { Token t;
-                                    t.id = NaN;
-                                    $$ = std::make_shared<ELit>(t); }
-| "var"                           { Token t;
-                                    t.id = Var;
-                                    t.var_data = $1;
-                                    $$ = std::make_shared<ELit>(t); }
-| "rec" "var" "var" "->" exp      { Token t;
-                                    t.id = Fun;
-                                    Func function;
-                                    function.parameter = $3;
-                                    function.e = $5;
-                                    function.is_recursive = true;
-                                    function.id = $2;
-                                    t.func_data = function;
-                                    $$ = std::make_shared<ELit>(t); }
-| "func" "var" "->" exp           { Token t;
-                                    t.id = Fun;
-                                    Func function;
-                                    function.parameter = $2;
-                                    function.e = $4;
-                                    t.func_data = function;
-                                    $$ = std::make_shared<ELit>(t); }
+  "int"                           { $$ = std::make_shared<ELit>(true, $1, 0, false); }
+| "double"                        { $$ = std::make_shared<ELit>(false, 0, $1, false); }
+| "true"                          { $$ = std::make_shared<EBool>(true); }
+| "false"                         { $$ = std::make_shared<EBool>(false); }
+| "NaN"                           { $$ = std::make_shared<ELit>(false, 0, 0, true); }
+| "var"                           { $$ = std::make_shared<EVar>($1); }
+| "rec" "var" "var" "->" exp      { $$ = std::make_shared<EFunc>($3, $5, true, $2); }
+| "func" "var" "->" exp           { $$ = std::make_shared<EFunc>($2, $4, false, ""); }
 | exp "+" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Plus, $1, $3); }
 | exp "-" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Subtract, $1, $3); }
 | exp "*" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Multiply, $1, $3); }
 | exp "/" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Divide, $1, $3); }
-| exp "<=" exp                    { $$ = std::make_shared<EOperator>(TokenKind::Leq, $1, $3); }
-| exp "<" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Less, $1, $3); }
-| exp "==" exp                    { $$ = std::make_shared<EOperator>(TokenKind::Equal, $1, $3); }
-| exp ">" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Greater, $1, $3); }
-| exp ">=" exp                    { $$ = std::make_shared<EOperator>(TokenKind::Geq, $1, $3); }
-| exp "(" exp ")"                 { $$ = std::make_shared<EApp>($1, $3);}
-| "let" "var" "=" exp "in" exp    { $$ = std::make_shared<ELet>($2, $4, $6); }
+| exp "<=" exp                    { $$ = std::make_shared<EComp>(TokenKind::Leq, $1, $3); }
+| exp "<" exp                     { $$ = std::make_shared<EComp>(TokenKind::Less, $1, $3); }
+| exp "==" exp                    { $$ = std::make_shared<EComp>(TokenKind::Equal, $1, $3); }
+| exp ">" exp                     { $$ = std::make_shared<EComp>(TokenKind::Greater, $1, $3); }
+| exp ">=" exp                    { $$ = std::make_shared<EComp>(TokenKind::Geq, $1, $3); }
+| exp "(" exp ")"                 { $$ = std::make_shared<EApp>($1, $1, $3, false, false);}
+| "let" "var" "=" exp "in" exp    { $$ = std::make_shared<ELet>($2, $4, $6, false); }
 | "if" exp "then" exp "else" exp  { $$ = std::make_shared<EIf>($2, $4, $6); }
-
 | "(" exp ")"                     { $$ = $2; }
 
 %%

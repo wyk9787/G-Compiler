@@ -1,5 +1,3 @@
-class Exp;
-
 #ifndef TOKEN_HPP
 #define TOKEN_HPP
 
@@ -10,6 +8,8 @@ class Exp;
 const std::vector<std::string> enum_string = {"(", ")",  "+",   "-",  "/", "*",
                                               " ", " ",  "if",  "<=", "<", "==",
                                               ">", ">=", "NaN", " ",  " ", " "};
+
+// bool print_step;
 
 typedef enum {
   LParen = 0,
@@ -32,25 +32,25 @@ typedef enum {
   Fun
 } TokenKind;
 
-struct Func {
-  std::string parameter;
-  std::shared_ptr<Exp> e;
-  bool is_recursive;
-  std::string id;
-
-  // Func(std::string _parameter, std::shared_ptr<Exp> _e, bool _is_recursive,
-  //      std::string _id)
-  //     : parameter(_parameter), e(_e), is_recursive(_is_recursive), id(_id) {};
-};
-
-typedef struct {
-  TokenKind id;
-  int int_data;
-  double float_data;
-  bool bool_data;
-  std::string var_data;
-  Func func_data;
-} Token;
+// struct Func {
+//   std::string parameter;
+//   std::shared_ptr<Exp> e;
+//   bool is_recursive;
+//   std::string id;
+//
+//   // Func(std::string _parameter, std::shared_ptr<Exp> _e, bool _is_recursive,
+//   //      std::string _id)
+//   //     : parameter(_parameter), e(_e), is_recursive(_is_recursive), id(_id) {};
+// };
+//
+// typedef struct {
+//   TokenKind id;
+//   int int_data;
+//   double float_data;
+//   bool bool_data;
+//   std::string var_data;
+//   Func func_data;
+// } Token;
 
 // typedef enum { Int, Float, Bool, NaN, Var } ResultKind;
 //
