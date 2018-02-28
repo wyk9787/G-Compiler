@@ -17,7 +17,7 @@ static yy::location loc;
 
 %option noyywrap nounput batch debug noinput
 
-id    [a-zA-Z][a-zA-Z_0-9]*
+var    [a-zA-Z][a-zA-Z_0-9]*
 int   [0-9]+
 double [0-9]+"."[0-9]+
 blank [ \t]
@@ -35,13 +35,17 @@ blank [ \t]
 %}
 
 {blank}+    { loc.step (); }
-[\n]+       { loc.lines (yyleng); loc.step ();}
+[\n]+       { loc.lines (yyleng); loc.step (); }
 
 "+"         { return yy::parser::make_PLUS(loc); }
 "-"         { return yy::parser::make_SUBTRACT(loc); }
 "*"         { return yy::parser::make_MULTIPLY(loc); }
 "/"         { return yy::parser::make_DIVIDE(loc); }
 "<="        { return yy::parser::make_LEQ(loc); }
+"<"         { return yy::parser::make_LESS(loc); }
+"=="        { return yy::parser::make_EQUAL(loc); }
+">"         { return yy::parser::make_GREATER(loc); }
+">="        { return yy::parser::make_GEQ(loc); }
 "("         { return yy::parser::make_LPAREN(loc); }
 ")"         { return yy::parser::make_RPAREN(loc); }
 "true"      { return yy::parser::make_TRUE(loc); }
@@ -50,6 +54,14 @@ blank [ \t]
 "else"      { return yy::parser::make_ELSE(loc); }
 "then"      { return yy::parser::make_THEN(loc); }
 "NaN"       { return yy::parser::make_NAN(loc); }
+"fun"       { return yy::parser::make_FUNC(loc); }
+"->"        { return yy::parser::make_FUNC_BODY(loc); }
+"let"       { return yy::parser::make_LET(loc); }
+"="         { return yy::parser::make_ASSIGN(loc); }
+"in"        { return yy::parser::make_IN(loc); }
+"rec"       { return yy::parser::make_REC(loc); }
+
+{var}       { return yy::parser::make_VAR(yytext, loc);}
 
 {double} {
     errno = 0;

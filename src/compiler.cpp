@@ -19,7 +19,7 @@
 static std::string usage =
     "Usage: ./build/compiler [-h|--help] "
     "[-l|--length] [-f|--filename "
-    "<filename>] [-L|--lex] [-P|--PARSE] [-p|--parse]\n"
+    "<filename>] [-L|--lex] [-P|--PARSE] [-p|--parse] [-s|--step]\n"
     "NOTE:[-f|--filename <filename>] has to present to take the input file\n";
 
 static std::string flags =
@@ -31,6 +31,7 @@ static std::string flags =
     "\t-P --PARSE\t\tgenerate EXTREMELY verbose parsing stages (Debug use "
     "only)\n"
     "\t-L --lex\t\tgenerate the tokens and matching rules in .l file\n"
+    "\t-s --step\t\tprints the intermediate step of each evaluation\n"
     "\t-l --length\t\tprints the lengths of each of the arguments\n"
     "\t-h --help\t\tprints the help message.\n";
 
@@ -50,11 +51,12 @@ void processing(int argc, char **argv) {
                                          {"parse", no_argument, 0, 'p'},
                                          {"PARSE", no_argument, 0, 'P'},
                                          {"lex", no_argument, 0, 'L'},
+                                         {"step", no_argument, 0, 's'},
                                          {0, 0, 0, 0}};
   std::vector<char> options; // Store all the options into the vector options
   char *opt_arg;
   int c;
-  while ((c = getopt_long(argc, argv, "lhf:LpP", long_options, &long_optind)) !=
+  while ((c = getopt_long(argc, argv, "lhsf:LpP", long_options, &long_optind)) !=
          -1) {
     options.push_back(c);
     if (c == 'f') {
@@ -63,7 +65,8 @@ void processing(int argc, char **argv) {
   }
   Shared_Exp prog;
   // If '-p' presents, then we will not interpret the output
-  bool parse_only = find(options.begin(), options.end(), 'p') != options.end();
+  bool if_interpret = true;
+  bool print_step = false;
   for (size_t i = 0; i < options.size(); i++) { // Processing flags
     c = options[i];
     if (c == 'l') { // -l --length
@@ -76,20 +79,28 @@ void processing(int argc, char **argv) {
     } else if (c == 'p') { // -p --parse
       prog = driver.parse();
       std::cout << prog->string_of_exp() << std::endl;
-      return;
+      if_interpret = false;
     } else if (c == 'P') { // -P --PARSE
       driver.trace_parsing = true;
+      prog = driver.parse();
+      driver.trace_parsing = false;
+      if_interpret = false;
     } else if (c == 'L') { // -L --lex
       driver.trace_scanning = true;
+      prog = driver.parse();
+      driver.trace_scanning = false;
+      if_interpret = false;
     } else if (c == 'f') { // -f --file
       driver = parser_driver(opt_arg);
+    } else if (c == 's') {
+      print_step = true;
     } else if (c == '?') {
       std::cout << "Please use --help for help page" << std::endl;
       exit(1);
     }
   }
-  if (!parse_only) {
+  if (if_interpret) {
     prog = driver.parse();
-    interpret(prog);
+    interpret(prog, print_step);
   }
 }

@@ -1,5 +1,5 @@
 <a name="1.1.0"></a>
-# 1.1.0 (2018-02-22)
+# 1.1.0 (2018-02-28)
 
 
 ### Bug Fixes
@@ -16,6 +16,9 @@
 * extend the compiler to support the extended language grammar ([6d42c97](https://github.com/wyk9787/compiler/commit/6d42c97))
 * finish parsing arguments and flags ([cf746b6](https://github.com/wyk9787/compiler/commit/cf746b6))
 * now supports infix syntax of arithmetic operation ([fe7011b](https://github.com/wyk9787/compiler/commit/fe7011b))
+* now supports let binding, function, function application and recursive function ([cadf76a](https://github.com/wyk9787/compiler/commit/cadf76a))
+* now supports small step evaluation ([de0fd70](https://github.com/wyk9787/compiler/commit/de0fd70))
+* support --step flag so it can print the intermediate step of evaluation ([28ed1a1](https://github.com/wyk9787/compiler/commit/28ed1a1))
 
 
 
