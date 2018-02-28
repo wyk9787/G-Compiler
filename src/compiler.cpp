@@ -19,7 +19,7 @@
 static std::string usage =
     "Usage: ./build/compiler [-h|--help] "
     "[-l|--length] [-f|--filename "
-    "<filename>] [-L|--lex] [-P|--PARSE] [-p|--parse]\n"
+    "<filename>] [-L|--lex] [-P|--PARSE] [-p|--parse] [-s|--step]\n"
     "NOTE:[-f|--filename <filename>] has to present to take the input file\n";
 
 static std::string flags =
@@ -31,6 +31,7 @@ static std::string flags =
     "\t-P --PARSE\t\tgenerate EXTREMELY verbose parsing stages (Debug use "
     "only)\n"
     "\t-L --lex\t\tgenerate the tokens and matching rules in .l file\n"
+    "\t-s --step\t\tprints the intermediate step of each evaluation\n"
     "\t-l --length\t\tprints the lengths of each of the arguments\n"
     "\t-h --help\t\tprints the help message.\n";
 
