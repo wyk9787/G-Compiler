@@ -1,5 +1,6 @@
 #include "expression.hpp"
 #include "interpreter.hpp"
+#include "type.hpp"
 #include <iostream>
 #include <stdlib.h>
 
@@ -90,6 +91,31 @@ std::string EOperator::string_of_exp() {
   return "(" + e1->string_of_exp() + " " + enum_string[id] + " " + e2->string_of_exp() + ")";
 }
 
+Shared_Typ EOperator::typecheck(context_t context) {
+  Shared_Typ t1 = e1->typecheck(context);
+  Shared_Typ t2 = e2->typecheck(context);
+  std::string t1_type = t1->get_type();
+  std::string t2_type = t2->get_type();
+  if(t1_type != "Int" && t1_type != "Float") {
+    type_error(string_of_exp(), "Int or Float", t1_type);
+  } else if (t2_type != "Int" && t2_type != "Float") {
+    type_error(string_of_exp(), "Int or Float", t2_type);
+  } else {
+    if (t1_type == "Float" || t2_type == "Float")
+      return std::make_shared<TFloat>();
+    else
+      return std::make_shared<TInt>();
+  }
+  // if(t1.get() == t2.get()) {
+  //   std::cout << "Typechecks!" << std::endl;
+  //   return t1;
+  // } else {
+  //   std::cout << "Did not typecheck!" << std::endl;
+  //   type_error(string_of_exp(), "Int or Float", t1_type);
+  // }
+  return nullptr;
+}
+
 /******************************************************************************
                         EComp Implementaion
 *******************************************************************************/
@@ -153,6 +179,21 @@ std::string EComp::string_of_exp() {
   return "(" + e1->string_of_exp() + " " + enum_string[id] + " " + e2->string_of_exp() + ")";
 }
 
+Shared_Typ EComp::typecheck(context_t context) {
+  Shared_Typ t1 = e1->typecheck(context);
+  Shared_Typ t2 = e2->typecheck(context);
+  std::string t1_type = t1->get_type();
+  std::string t2_type = t2->get_type();
+  if(t1_type != "Int" && t1_type != "Float") {
+    type_error(string_of_exp(), "Int or Float", t1_type);
+  } else if (t2_type != "Int" && t2_type != "Float") {
+    type_error(string_of_exp(), "Int or Float", t2_type);
+  } else {
+    return std::make_shared<TBool>();
+  }
+  return nullptr;
+}
+
 /******************************************************************************
                         ELit Implementaion
 *******************************************************************************/
@@ -173,6 +214,13 @@ std::string ELit::string_of_exp() {
   return _is_NaN ? "NaN" :
          _is_int ? std::to_string(int_data) :
                    std::to_string(float_data);
+}
+
+Shared_Typ ELit::typecheck(context_t context) {
+  if(_is_int)
+    return std::make_shared<TInt>();
+  else
+    return std::make_shared<TFloat>();
 }
 
 bool ELit::is_value() { return true; }
@@ -205,6 +253,10 @@ Shared_Exp EBool::substitute(std::string var, Shared_Exp e) {
 
 std::string EBool::string_of_exp() { return data ? "true" : "false"; }
 
+Shared_Typ EBool::typecheck(context_t context) {
+  return std::make_shared<TBool>();
+}
+
 bool EBool::is_value() { return true; }
 
 bool EBool::is_bool() { return true; }
@@ -231,6 +283,15 @@ Shared_Exp EVar::substitute(std::string var, Shared_Exp e) {
 
 std::string EVar::string_of_exp() { return data; }
 
+Shared_Typ EVar::typecheck(context_t context) {
+  if(context.find(data) != context.end()) {
+    return context[data];
+  } else {
+    std::cerr << "Requires a type for " << data << std::endl;
+    exit(1);
+  }
+}
+
 bool EVar::is_value() { return true; }
 
 bool EVar::is_var() { return true; }
@@ -241,24 +302,39 @@ std::string EVar::get_var() { return data; }
                         EFunc Implementaion
 *******************************************************************************/
 
-EFunc::EFunc(std::string _param, Shared_Exp _e, bool _is_rec, std::string _id)
-    : param(_param), e(_e), is_rec(_is_rec), id(_id){};
+EFunc::EFunc(std::string _param, Shared_Typ _t1, Shared_Typ _t2, Shared_Exp _e, bool _is_rec, std::string _id)
+      : param(_param), t1(_t1), t2(_t2), e(_e), is_rec(_is_rec), id(_id){};
 
 Shared_Exp EFunc::step() {
-  return std::make_shared<EFunc>(param, e, is_rec, id);
+  return std::make_shared<EFunc>(param, t1, t2, e, is_rec, id);
 }
 
 Shared_Exp EFunc::substitute(std::string var, Shared_Exp e) {
-  return std::make_shared<EFunc>(param, this->e->substitute(var, e), is_rec,
+  return std::make_shared<EFunc>(param, t1, t2, this->e->substitute(var, e), is_rec,
                                  id);
 }
 
 std::string EFunc::string_of_exp() {
   if (is_rec) {
-    return "(rec " + id + " " + param + " -> " + e->string_of_exp() + ")";
+    return "(rec " + id + " [" + param + " : " + t1->get_type() + "] : " + t2->get_type() + " -> " + e->string_of_exp() + ")";
   } else {
-    return "(fun " + param + " -> " + e->string_of_exp() + ")";
+    return "(fun [" + param + " : " + t1->get_type() + "] : " + t2->get_type() + " -> " + e->string_of_exp() + ")";
   }
+}
+
+Shared_Typ EFunc::typecheck(context_t context) {
+  if(is_rec) {
+    context.insert({id, std::make_shared<TFunc>(t1, t2)});
+  }
+  context.insert({param, t1});
+  std::string e_type = e->typecheck(context)->get_type();
+  std::string t2_type = t2->get_type();
+  if(e_type == t2_type) {
+    return std::make_shared<TFunc>(t1, t2);
+  } else {
+    type_error(string_of_exp(), t2_type, e_type);
+  }
+  return nullptr;
 }
 
 bool EFunc::is_value() { return true; }
@@ -266,7 +342,7 @@ bool EFunc::is_value() { return true; }
 bool EFunc::is_func() { return true; }
 
 Shared_EFunc EFunc::get_func() {
-  return std::make_shared<EFunc>(param, e, is_rec, id);
+  return std::make_shared<EFunc>(param, t1, t2, e, is_rec, id);
 }
 
 Shared_Exp EFunc::get_function_body() { return e; }
@@ -301,9 +377,24 @@ Shared_Exp EIf::step() {
   }
 }
 
-Shared_Exp EIf::substitute(std::string var, Shared_Exp t) {
-  return std::make_shared<EIf>(e1->substitute(var, t), e2->substitute(var, t),
-                               e3->substitute(var, t));
+Shared_Exp EIf::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EIf>(e1->substitute(var, e), e2->substitute(var, e),
+                               e3->substitute(var, e));
+}
+
+Shared_Typ EIf::typecheck(context_t context) {
+  Shared_Typ t2 = e2->typecheck(context);
+  std::string e1_type = e1->typecheck(context)->get_type();
+  std::string e2_type = t2->get_type();
+  std::string e3_type = e3->typecheck(context)->get_type();
+  if(e1_type != "Boolean") {
+    type_error(string_of_exp(), "Boolean", e1_type);
+  } else if (e2_type != e3_type) {
+    type_error(string_of_exp(), e2_type, e3_type);
+  } else {
+    return t2;
+  }
+  return nullptr;
 }
 
 std::string EIf::string_of_exp() {
@@ -315,26 +406,40 @@ std::string EIf::string_of_exp() {
                         ELet Implementaion
 *******************************************************************************/
 
-ELet::ELet(std::string _var, Shared_Exp _e1, Shared_Exp _e2)
-    : var(_var), e1(_e1), e2(_e2) {}
+ELet::ELet(std::string _var, Shared_Typ _t, Shared_Exp _e1, Shared_Exp _e2)
+    : var(_var), t(_t), e1(_e1), e2(_e2) {}
 
 Shared_Exp ELet::step() {
   if (!e1->is_value()) {
     e1 = e1->step();
-    return std::make_shared<ELet>(var, e1, e2);
+    return std::make_shared<ELet>(var, t, e1, e2);
   } else {
     return e2->substitute(var, e1);
   }
 }
 
-Shared_Exp ELet::substitute(std::string var, Shared_Exp t) {
-  return std::make_shared<ELet>(this->var, e1->substitute(var, t),
-                                e2->substitute(var, t));
+Shared_Exp ELet::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<ELet>(this->var, t, e1->substitute(var, e),
+                                e2->substitute(var, e));
 }
 
 std::string ELet::string_of_exp() {
-  return "(let " + var + " = " + e1->string_of_exp() + " in " +
+  return "(let [" + var + " : " + t->get_type() + "]" + " = " + e1->string_of_exp() + " in " +
          e2->string_of_exp() + ")";
+}
+
+Shared_Typ ELet::typecheck(context_t context) {
+  Shared_Typ t1 = e1->typecheck(context);
+  context.insert({var, t});
+  Shared_Typ t2 = e2->typecheck(context);
+  std::string t_type = t->get_type();
+  std::string e1_type = t1->get_type();
+  if(e1_type != t_type) {
+    type_error(string_of_exp(), t_type, e1_type);
+  } else {
+    return t2;
+  }
+  return nullptr;
 }
 
 /******************************************************************************
@@ -373,4 +478,20 @@ Shared_Exp EApp::substitute(std::string var, Shared_Exp _e) {
 
 std::string EApp::string_of_exp() {
   return function->string_of_exp() + "(" + e->string_of_exp() + ")";
+}
+
+Shared_Typ EApp::typecheck(context_t context) {
+  Shared_Typ t1 = function->typecheck(context);
+  Shared_Typ t1_1 = t1->get_first_subtype();
+  Shared_Typ t1_2 = t1->get_second_subtype();
+  Shared_Typ t2 = e->typecheck(context);
+  std::string t1_1_type = t1_1->get_type();
+  std::string t2_type = t2->get_type();
+  if(t1_1_type != t2_type) {
+    type_error(string_of_exp(), t1_1_type, t2_type);
+  } else {
+    return t1_2;
+  }
+  return nullptr;
+
 }

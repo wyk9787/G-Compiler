@@ -14,6 +14,7 @@
 #include <memory>
 #include "token.hpp"
 #include "expression.hpp"
+#include "type.hpp"
 class parser_driver;
 // using namespace std;
 }
@@ -37,6 +38,7 @@ class parser_driver;
 #include "parser_driver.h"
 #include "token.hpp"
 #include "expression.hpp"
+#include "type.hpp"
 
 // using namespace std;
 }
@@ -67,11 +69,18 @@ class parser_driver;
   ASSIGN       "="
   IN           "in"
   REC          "rec"
+  COL          ":"
+  LBRA         "["
+  RBRA         "]"
 ;
 
 %token <int> INT "int"
 %token <double> DOUBLE "double"
 %token <std::string> VAR "var"
+%token <Shared_TInt> TINT "tint"
+%token <Shared_TFloat> TFLOAT "tfloat"
+%token <Shared_TBool> TBOOL "tbool"
+%token <Shared_TFunc> TFUNC "tfunc"
 
 %precedence "else"
 %precedence "then"
@@ -81,8 +90,10 @@ class parser_driver;
 %left "+" "-"
 %left "*" "/"
 %left "(" ")"
+%right "->"
 
 %type  < Shared_Exp > exp
+%type  < Shared_Typ > typ
 %parse-param {Shared_Exp *ret}
 %printer { yyoutput << $$->string_of_exp(); } exp;
 
@@ -100,8 +111,10 @@ exp:
 | "false"                         { $$ = std::make_shared<EBool>(false); }
 | "NaN"                           { $$ = std::make_shared<ELit>(false, 0, 0, true); }
 | "var"                           { $$ = std::make_shared<EVar>($1); }
-| "rec" "var" "var" "->" exp      { $$ = std::make_shared<EFunc>($3, $5, true, $2); }
-| "func" "var" "->" exp           { $$ = std::make_shared<EFunc>($2, $4, false, ""); }
+| "rec" "var" "[" "var" ":" typ "]" ":" typ "->" exp
+                                  { $$ = std::make_shared<EFunc>($4, $6, $9, $11, true, $2); }
+| "func" "[" "var" ":" typ "]" ":" typ "->" exp
+                                  { $$ = std::make_shared<EFunc>($3, $5, $8, $10, false, ""); }
 | exp "+" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Plus, $1, $3); }
 | exp "-" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Subtract, $1, $3); }
 | exp "*" exp                     { $$ = std::make_shared<EOperator>(TokenKind::Multiply, $1, $3); }
@@ -112,9 +125,17 @@ exp:
 | exp ">" exp                     { $$ = std::make_shared<EComp>(TokenKind::Greater, $1, $3); }
 | exp ">=" exp                    { $$ = std::make_shared<EComp>(TokenKind::Geq, $1, $3); }
 | exp "(" exp ")"                 { $$ = std::make_shared<EApp>($1, $3);}
-| "let" "var" "=" exp "in" exp    { $$ = std::make_shared<ELet>($2, $4, $6); }
+| "let" "[" "var" ":" typ "]" "=" exp "in" exp
+                                  { $$ = std::make_shared<ELet>($3, $5, $8, $10); }
 | "if" exp "then" exp "else" exp  { $$ = std::make_shared<EIf>($2, $4, $6); }
 | "(" exp ")"                     { $$ = $2; }
+
+typ:
+  "tint"                          { $$ = $1; }
+| "tfloat"                        { $$ = $1; }
+| "tbool"                         { $$ = $1; }
+| typ "->" typ                    { $$ = std::make_shared<TFunc>($1, $3); }
+| "[" typ "]"                     { $$ = $2; }
 
 %%
 

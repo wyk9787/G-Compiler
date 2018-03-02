@@ -10,6 +10,8 @@
 #include <vector>
 
 void interpret(Shared_Exp root, bool print_step) {
+  context_t context;
+  root->typecheck(context);
   Shared_Exp result = evaluate(root, print_step);
   assert(result->is_value() == true);
   if (result->is_NaN()) {

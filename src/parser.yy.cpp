@@ -49,15 +49,16 @@
 
 #line 51 "src/parser.yy.cpp" // lalr1.cc:412
 // Unqualified %code blocks.
-#line 36 "src/parser.yy" // lalr1.cc:413
+#line 37 "src/parser.yy" // lalr1.cc:413
 
 #include "parser_driver.h"
 #include "token.hpp"
 #include "expression.hpp"
+#include "type.hpp"
 
 // using namespace std;
 
-#line 61 "src/parser.yy.cpp" // lalr1.cc:413
+#line 62 "src/parser.yy.cpp" // lalr1.cc:413
 
 
 #ifndef YY_
@@ -143,7 +144,7 @@
 
 
 namespace yy {
-#line 147 "src/parser.yy.cpp" // lalr1.cc:479
+#line 148 "src/parser.yy.cpp" // lalr1.cc:479
 
   /* Return YYSTR after stripping away unnecessary quotes and
      backslashes, so that it's suitable for yyerror.  The heuristic is
@@ -256,19 +257,39 @@ namespace yy {
   {
       switch (that.type_get ())
     {
-      case 31: // exp
+      case 38: // exp
         value.move<  Shared_Exp  > (that.value);
         break;
 
-      case 27: // "double"
+      case 39: // typ
+        value.move<  Shared_Typ  > (that.value);
+        break;
+
+      case 34: // "tbool"
+        value.move< Shared_TBool > (that.value);
+        break;
+
+      case 33: // "tfloat"
+        value.move< Shared_TFloat > (that.value);
+        break;
+
+      case 35: // "tfunc"
+        value.move< Shared_TFunc > (that.value);
+        break;
+
+      case 32: // "tint"
+        value.move< Shared_TInt > (that.value);
+        break;
+
+      case 30: // "double"
         value.move< double > (that.value);
         break;
 
-      case 26: // "int"
+      case 29: // "int"
         value.move< int > (that.value);
         break;
 
-      case 28: // "var"
+      case 31: // "var"
         value.move< std::string > (that.value);
         break;
 
@@ -287,19 +308,39 @@ namespace yy {
     state = that.state;
       switch (that.type_get ())
     {
-      case 31: // exp
+      case 38: // exp
         value.copy<  Shared_Exp  > (that.value);
         break;
 
-      case 27: // "double"
+      case 39: // typ
+        value.copy<  Shared_Typ  > (that.value);
+        break;
+
+      case 34: // "tbool"
+        value.copy< Shared_TBool > (that.value);
+        break;
+
+      case 33: // "tfloat"
+        value.copy< Shared_TFloat > (that.value);
+        break;
+
+      case 35: // "tfunc"
+        value.copy< Shared_TFunc > (that.value);
+        break;
+
+      case 32: // "tint"
+        value.copy< Shared_TInt > (that.value);
+        break;
+
+      case 30: // "double"
         value.copy< double > (that.value);
         break;
 
-      case 26: // "int"
+      case 29: // "int"
         value.copy< int > (that.value);
         break;
 
-      case 28: // "var"
+      case 31: // "var"
         value.copy< std::string > (that.value);
         break;
 
@@ -339,11 +380,11 @@ namespace yy {
         << yysym.location << ": ";
     switch (yytype)
     {
-            case 31: // exp
+            case 38: // exp
 
-#line 87 "src/parser.yy" // lalr1.cc:636
+#line 98 "src/parser.yy" // lalr1.cc:636
         { yyoutput << yysym.value.template as<  Shared_Exp  > ()->string_of_exp(); }
-#line 347 "src/parser.yy.cpp" // lalr1.cc:636
+#line 388 "src/parser.yy.cpp" // lalr1.cc:636
         break;
 
 
@@ -456,14 +497,14 @@ namespace yy {
 
 
     // User initialization code.
-    #line 27 "src/parser.yy" // lalr1.cc:745
+    #line 28 "src/parser.yy" // lalr1.cc:745
 {
   // Initialize the initial location.
   // NOTE: For some reasons unknown, I cannot access the filename when try to print error
   yyla.location.begin.filename = yyla.location.end.filename = &driver.file;
 }
 
-#line 467 "src/parser.yy.cpp" // lalr1.cc:745
+#line 508 "src/parser.yy.cpp" // lalr1.cc:745
 
     /* Initialize the stack.  The initial state will be set in
        yynewstate, since the latter expects the semantical and the
@@ -553,19 +594,39 @@ namespace yy {
          when using variants.  */
         switch (yyr1_[yyn])
     {
-      case 31: // exp
+      case 38: // exp
         yylhs.value.build<  Shared_Exp  > ();
         break;
 
-      case 27: // "double"
+      case 39: // typ
+        yylhs.value.build<  Shared_Typ  > ();
+        break;
+
+      case 34: // "tbool"
+        yylhs.value.build< Shared_TBool > ();
+        break;
+
+      case 33: // "tfloat"
+        yylhs.value.build< Shared_TFloat > ();
+        break;
+
+      case 35: // "tfunc"
+        yylhs.value.build< Shared_TFunc > ();
+        break;
+
+      case 32: // "tint"
+        yylhs.value.build< Shared_TInt > ();
+        break;
+
+      case 30: // "double"
         yylhs.value.build< double > ();
         break;
 
-      case 26: // "int"
+      case 29: // "int"
         yylhs.value.build< int > ();
         break;
 
-      case 28: // "var"
+      case 31: // "var"
         yylhs.value.build< std::string > ();
         break;
 
@@ -587,139 +648,169 @@ namespace yy {
           switch (yyn)
             {
   case 2:
-#line 94 "src/parser.yy" // lalr1.cc:859
+#line 105 "src/parser.yy" // lalr1.cc:859
     { *ret = yystack_[1].value.as<  Shared_Exp  > (); }
-#line 593 "src/parser.yy.cpp" // lalr1.cc:859
+#line 654 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 3:
-#line 97 "src/parser.yy" // lalr1.cc:859
+#line 108 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<ELit>(true, yystack_[0].value.as< int > (), 0, false); }
-#line 599 "src/parser.yy.cpp" // lalr1.cc:859
+#line 660 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 4:
-#line 98 "src/parser.yy" // lalr1.cc:859
+#line 109 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<ELit>(false, 0, yystack_[0].value.as< double > (), false); }
-#line 605 "src/parser.yy.cpp" // lalr1.cc:859
+#line 666 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 5:
-#line 99 "src/parser.yy" // lalr1.cc:859
+#line 110 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EBool>(true); }
-#line 611 "src/parser.yy.cpp" // lalr1.cc:859
+#line 672 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 6:
-#line 100 "src/parser.yy" // lalr1.cc:859
+#line 111 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EBool>(false); }
-#line 617 "src/parser.yy.cpp" // lalr1.cc:859
+#line 678 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 7:
-#line 101 "src/parser.yy" // lalr1.cc:859
+#line 112 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<ELit>(false, 0, 0, true); }
-#line 623 "src/parser.yy.cpp" // lalr1.cc:859
+#line 684 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 8:
-#line 102 "src/parser.yy" // lalr1.cc:859
+#line 113 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EVar>(yystack_[0].value.as< std::string > ()); }
-#line 629 "src/parser.yy.cpp" // lalr1.cc:859
+#line 690 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 9:
-#line 103 "src/parser.yy" // lalr1.cc:859
-    { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EFunc>(yystack_[2].value.as< std::string > (), yystack_[0].value.as<  Shared_Exp  > (), true, yystack_[3].value.as< std::string > ()); }
-#line 635 "src/parser.yy.cpp" // lalr1.cc:859
+#line 115 "src/parser.yy" // lalr1.cc:859
+    { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EFunc>(yystack_[7].value.as< std::string > (), yystack_[5].value.as<  Shared_Typ  > (), yystack_[2].value.as<  Shared_Typ  > (), yystack_[0].value.as<  Shared_Exp  > (), true, yystack_[9].value.as< std::string > ()); }
+#line 696 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 10:
-#line 104 "src/parser.yy" // lalr1.cc:859
-    { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EFunc>(yystack_[2].value.as< std::string > (), yystack_[0].value.as<  Shared_Exp  > (), false, ""); }
-#line 641 "src/parser.yy.cpp" // lalr1.cc:859
+#line 117 "src/parser.yy" // lalr1.cc:859
+    { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EFunc>(yystack_[7].value.as< std::string > (), yystack_[5].value.as<  Shared_Typ  > (), yystack_[2].value.as<  Shared_Typ  > (), yystack_[0].value.as<  Shared_Exp  > (), false, ""); }
+#line 702 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 11:
-#line 105 "src/parser.yy" // lalr1.cc:859
+#line 118 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EOperator>(TokenKind::Plus, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 647 "src/parser.yy.cpp" // lalr1.cc:859
+#line 708 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 12:
-#line 106 "src/parser.yy" // lalr1.cc:859
+#line 119 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EOperator>(TokenKind::Subtract, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 653 "src/parser.yy.cpp" // lalr1.cc:859
+#line 714 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 13:
-#line 107 "src/parser.yy" // lalr1.cc:859
+#line 120 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EOperator>(TokenKind::Multiply, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 659 "src/parser.yy.cpp" // lalr1.cc:859
+#line 720 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 14:
-#line 108 "src/parser.yy" // lalr1.cc:859
+#line 121 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EOperator>(TokenKind::Divide, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 665 "src/parser.yy.cpp" // lalr1.cc:859
+#line 726 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 15:
-#line 109 "src/parser.yy" // lalr1.cc:859
+#line 122 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EComp>(TokenKind::Leq, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 671 "src/parser.yy.cpp" // lalr1.cc:859
+#line 732 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 16:
-#line 110 "src/parser.yy" // lalr1.cc:859
+#line 123 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EComp>(TokenKind::Less, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 677 "src/parser.yy.cpp" // lalr1.cc:859
+#line 738 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 17:
-#line 111 "src/parser.yy" // lalr1.cc:859
+#line 124 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EComp>(TokenKind::Equal, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 683 "src/parser.yy.cpp" // lalr1.cc:859
+#line 744 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 18:
-#line 112 "src/parser.yy" // lalr1.cc:859
+#line 125 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EComp>(TokenKind::Greater, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 689 "src/parser.yy.cpp" // lalr1.cc:859
+#line 750 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 19:
-#line 113 "src/parser.yy" // lalr1.cc:859
+#line 126 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EComp>(TokenKind::Geq, yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 695 "src/parser.yy.cpp" // lalr1.cc:859
+#line 756 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 20:
-#line 114 "src/parser.yy" // lalr1.cc:859
+#line 127 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EApp>(yystack_[3].value.as<  Shared_Exp  > (), yystack_[1].value.as<  Shared_Exp  > ());}
-#line 701 "src/parser.yy.cpp" // lalr1.cc:859
+#line 762 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 21:
-#line 115 "src/parser.yy" // lalr1.cc:859
-    { yylhs.value.as<  Shared_Exp  > () = std::make_shared<ELet>(yystack_[4].value.as< std::string > (), yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 707 "src/parser.yy.cpp" // lalr1.cc:859
+#line 129 "src/parser.yy" // lalr1.cc:859
+    { yylhs.value.as<  Shared_Exp  > () = std::make_shared<ELet>(yystack_[7].value.as< std::string > (), yystack_[5].value.as<  Shared_Typ  > (), yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
+#line 768 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 22:
-#line 116 "src/parser.yy" // lalr1.cc:859
+#line 130 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = std::make_shared<EIf>(yystack_[4].value.as<  Shared_Exp  > (), yystack_[2].value.as<  Shared_Exp  > (), yystack_[0].value.as<  Shared_Exp  > ()); }
-#line 713 "src/parser.yy.cpp" // lalr1.cc:859
+#line 774 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 23:
-#line 117 "src/parser.yy" // lalr1.cc:859
+#line 131 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as<  Shared_Exp  > () = yystack_[1].value.as<  Shared_Exp  > (); }
-#line 719 "src/parser.yy.cpp" // lalr1.cc:859
+#line 780 "src/parser.yy.cpp" // lalr1.cc:859
+    break;
+
+  case 24:
+#line 134 "src/parser.yy" // lalr1.cc:859
+    { yylhs.value.as<  Shared_Typ  > () = yystack_[0].value.as< Shared_TInt > (); }
+#line 786 "src/parser.yy.cpp" // lalr1.cc:859
+    break;
+
+  case 25:
+#line 135 "src/parser.yy" // lalr1.cc:859
+    { yylhs.value.as<  Shared_Typ  > () = yystack_[0].value.as< Shared_TFloat > (); }
+#line 792 "src/parser.yy.cpp" // lalr1.cc:859
+    break;
+
+  case 26:
+#line 136 "src/parser.yy" // lalr1.cc:859
+    { yylhs.value.as<  Shared_Typ  > () = yystack_[0].value.as< Shared_TBool > (); }
+#line 798 "src/parser.yy.cpp" // lalr1.cc:859
+    break;
+
+  case 27:
+#line 137 "src/parser.yy" // lalr1.cc:859
+    { yylhs.value.as<  Shared_Typ  > () = std::make_shared<TFunc>(yystack_[2].value.as<  Shared_Typ  > (), yystack_[0].value.as<  Shared_Typ  > ()); }
+#line 804 "src/parser.yy.cpp" // lalr1.cc:859
+    break;
+
+  case 28:
+#line 138 "src/parser.yy" // lalr1.cc:859
+    { yylhs.value.as<  Shared_Typ  > () = yystack_[1].value.as<  Shared_Typ  > (); }
+#line 810 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
 
-#line 723 "src/parser.yy.cpp" // lalr1.cc:859
+#line 814 "src/parser.yy.cpp" // lalr1.cc:859
             default:
               break;
             }
@@ -974,19 +1065,21 @@ namespace yy {
   }
 
 
-  const signed char parser::yypact_ninf_ = -28;
+  const signed char parser::yypact_ninf_ = -27;
 
   const signed char parser::yytable_ninf_ = -1;
 
-  const signed char
+  const short int
   parser::yypact_[] =
   {
-      27,    27,   -28,    27,   -28,   -28,   -27,   -25,   -24,   -28,
-     -28,   -28,     5,    82,    92,    53,   -15,   -16,   -20,   -28,
-     -28,    27,    27,    27,    27,    27,    27,    27,    27,    27,
-      27,   -28,    27,    27,    27,    -2,   126,   126,    26,    26,
-      31,    31,   124,    31,    31,   103,    68,   114,     6,    27,
-     -28,    27,    27,   114,   114,   114
+      79,    79,   -27,    79,   -27,   -27,   -24,   -23,   -12,   -27,
+     -27,   -27,     5,   137,   147,   108,     3,    14,    19,   -27,
+     -27,    79,    79,    79,    79,    79,    79,    79,    79,    79,
+      79,   -27,    79,    22,    23,    20,    30,    30,    48,    48,
+      35,    35,    50,    35,    35,   158,   123,   -26,   -26,    43,
+     -27,    79,   -26,   -27,   -27,   -27,    37,    38,   -26,   169,
+      74,   -26,    53,    40,    75,   -27,    59,   -26,    79,    58,
+      61,     6,   -26,    56,    79,    71,   -27,   169,    56,   -27
   };
 
   const unsigned char
@@ -996,85 +1089,99 @@ namespace yy {
        4,     8,     0,     0,     0,     0,     0,     0,     0,     1,
        2,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,    23,     0,     0,     0,     0,    11,    12,    13,    14,
-      16,    15,    17,    18,    19,     0,     0,    10,     0,     0,
-      20,     0,     0,     9,    22,    21
+      16,    15,    17,    18,    19,     0,     0,     0,     0,     0,
+      20,     0,     0,    24,    25,    26,     0,     0,     0,    22,
+       0,     0,     0,     0,     0,    28,    27,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    10,    21,     0,     9
   };
 
   const signed char
   parser::yypgoto_[] =
   {
-     -28,   -28,    -1
+     -27,   -27,    -1,   -15
   };
 
   const signed char
   parser::yydefgoto_[] =
   {
-      -1,    12,    13
+      -1,    12,    13,    66
   };
 
   const unsigned char
   parser::yytable_[] =
   {
-      14,    16,    15,    17,    18,    19,    33,    34,    35,    21,
-      22,    23,    24,    25,    26,    27,    28,    29,    30,    49,
+      14,    52,    15,    16,    17,    19,    53,    54,    55,    21,
+      22,    23,    24,    25,    26,    27,    28,    29,    30,    18,
       36,    37,    38,    39,    40,    41,    42,    43,    44,    45,
-      52,    46,    47,    48,    21,    22,    23,    24,    30,     1,
-      27,     2,     3,    30,     0,     4,     5,     6,    53,     7,
-      54,    55,     8,     9,    10,    11,    21,    22,    23,    24,
-      25,    26,    27,    28,    29,    30,     0,     0,     0,     0,
-      32,    21,    22,    23,    24,    25,    26,    27,    28,    29,
-      30,     0,    20,     0,    51,    21,    22,    23,    24,    25,
-      26,    27,    28,    29,    30,    21,    22,    23,    24,    25,
-      26,    27,    28,    29,    30,    31,    21,    22,    23,    24,
-      25,    26,    27,    28,    29,    30,    50,    21,    22,    23,
-      24,    25,    26,    27,    28,    29,    30,    21,    22,    23,
-      24,    23,    24,     0,     0,     0,    30,     0,    30
+      74,    46,    56,    57,    33,    23,    24,    60,    21,    22,
+      23,    24,    30,    64,    27,    34,    35,    30,    47,    48,
+      59,    49,    70,    21,    22,    23,    24,    75,    61,    61,
+      30,     0,    30,    68,     0,    62,    63,    71,     1,    58,
+       2,     3,    76,    77,     4,     5,     6,    79,     7,    67,
+      61,     8,    73,    52,    72,     9,    10,    11,    53,    54,
+      55,     1,    78,     2,     3,    61,    61,     4,     5,     6,
+       0,     7,    65,    69,     8,     0,     0,     0,     9,    10,
+      11,    21,    22,    23,    24,    25,    26,    27,    28,    29,
+      30,     0,     0,     0,     0,    32,    21,    22,    23,    24,
+      25,    26,    27,    28,    29,    30,     0,    20,     0,    51,
+      21,    22,    23,    24,    25,    26,    27,    28,    29,    30,
+      21,    22,    23,    24,    25,    26,    27,    28,    29,    30,
+      31,    21,    22,    23,    24,    25,    26,    27,    28,    29,
+      30,    50,    21,    22,    23,    24,    25,    26,    27,    28,
+      29,    30
   };
 
   const signed char
   parser::yycheck_[] =
   {
-       1,    28,     3,    28,    28,     0,    21,    23,    28,     3,
-       4,     5,     6,     7,     8,     9,    10,    11,    12,    21,
+       1,    27,     3,    27,    27,     0,    32,    33,    34,     3,
+       4,     5,     6,     7,     8,     9,    10,    11,    12,    31,
       21,    22,    23,    24,    25,    26,    27,    28,    29,    30,
-      24,    32,    33,    34,     3,     4,     5,     6,    12,    12,
-       9,    14,    15,    12,    -1,    18,    19,    20,    49,    22,
-      51,    52,    25,    26,    27,    28,     3,     4,     5,     6,
-       7,     8,     9,    10,    11,    12,    -1,    -1,    -1,    -1,
-      17,     3,     4,     5,     6,     7,     8,     9,    10,    11,
-      12,    -1,     0,    -1,    16,     3,     4,     5,     6,     7,
-       8,     9,    10,    11,    12,     3,     4,     5,     6,     7,
-       8,     9,    10,    11,    12,    13,     3,     4,     5,     6,
-       7,     8,     9,    10,    11,    12,    13,     3,     4,     5,
-       6,     7,     8,     9,    10,    11,    12,     3,     4,     5,
-       6,     5,     6,    -1,    -1,    -1,    12,    -1,    12
+      24,    32,    47,    48,    31,     5,     6,    52,     3,     4,
+       5,     6,    12,    58,     9,    31,    27,    12,    26,    26,
+      51,    31,    67,     3,     4,     5,     6,    72,    21,    21,
+      12,    -1,    12,    23,    -1,    28,    28,    68,    12,    26,
+      14,    15,    73,    74,    18,    19,    20,    78,    22,    26,
+      21,    25,    21,    27,    26,    29,    30,    31,    32,    33,
+      34,    12,    21,    14,    15,    21,    21,    18,    19,    20,
+      -1,    22,    28,    28,    25,    -1,    -1,    -1,    29,    30,
+      31,     3,     4,     5,     6,     7,     8,     9,    10,    11,
+      12,    -1,    -1,    -1,    -1,    17,     3,     4,     5,     6,
+       7,     8,     9,    10,    11,    12,    -1,     0,    -1,    16,
+       3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
+       3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
+      13,     3,     4,     5,     6,     7,     8,     9,    10,    11,
+      12,    13,     3,     4,     5,     6,     7,     8,     9,    10,
+      11,    12
   };
 
   const unsigned char
   parser::yystos_[] =
   {
-       0,    12,    14,    15,    18,    19,    20,    22,    25,    26,
-      27,    28,    30,    31,    31,    31,    28,    28,    28,     0,
+       0,    12,    14,    15,    18,    19,    20,    22,    25,    29,
+      30,    31,    37,    38,    38,    38,    27,    27,    31,     0,
        0,     3,     4,     5,     6,     7,     8,     9,    10,    11,
-      12,    13,    17,    21,    23,    28,    31,    31,    31,    31,
-      31,    31,    31,    31,    31,    31,    31,    31,    31,    21,
-      13,    16,    24,    31,    31,    31
+      12,    13,    17,    31,    31,    27,    38,    38,    38,    38,
+      38,    38,    38,    38,    38,    38,    38,    26,    26,    31,
+      13,    16,    27,    32,    33,    34,    39,    39,    26,    38,
+      39,    21,    28,    28,    39,    28,    39,    26,    23,    28,
+      39,    38,    26,    21,    24,    39,    38,    38,    21,    38
   };
 
   const unsigned char
   parser::yyr1_[] =
   {
-       0,    29,    30,    31,    31,    31,    31,    31,    31,    31,
-      31,    31,    31,    31,    31,    31,    31,    31,    31,    31,
-      31,    31,    31,    31
+       0,    36,    37,    38,    38,    38,    38,    38,    38,    38,
+      38,    38,    38,    38,    38,    38,    38,    38,    38,    38,
+      38,    38,    38,    38,    39,    39,    39,    39,    39
   };
 
   const unsigned char
   parser::yyr2_[] =
   {
-       0,     2,     2,     1,     1,     1,     1,     1,     1,     5,
-       4,     3,     3,     3,     3,     3,     3,     3,     3,     3,
-       4,     6,     6,     3
+       0,     2,     2,     1,     1,     1,     1,     1,     1,    11,
+      10,     3,     3,     3,     3,     3,     3,     3,     3,     3,
+       4,    10,     6,     3,     1,     1,     1,     3,     3
   };
 
 
@@ -1087,17 +1194,18 @@ namespace yy {
   "\"eof\"", "error", "$undefined", "\"+\"", "\"-\"", "\"*\"", "\"/\"",
   "\"<\"", "\"<=\"", "\"==\"", "\">\"", "\">=\"", "\"(\"", "\")\"",
   "\"NaN\"", "\"if\"", "\"else\"", "\"then\"", "\"true\"", "\"false\"",
-  "\"func\"", "\"->\"", "\"let\"", "\"=\"", "\"in\"", "\"rec\"", "\"int\"",
-  "\"double\"", "\"var\"", "$accept", "prog", "exp", YY_NULLPTR
+  "\"func\"", "\"->\"", "\"let\"", "\"=\"", "\"in\"", "\"rec\"", "\":\"",
+  "\"[\"", "\"]\"", "\"int\"", "\"double\"", "\"var\"", "\"tint\"",
+  "\"tfloat\"", "\"tbool\"", "\"tfunc\"", "$accept", "prog", "exp", "typ", YY_NULLPTR
   };
 
 #if YYDEBUG
   const unsigned char
   parser::yyrline_[] =
   {
-       0,    94,    94,    97,    98,    99,   100,   101,   102,   103,
-     104,   105,   106,   107,   108,   109,   110,   111,   112,   113,
-     114,   115,   116,   117
+       0,   105,   105,   108,   109,   110,   111,   112,   113,   114,
+     116,   118,   119,   120,   121,   122,   123,   124,   125,   126,
+     127,   128,   130,   131,   134,   135,   136,   137,   138
   };
 
   // Print the state stack on the debug stream.
@@ -1132,8 +1240,8 @@ namespace yy {
 
 
 } // yy
-#line 1136 "src/parser.yy.cpp" // lalr1.cc:1167
-#line 119 "src/parser.yy" // lalr1.cc:1168
+#line 1244 "src/parser.yy.cpp" // lalr1.cc:1167
+#line 140 "src/parser.yy" // lalr1.cc:1168
 
 
 // NOTE: Bison's error reporting simply forwards to the driver

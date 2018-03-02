@@ -13,7 +13,7 @@ BISON_AUX    := $(SRC_DIR)/location.hh $(SRC_DIR)/parser.yy.hpp $(SRC_DIR)/posit
 TEST_DIR     := ./test
 TARGET       := compiler
 INCLUDE      := -Iinclude/ -Isrc/
-CORE         := $(SRC_DIR)/compiler.cpp $(SRC_DIR)/expression.cpp $(SRC_DIR)/interpreter.cpp $(SRC_DIR)/parser_driver.cpp
+CORE         := $(SRC_DIR)/compiler.cpp $(SRC_DIR)/expression.cpp $(SRC_DIR)/interpreter.cpp $(SRC_DIR)/parser_driver.cpp $(SRC_DIR)/type.cpp
 SRC          := $(BISON_OUTPUT) $(LEX_OUTPUT) $(CORE)
 
 all: build $(APP_DIR)/$(TARGET)

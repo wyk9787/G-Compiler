@@ -60,6 +60,12 @@ blank [ \t]
 "="         { return yy::parser::make_ASSIGN(loc); }
 "in"        { return yy::parser::make_IN(loc); }
 "rec"       { return yy::parser::make_REC(loc); }
+"int"       { return yy::parser::make_TINT(std::make_shared<TInt>(), loc); }
+"double"    { return yy::parser::make_TFLOAT(std::make_shared<TFloat>(), loc); }
+"bool"      { return yy::parser::make_TBOOL(std::make_shared<TBool>(), loc); }
+":"         { return yy::parser::make_COL(loc); }
+"["         { return yy::parser::make_LBRA(loc); }
+"]"         { return yy::parser::make_RBRA(loc); }
 
 {var}       { return yy::parser::make_VAR(yytext, loc);}
 
