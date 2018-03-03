@@ -25,15 +25,13 @@ public:
   virtual Shared_Exp step() = 0;
   virtual Shared_Exp substitute(std::string var, Shared_Exp t) = 0;
   virtual std::string string_of_exp() = 0;
-  virtual Shared_Typ typecheck(context_t context) {
-    std::cerr << "Debug: you are not suppose to typecheck this!" << std::endl;
-    exit(1);
-  }
+  virtual Shared_Typ typecheck(context_t context) = 0;
 
   virtual bool is_value() { return false; }
   virtual bool is_bool() { return false; }
   virtual bool is_int() { return false; }
   virtual bool is_float() {return false; }
+  virtual bool is_unit() {return false; }
   virtual bool is_NaN() { return false; }
   virtual bool is_var() { return false; }
   virtual bool is_func() { return false; }
@@ -198,6 +196,24 @@ public:
 };
 
 /******************************************************************************
+                               EUnit Header
+*******************************************************************************/
+
+class EUnit : public Exp {
+private:
+
+public:
+  EUnit();
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
+  bool is_value();
+  bool is_unit();
+};
+
+/******************************************************************************
                                EIf Header
 *******************************************************************************/
 
@@ -251,7 +267,7 @@ public:
 };
 
 /******************************************************************************
-                               Helper`
+                               Helper
 *******************************************************************************/
 
 Shared_Exp evaluate(Shared_Exp exp, bool print_step);

@@ -15,7 +15,10 @@ class TFunc;
 void type_error(std::string expression, std::string expected,
                 std::string actual);
 
-// bool operator ==(const Shared_Typ &first, const Shared_Typ &second);
+bool operator ==(const Typ &first, const Typ &second);
+bool operator !=(const Typ &first, const Typ &second);
+
+//********************************Typ Header*********************************//
 
 class Typ {
 public:
@@ -28,37 +31,60 @@ public:
     std::cerr << "There is no second subtype for this type!" << std::endl;
     exit(1);
   }
-  // virtual bool operator==(const Typ &other) const {
-  //   std::cout << "Enter Typ ==" << std::endl;
-  //   if (typeid(*this) != typeid(other)) {
-  //     std::cout << "here" << std::endl;
-  //     return false;
-  //   } else {
-  //     std::cout << "here1" << std::endl;
-  //     return true;
-  //   }
-  // }
+  friend bool operator==(const Typ &first, const Typ &second);
+  friend bool operator!=(const Typ &first, const Typ &second);
+
+protected:
+  virtual bool eq(const Typ& other) const {
+    return false;
+  };
 };
+
+//********************************TInt Header********************************//
 
 class TInt : public Typ {
 public:
   TInt();
   std::string get_type();
-  // bool operator==(const Typ &other) const;
+
+protected:
+  bool eq(const Typ& other) const;
 };
+
+//********************************TFloat Header******************************//
 
 class TFloat : public Typ {
 public:
   TFloat();
   std::string get_type();
-  // bool operator ==(const Typ &other) const;
+
+protected:
+  bool eq(const Typ& other) const;
 };
+
+//********************************TBool Header*******************************//
 
 class TBool : public Typ {
 public:
   TBool();
   std::string get_type();
+
+protected:
+  bool eq(const Typ& other) const;
 };
+
+//********************************TUnit Header*******************************//
+
+class TUnit : public Typ {
+public:
+  TUnit();
+  std::string get_type();
+
+protected:
+  bool eq(const Typ& other) const;
+};
+
+//********************************TFunc Header*******************************//
 
 class TFunc : public Typ {
 private:
@@ -70,6 +96,9 @@ public:
   std::string get_type();
   Shared_Typ get_first_subtype();
   Shared_Typ get_second_subtype();
+
+protected:
+  bool eq(const Typ& other) const;
 };
 
 #endif

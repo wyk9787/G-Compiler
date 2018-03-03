@@ -1,0 +1,12 @@
+let [x:int->int] =
+
+rec f [x:int] : int ->
+
+if(x <= 100)
+then x + f (x + 1)
+else x
+
+in
+
+let [a:int] = 99
+in x (a)

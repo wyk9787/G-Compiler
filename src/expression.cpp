@@ -94,25 +94,16 @@ std::string EOperator::string_of_exp() {
 Shared_Typ EOperator::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
-  std::string t1_type = t1->get_type();
-  std::string t2_type = t2->get_type();
-  if(t1_type != "Int" && t1_type != "Float") {
-    type_error(string_of_exp(), "Int or Float", t1_type);
-  } else if (t2_type != "Int" && t2_type != "Float") {
-    type_error(string_of_exp(), "Int or Float", t2_type);
+  if(dynamic_cast<TInt*>(t1.get()) == nullptr && dynamic_cast<TFloat*>(t1.get()) == nullptr) {
+    type_error(string_of_exp(), "Int or Float", t1->get_type());
+  } else if (dynamic_cast<TInt*>(t2.get()) == nullptr && dynamic_cast<TFloat*>(t2.get()) == nullptr) {
+    type_error(string_of_exp(), "Int or Float", t2->get_type());
+  } else if (*t1.get() != *t2.get()) {
+    type_error(string_of_exp(), t1->get_type(), t2->get_type());
   } else {
-    if (t1_type == "Float" || t2_type == "Float")
-      return std::make_shared<TFloat>();
-    else
-      return std::make_shared<TInt>();
+    return t1;
   }
-  // if(t1.get() == t2.get()) {
-  //   std::cout << "Typechecks!" << std::endl;
-  //   return t1;
-  // } else {
-  //   std::cout << "Did not typecheck!" << std::endl;
-  //   type_error(string_of_exp(), "Int or Float", t1_type);
-  // }
+
   return nullptr;
 }
 
@@ -182,15 +173,16 @@ std::string EComp::string_of_exp() {
 Shared_Typ EComp::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
-  std::string t1_type = t1->get_type();
-  std::string t2_type = t2->get_type();
-  if(t1_type != "Int" && t1_type != "Float") {
-    type_error(string_of_exp(), "Int or Float", t1_type);
-  } else if (t2_type != "Int" && t2_type != "Float") {
-    type_error(string_of_exp(), "Int or Float", t2_type);
+  if(dynamic_cast<TInt*>(t1.get()) == nullptr && dynamic_cast<TFloat*>(t1.get()) == nullptr) {
+    type_error(string_of_exp(), "Int or Float", t1->get_type());
+  } else if (dynamic_cast<TInt*>(t2.get()) == nullptr && dynamic_cast<TFloat*>(t2.get()) == nullptr) {
+    type_error(string_of_exp(), "Int or Float", t2->get_type());
+  } else if (*t1.get() != *t2.get()) {
+    type_error(string_of_exp(), t1->get_type(), t2->get_type());
   } else {
     return std::make_shared<TBool>();
   }
+
   return nullptr;
 }
 
@@ -327,12 +319,11 @@ Shared_Typ EFunc::typecheck(context_t context) {
     context.insert({id, std::make_shared<TFunc>(t1, t2)});
   }
   context.insert({param, t1});
-  std::string e_type = e->typecheck(context)->get_type();
-  std::string t2_type = t2->get_type();
-  if(e_type == t2_type) {
+  Shared_Typ e_type = e->typecheck(context);
+  if(*e_type.get() == *t2.get()) {
     return std::make_shared<TFunc>(t1, t2);
   } else {
-    type_error(string_of_exp(), t2_type, e_type);
+    type_error(string_of_exp(), t2->get_type(), e_type->get_type());
   }
   return nullptr;
 }
@@ -352,6 +343,32 @@ std::string EFunc::get_param() { return param; }
 bool EFunc::get_is_rec() { return is_rec; }
 
 std::string EFunc::get_id() { return id; }
+
+/******************************************************************************
+                               EUnit Header
+*******************************************************************************/
+
+EUnit::EUnit() {};
+Shared_Exp EUnit::step() {
+  return std::make_shared<EUnit>();
+}
+Shared_Exp EUnit::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EUnit>();
+}
+std::string EUnit::string_of_exp() {
+  return "()";
+}
+Shared_Typ EUnit::typecheck(context_t context) {
+  return std::make_shared<TUnit>();
+}
+
+bool EUnit::is_value() {
+  return true;
+}
+
+bool EUnit::is_unit() {
+  return true;
+}
 
 /******************************************************************************
                         EIf Implementaion
@@ -383,14 +400,13 @@ Shared_Exp EIf::substitute(std::string var, Shared_Exp e) {
 }
 
 Shared_Typ EIf::typecheck(context_t context) {
+  Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
-  std::string e1_type = e1->typecheck(context)->get_type();
-  std::string e2_type = t2->get_type();
-  std::string e3_type = e3->typecheck(context)->get_type();
-  if(e1_type != "Boolean") {
-    type_error(string_of_exp(), "Boolean", e1_type);
-  } else if (e2_type != e3_type) {
-    type_error(string_of_exp(), e2_type, e3_type);
+  Shared_Typ t3 = e3->typecheck(context);
+  if(dynamic_cast<TBool*>(t1.get()) == nullptr) {
+    type_error(string_of_exp(), "Boolean", t1->get_type());
+  } else if (*t2.get() != *t3.get()) {
+    type_error(string_of_exp(), t2->get_type(), t3->get_type());
   } else {
     return t2;
   }
@@ -432,10 +448,8 @@ Shared_Typ ELet::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   context.insert({var, t});
   Shared_Typ t2 = e2->typecheck(context);
-  std::string t_type = t->get_type();
-  std::string e1_type = t1->get_type();
-  if(e1_type != t_type) {
-    type_error(string_of_exp(), t_type, e1_type);
+  if(*t1.get() != *t.get()) {
+    type_error(string_of_exp(), t->get_type(), t1->get_type());
   } else {
     return t2;
   }
@@ -485,10 +499,8 @@ Shared_Typ EApp::typecheck(context_t context) {
   Shared_Typ t1_1 = t1->get_first_subtype();
   Shared_Typ t1_2 = t1->get_second_subtype();
   Shared_Typ t2 = e->typecheck(context);
-  std::string t1_1_type = t1_1->get_type();
-  std::string t2_type = t2->get_type();
-  if(t1_1_type != t2_type) {
-    type_error(string_of_exp(), t1_1_type, t2_type);
+  if(*t1_1.get() != *t2.get()) {
+    type_error(string_of_exp(), t1_1->get_type(), t2->get_type());
   } else {
     return t1_2;
   }

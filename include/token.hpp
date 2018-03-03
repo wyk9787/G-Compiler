@@ -19,6 +19,7 @@ class EApp;
 class Typ;
 class TInt;
 class TBool;
+class TUnit;
 class TFloat;
 class TFunc;
 
@@ -40,6 +41,7 @@ typedef std::shared_ptr<Typ> Shared_Typ;
 typedef std::shared_ptr<TInt> Shared_TInt;
 typedef std::shared_ptr<TFloat> Shared_TFloat;
 typedef std::shared_ptr<TBool> Shared_TBool;
+typedef std::shared_ptr<TUnit> Shared_TUnit;
 typedef std::shared_ptr<TFunc> Shared_TFunc;
 typedef std::unordered_map<std::string, std::shared_ptr<Typ>> context_t;
 

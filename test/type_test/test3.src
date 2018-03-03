@@ -1,0 +1,16 @@
+(let
+  [fact : int->int] = rec f [n:int] : int ->
+  if (n > 0) then
+    n * f (n-1)
+  else
+    1
+in fact (3.0))
+
++
+
+(let [max2 : int-> int -> int] =
+  fun [x:int] : [int->int] -> (fun [y:int] : int -> if x > y then x else y)
+in
+let [a:int] = 5 in
+let [b:int] = 2 in
+max2 (a) (b))

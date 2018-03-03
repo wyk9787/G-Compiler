@@ -5,5 +5,5 @@ if
 then (10.23+0.77)
 else
     if false
-    then 3+2.5/2
-    else 0.0/0
+    then 3.0+2.5/2.0
+    else 0.0/0.0

@@ -26,6 +26,8 @@ void interpret(Shared_Exp root, bool print_step) {
     std::cout << result->get_var() << std::endl;
   } else if (result->is_func()) {
     std::cout << result->get_func()->string_of_exp() << std::endl;
+  } else if (result->is_unit()) {
+    return;
   } else {
     std::cerr << "Debug: Error! Shoule be evaluated to a value" << std::endl;
     exit(1);

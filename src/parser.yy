@@ -72,6 +72,7 @@ class parser_driver;
   COL          ":"
   LBRA         "["
   RBRA         "]"
+  UNIT         "()"
 ;
 
 %token <int> INT "int"
@@ -80,17 +81,18 @@ class parser_driver;
 %token <Shared_TInt> TINT "tint"
 %token <Shared_TFloat> TFLOAT "tfloat"
 %token <Shared_TBool> TBOOL "tbool"
+%token <Shared_TUnit> TUNIT "tunit"
 %token <Shared_TFunc> TFUNC "tfunc"
 
 %precedence "else"
 %precedence "then"
 %precedence "if"
-%left "<=" "<" ">=" ">"
-%left "=="
+%right "->"
+%left "<=" "<" ">=" ">" "=="
 %left "+" "-"
 %left "*" "/"
 %left "(" ")"
-%right "->"
+
 
 %type  < Shared_Exp > exp
 %type  < Shared_Typ > typ
@@ -111,6 +113,7 @@ exp:
 | "false"                         { $$ = std::make_shared<EBool>(false); }
 | "NaN"                           { $$ = std::make_shared<ELit>(false, 0, 0, true); }
 | "var"                           { $$ = std::make_shared<EVar>($1); }
+| "()"                            { $$ = std::make_shared<EUnit>(); }
 | "rec" "var" "[" "var" ":" typ "]" ":" typ "->" exp
                                   { $$ = std::make_shared<EFunc>($4, $6, $9, $11, true, $2); }
 | "func" "[" "var" ":" typ "]" ":" typ "->" exp
@@ -134,6 +137,7 @@ typ:
   "tint"                          { $$ = $1; }
 | "tfloat"                        { $$ = $1; }
 | "tbool"                         { $$ = $1; }
+| "tunit"                         { $$ = $1; }
 | typ "->" typ                    { $$ = std::make_shared<TFunc>($1, $3); }
 | "[" typ "]"                     { $$ = $2; }
 
