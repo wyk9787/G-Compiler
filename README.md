@@ -58,21 +58,28 @@ e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
         | true | false | f | NaN | x
         | e1 <= e2 | e1 < e2 | e1 == e2 | e1 > e2 | e1 >= e2
         | if e1 then e2 else e3
-        | let x = e1 in e2 | fun x -> e | e1 (e2) | rec f x -> e
+        | let [x:t] = e1 in e2
+        | fun [x:t1] : t2 -> e | rec f [x:t1] : t2 -> e | e1 (e2)
+        | () | (e1, e2) | fst (e) | snd (e)
+        | [] : t | e1 :: e2 | car (e) | cdr (e) | empty? (e)
+
+t ::= int | float | bool | t1 -> t2 | t1 * t2 | {t}
 ```
 
 ### Precedence
 
 ```
-1. ( )
+1. ( )  left associative
 
-2. * /
+2. * / left associative
 
-3. + -
+3. + - left associative
 
-4. ==
+4. <= < > >= == left associative
 
-5. <= < > >=
+5. -> :: right associative
+
+6. if then else
 
 ```
 
