@@ -86,3 +86,41 @@ Shared_Typ TFunc::get_first_subtype() {
 Shared_Typ TFunc::get_second_subtype() {
   return t2;
 }
+
+//********************************TPair Implementaion****************************//
+
+TPair::TPair(Shared_Typ _t1, Shared_Typ _t2) : t1(_t1), t2(_t2) {};
+
+bool TPair::eq(const Typ& other) const {
+  const TPair *res = dynamic_cast<const TPair*>(&other);
+  return res != nullptr && *t1.get() == *const_cast<Typ&>(other).get_first_subtype().get() && *t2.get() == *const_cast<Typ&>(other).get_second_subtype().get();
+}
+
+std::string TPair::get_type() {
+  return t1->get_type() + " * " + t2->get_type();
+}
+
+Shared_Typ TPair::get_first_subtype() {
+  return t1;
+}
+
+Shared_Typ TPair::get_second_subtype() {
+  return t2;
+}
+
+//********************************TList Implementaion****************************//
+
+TList::TList(Shared_Typ _t) : t(_t) {};
+
+bool TList::eq(const Typ& other) const {
+  const TList *res = dynamic_cast<const TList*>(&other);
+  return res != nullptr && *t.get() == *const_cast<Typ&>(other).get_first_subtype().get();
+}
+
+std::string TList::get_type() {
+  return "{" + t->get_type() + "}";
+}
+
+Shared_Typ TList::get_first_subtype() {
+  return t;
+}

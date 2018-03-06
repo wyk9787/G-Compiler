@@ -101,4 +101,36 @@ protected:
   bool eq(const Typ& other) const;
 };
 
+//********************************TPair Header*******************************//
+
+class TPair : public Typ {
+private:
+  Shared_Typ t1;
+  Shared_Typ t2;
+
+public:
+  TPair(Shared_Typ _t1, Shared_Typ _t2);
+  std::string get_type();
+  Shared_Typ get_first_subtype();
+  Shared_Typ get_second_subtype();
+
+protected:
+  bool eq(const Typ& other) const;
+};
+
+//********************************TList Header*******************************//
+
+class TList : public Typ {
+private:
+  Shared_Typ t;
+
+public:
+  TList(Shared_Typ _t);
+  std::string get_type();
+  Shared_Typ get_first_subtype();
+
+protected:
+  bool eq(const Typ& other) const;
+};
+
 #endif

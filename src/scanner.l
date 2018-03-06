@@ -68,6 +68,16 @@ blank [ \t]
 "["         { return yy::parser::make_LBRA(loc); }
 "]"         { return yy::parser::make_RBRA(loc); }
 "()"        { return yy::parser::make_UNIT(loc); }
+","         { return yy::parser::make_COMMA(loc); }
+"fst"       { return yy::parser::make_FST(loc); }
+"snd"       { return yy::parser::make_SND(loc); }
+"{"         { return yy::parser::make_LCURLY(loc); }
+"}"         { return yy::parser::make_RCURLY(loc); }
+"car"       { return yy::parser::make_CAR(loc); }
+"cdr"       { return yy::parser::make_CDR(loc); }
+"empty?"    { return yy::parser::make_EMPTY(loc); }
+"::"        { return yy::parser::make_CONS(loc); }
+
 
 
 {var}       { return yy::parser::make_VAR(yytext, loc);}

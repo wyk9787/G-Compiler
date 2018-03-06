@@ -1,0 +1,11 @@
+let [inner_product : {int}->{int}->int] =
+rec f1 [l1:{int}] : [{int}->int] ->
+fun [l2:{int}] : int ->
+if empty? (l1)
+then 0
+else car(l1) * car(l2) +  f1 (cdr(l1)) (cdr(l2))
+
+in
+let [lst1:{int}] = 1::2::{}:int in
+let [lst2:{int}] = 3::4::{}:float in
+inner_product (lst1) (lst2)

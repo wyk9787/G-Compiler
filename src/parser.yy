@@ -73,6 +73,15 @@ class parser_driver;
   LBRA         "["
   RBRA         "]"
   UNIT         "()"
+  FST          "fst"
+  SND          "snd"
+  COMMA        ","
+  LCURLY       "{"
+  RCURLY       "}"
+  CONS         "::"
+  CAR          "car"
+  CDR          "cdr"
+  EMPTY        "empty"
 ;
 
 %token <int> INT "int"
@@ -82,12 +91,9 @@ class parser_driver;
 %token <Shared_TFloat> TFLOAT "tfloat"
 %token <Shared_TBool> TBOOL "tbool"
 %token <Shared_TUnit> TUNIT "tunit"
-%token <Shared_TFunc> TFUNC "tfunc"
 
-%precedence "else"
-%precedence "then"
-%precedence "if"
-%right "->"
+%precedence "if" "then" "else"
+%right "->" "::"
 %left "<=" "<" ">=" ">" "=="
 %left "+" "-"
 %left "*" "/"
@@ -127,11 +133,20 @@ exp:
 | exp "==" exp                    { $$ = std::make_shared<EComp>(TokenKind::Equal, $1, $3); }
 | exp ">" exp                     { $$ = std::make_shared<EComp>(TokenKind::Greater, $1, $3); }
 | exp ">=" exp                    { $$ = std::make_shared<EComp>(TokenKind::Geq, $1, $3); }
-| exp "(" exp ")"                 { $$ = std::make_shared<EApp>($1, $3);}
+| exp "(" exp ")"                 { $$ = std::make_shared<EApp>($1, $3); }
+| "(" exp "," exp ")"             { $$ = std::make_shared<EPair>($2, $4); }
+| "fst" "(" exp ")"               { $$ = std::make_shared<EFst>($3); }
+| "snd" "(" exp ")"               { $$ = std::make_shared<ESnd>($3); }
+| "car" "(" exp ")"               { $$ = std::make_shared<ECar>($3); }
+| "cdr" "(" exp ")"               { $$ = std::make_shared<ECdr>($3); }
+| "empty" "(" exp ")"             { $$ = std::make_shared<EEmpty>($3); }
+| exp "::" exp                    { $$ = std::make_shared<ECons>($1, $3); }
+| "{" "}" ":" typ                 { std::vector<Shared_Exp> v;
+                                    $$ = std::make_shared<EList>(v, $4); }
 | "let" "[" "var" ":" typ "]" "=" exp "in" exp
                                   { $$ = std::make_shared<ELet>($3, $5, $8, $10); }
 | "if" exp "then" exp "else" exp  { $$ = std::make_shared<EIf>($2, $4, $6); }
-| "(" exp ")"                     { $$ = $2; }
+| "(" exp ")" %prec "->"          { $$ = $2; }
 
 typ:
   "tint"                          { $$ = $1; }
@@ -139,6 +154,8 @@ typ:
 | "tbool"                         { $$ = $1; }
 | "tunit"                         { $$ = $1; }
 | typ "->" typ                    { $$ = std::make_shared<TFunc>($1, $3); }
+| typ "*" typ  %prec "->"         { $$ = std::make_shared<TPair>($1, $3); }
+| "{" typ "}"                     { $$ = std::make_shared<TList>($2); }
 | "[" typ "]"                     { $$ = $2; }
 
 %%

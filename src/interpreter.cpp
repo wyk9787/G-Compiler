@@ -25,7 +25,11 @@ void interpret(Shared_Exp root, bool print_step) {
   } else if (result->is_var()) {
     std::cout << result->get_var() << std::endl;
   } else if (result->is_func()) {
-    std::cout << result->get_func()->string_of_exp() << std::endl;
+    std::cout << result->string_of_exp() << std::endl;
+  } else if (result->is_pair()) {
+    std::cout << result->string_of_exp() << std::endl;
+  } else if (result->is_list()) {
+    std::cout << result->string_of_exp() << std::endl;
   } else if (result->is_unit()) {
     return;
   } else {
