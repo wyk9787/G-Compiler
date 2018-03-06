@@ -10,6 +10,8 @@
 #include <vector>
 
 void interpret(Shared_Exp root, bool print_step) {
+  context_t context;
+  root->typecheck(context);
   Shared_Exp result = evaluate(root, print_step);
   assert(result->is_value() == true);
   if (result->is_NaN()) {
@@ -23,7 +25,13 @@ void interpret(Shared_Exp root, bool print_step) {
   } else if (result->is_var()) {
     std::cout << result->get_var() << std::endl;
   } else if (result->is_func()) {
-    std::cout << result->get_func()->string_of_exp() << std::endl;
+    std::cout << result->string_of_exp() << std::endl;
+  } else if (result->is_pair()) {
+    std::cout << result->string_of_exp() << std::endl;
+  } else if (result->is_list()) {
+    std::cout << result->string_of_exp() << std::endl;
+  } else if (result->is_unit()) {
+    return;
   } else {
     std::cerr << "Debug: Error! Shoule be evaluated to a value" << std::endl;
     exit(1);

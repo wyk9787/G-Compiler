@@ -1,19 +1,16 @@
 #ifndef EXPRESSION_HPP
 #define EXPRESSION_HPP
 #include "token.hpp"
+#include "type.hpp"
 #include <memory>
 #include <iostream>
+#include <vector>
 
-class Exp;
-class EOperator;
-class EComp;
-class ELit;
-class EBool;
-class EVar;
-class EFunc;
-class EIf;
-class ELet;
-class EApp;
+/******************************************************************************
+                               Helper
+*******************************************************************************/
+
+Shared_Exp evaluate(Shared_Exp exp, bool print_step);
 
 /******************************************************************************
                                Exp Header
@@ -21,43 +18,55 @@ class EApp;
 
 class Exp {
 public:
-  virtual std::shared_ptr<Exp> step() = 0;
-  virtual std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> t) = 0;
+  virtual Shared_Exp step() = 0;
+  virtual Shared_Exp substitute(std::string var, Shared_Exp t) = 0;
   virtual std::string string_of_exp() = 0;
+  virtual Shared_Typ typecheck(context_t context) = 0;
 
   virtual bool is_value() { return false; }
   virtual bool is_bool() { return false; }
   virtual bool is_int() { return false; }
   virtual bool is_float() {return false; }
+  virtual bool is_unit() {return false; }
   virtual bool is_NaN() { return false; }
   virtual bool is_var() { return false; }
   virtual bool is_func() { return false; }
-
+  virtual bool is_pair() { return false; }
+  virtual bool is_list() { return false; }
 
   virtual bool get_bool() {
-    std::cerr << "Expecting a boolean!\n";
+    std::cerr << "Debug: Expecting a boolean!\n";
     exit(1);
   }
   virtual int get_int() {
-    std::cerr << "Expecting an integer!\n";
+    std::cerr << "Debug: Expecting an integer!\n";
     exit(1);
   }
   virtual std::string get_NaN() {
-    std::cerr << "Expecting an integer!\n";
+    std::cerr << "Debug: Expecting an integer!\n";
     exit(1);
   }
   virtual double get_float() {
-    std::cerr << "Expecting a float!\n";
+    std::cerr << "Debug: Expecting a float!\n";
     exit(1);
   }
   virtual std::string get_var() {
-    std::cerr << "Expecting a variable!\n";
+    std::cerr << "Debug: Expecting a variable!\n";
     exit(1);
   }
   virtual std::shared_ptr<EFunc> get_func() {
-    std::cerr << "Expecting a boolean!\n";
+    std::cerr << "Debug: Expecting a boolean!\n";
     exit(1);
   }
+  virtual Shared_EPair get_pair() {
+    std::cerr << "Debug: Expecting a pair!\n";
+    exit(1);
+  }
+  virtual Shared_EList get_list() {
+    std::cerr << "Debug: Expecting a list!\n";
+    exit(1);
+  }
+
   virtual ~Exp(){};
 };
 
@@ -68,14 +77,15 @@ public:
 class EOperator : public Exp {
 private:
   TokenKind id;
-  std::shared_ptr<Exp> e1, e2;
-  std::shared_ptr<Exp> evaluate_num(std::shared_ptr<Exp> e1, std::shared_ptr<Exp> e2, bool is_int);
+  Shared_Exp e1, e2;
+  Shared_Exp evaluate_num(Shared_Exp e1, Shared_Exp e2, bool is_int);
 
 public:
-  EOperator(TokenKind _id, std::shared_ptr<Exp> _e1, std::shared_ptr<Exp> _e2);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> t);
+  EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
 };
 
 /******************************************************************************
@@ -85,14 +95,15 @@ public:
 class EComp : public Exp {
 private:
   TokenKind id;
-  std::shared_ptr<Exp> e1, e2;
-  std::shared_ptr<Exp> evaluate_bool(std::shared_ptr<Exp> e1, std::shared_ptr<Exp> e2);
+  Shared_Exp e1, e2;
+  Shared_Exp evaluate_bool(Shared_Exp e1, Shared_Exp e2);
 
 public:
-  EComp(TokenKind _id, std::shared_ptr<Exp> _e1, std::shared_ptr<Exp> _e2);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> t);
+  EComp(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
 };
 
 
@@ -108,9 +119,10 @@ private:
   double float_data;
 public:
   ELit(bool __is_int, int _int_data, double _float_data, bool __is_NaN);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
 
   bool is_value();
   bool is_int();
@@ -130,9 +142,11 @@ private:
   bool data;
 public:
   EBool(bool _data);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
   bool is_value();
   bool is_bool();
   bool get_bool();
@@ -148,9 +162,11 @@ private:
 
 public:
   EVar(std::string _data);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
   bool is_value();
   bool is_var();
   std::string get_var();
@@ -163,23 +179,44 @@ public:
 class EFunc : public Exp {
 private:
   std::string param;
-  std::shared_ptr<Exp> e;
+  Shared_Typ t1;
+  Shared_Typ t2;
+  Shared_Exp e;
   bool is_rec;
   std::string id;
 
 public:
-  EFunc(std::string _param, std::shared_ptr<Exp> _e, bool _is_rec, std::string _id);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> e);
+  EFunc(std::string _param, Shared_Typ _t1, Shared_Typ _t2, Shared_Exp _e, bool _is_rec, std::string _id);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
 
   bool is_value();
   bool is_func();
   std::shared_ptr<EFunc> get_func();
-  std::shared_ptr<Exp> get_function_body();
+  Shared_Exp get_function_body();
   std::string get_param();
   bool get_is_rec();
   std::string get_id();
+};
+
+/******************************************************************************
+                               EUnit Header
+*******************************************************************************/
+
+class EUnit : public Exp {
+private:
+
+public:
+  EUnit();
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
+  bool is_value();
+  bool is_unit();
 };
 
 /******************************************************************************
@@ -188,14 +225,15 @@ public:
 
 class EIf : public Exp {
 private:
-  std::shared_ptr<Exp> e1, e2, e3;
+  Shared_Exp e1, e2, e3;
 
 public:
-  EIf(std::shared_ptr<Exp> _e1, std::shared_ptr<Exp> _e2,
-      std::shared_ptr<Exp> _e3);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> t);
+  EIf(Shared_Exp _e1, Shared_Exp _e2,
+      Shared_Exp _e3);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
 };
 
 /******************************************************************************
@@ -205,13 +243,15 @@ public:
 class ELet : public Exp {
 private:
   std::string var;
-  std::shared_ptr<Exp> e1, e2;
+  Shared_Typ t;
+  Shared_Exp e1, e2;
 
 public:
-  ELet(std::string _var, std::shared_ptr<Exp> _e1, std::shared_ptr<Exp> _e2);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> t);
+  ELet(std::string _var, Shared_Typ _t, Shared_Exp _e1, Shared_Exp _e2);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
 };
 
 /******************************************************************************
@@ -220,35 +260,165 @@ public:
 
 class EApp : public Exp {
 private:
-  std::shared_ptr<Exp> function;
-  std::shared_ptr<Exp> e;
+  Shared_Exp function;
+  Shared_Exp e;
 
 
 public:
-  EApp(std::shared_ptr<Exp> _function, std::shared_ptr<Exp> _e);
-  std::shared_ptr<Exp> step();
-  std::shared_ptr<Exp> substitute(std::string var, std::shared_ptr<Exp> t);
+  EApp(Shared_Exp _function, Shared_Exp _e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
 };
 
 /******************************************************************************
-                               Alias for shared_ptr
+                               EPair Header
 *******************************************************************************/
-typedef std::shared_ptr<Exp> Shared_Exp;
-typedef std::shared_ptr<EOperator> Shared_EOperator;
-typedef std::shared_ptr<EComp> Shared_EComp;
-typedef std::shared_ptr<ELit> Shared_ELit;
-typedef std::shared_ptr<EBool> Shared_EBool;
-typedef std::shared_ptr<EVar> Shared_EVar;
-typedef std::shared_ptr<EFunc> Shared_EFunc;
-typedef std::shared_ptr<EIf> Shared_EIf;
-typedef std::shared_ptr<ELet> Shared_ELet;
-typedef std::shared_ptr<EApp> Shared_EApp;
+
+class EPair : public Exp {
+private:
+  Shared_Exp e1;
+  Shared_Exp e2;
+
+public:
+  EPair(Shared_Exp _e1, Shared_Exp _e2);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
+  bool is_value();
+  bool is_pair();
+
+  Shared_EPair get_pair();
+  Shared_Exp get_first();
+  Shared_Exp get_second();
+
+};
 
 /******************************************************************************
-                               Helper
+                               EFst Header
 *******************************************************************************/
 
-std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp, bool print_step);
+class EFst : public Exp {
+private:
+  Shared_Exp e;
+
+public:
+  EFst(Shared_Exp _e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
+};
+
+/******************************************************************************
+                               ESnd Header
+*******************************************************************************/
+
+class ESnd : public Exp {
+private:
+  Shared_Exp e;
+
+public:
+  ESnd(Shared_Exp _e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
+
+/******************************************************************************
+                               EList Header
+*******************************************************************************/
+
+class EList : public Exp {
+private:
+  std::vector<Shared_Exp> e_list;
+  Shared_Typ t;
+
+public:
+  EList(std::vector<Shared_Exp> _e_list, Shared_Typ t);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
+  bool is_value();
+  bool is_list();
+
+  Shared_EList get_list();
+  Shared_Typ get_t();
+  std::vector<Shared_Exp> get_e_list();
+};
+
+/******************************************************************************
+                               ECons Header
+*******************************************************************************/
+
+class ECons : public Exp {
+private:
+  Shared_Exp e1;
+  Shared_Exp e2;
+
+public:
+  ECons(Shared_Exp _e1, Shared_Exp _e2);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
+
+/******************************************************************************
+                               ECar Header
+*******************************************************************************/
+
+class ECar : public Exp {
+private:
+  Shared_Exp e;
+
+public:
+  ECar(Shared_Exp _e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
+
+/******************************************************************************
+                               ECdr Header
+*******************************************************************************/
+
+class ECdr : public Exp {
+private:
+  Shared_Exp e;
+
+public:
+  ECdr(Shared_Exp _e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
+
+/******************************************************************************
+                               EEmpty Header
+*******************************************************************************/
+
+class EEmpty : public Exp {
+private:
+  Shared_Exp e;
+
+public:
+  EEmpty(Shared_Exp _e);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp t);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
+
+
 
 #endif

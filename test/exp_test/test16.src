@@ -1,0 +1,8 @@
+let [list_sum: {int} -> int] =
+rec f [l : {int}] : int ->
+if empty? (l)
+then 0
+else car (l) + f(cdr(l))
+in
+let [x:{int}] = 1 :: 2 :: 3 :: 4 :: 5 :: {}:int
+in list_sum(x)

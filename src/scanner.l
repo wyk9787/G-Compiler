@@ -60,6 +60,25 @@ blank [ \t]
 "="         { return yy::parser::make_ASSIGN(loc); }
 "in"        { return yy::parser::make_IN(loc); }
 "rec"       { return yy::parser::make_REC(loc); }
+"int"       { return yy::parser::make_TINT(std::make_shared<TInt>(), loc); }
+"float"     { return yy::parser::make_TFLOAT(std::make_shared<TFloat>(), loc); }
+"bool"      { return yy::parser::make_TBOOL(std::make_shared<TBool>(), loc); }
+"unit"      { return yy::parser::make_TUNIT(std::make_shared<TUnit>(), loc); }
+":"         { return yy::parser::make_COL(loc); }
+"["         { return yy::parser::make_LBRA(loc); }
+"]"         { return yy::parser::make_RBRA(loc); }
+"()"        { return yy::parser::make_UNIT(loc); }
+","         { return yy::parser::make_COMMA(loc); }
+"fst"       { return yy::parser::make_FST(loc); }
+"snd"       { return yy::parser::make_SND(loc); }
+"{"         { return yy::parser::make_LCURLY(loc); }
+"}"         { return yy::parser::make_RCURLY(loc); }
+"car"       { return yy::parser::make_CAR(loc); }
+"cdr"       { return yy::parser::make_CDR(loc); }
+"empty?"    { return yy::parser::make_EMPTY(loc); }
+"::"        { return yy::parser::make_CONS(loc); }
+
+
 
 {var}       { return yy::parser::make_VAR(yytext, loc);}
 

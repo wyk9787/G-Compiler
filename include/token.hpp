@@ -3,6 +3,66 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+
+class Exp;
+class EOperator;
+class EComp;
+class ELit;
+class EBool;
+class EVar;
+class EFunc;
+class EIf;
+class ELet;
+class EApp;
+class EPair;
+class EFst;
+class ESnd;
+class EList;
+class ECons;
+class ECar;
+class ECdr;
+class EEmpty;
+
+class Typ;
+class TInt;
+class TBool;
+class TUnit;
+class TFloat;
+class TFunc;
+class TPair;
+class TList;
+
+/******************************************************************************
+                               Alias for shared_ptr
+*******************************************************************************/
+typedef std::shared_ptr<Exp> Shared_Exp;
+typedef std::shared_ptr<EOperator> Shared_EOperator;
+typedef std::shared_ptr<EComp> Shared_EComp;
+typedef std::shared_ptr<ELit> Shared_ELit;
+typedef std::shared_ptr<EBool> Shared_EBool;
+typedef std::shared_ptr<EVar> Shared_EVar;
+typedef std::shared_ptr<EFunc> Shared_EFunc;
+typedef std::shared_ptr<EIf> Shared_EIf;
+typedef std::shared_ptr<ELet> Shared_ELet;
+typedef std::shared_ptr<EApp> Shared_EApp;
+typedef std::shared_ptr<EPair> Shared_EPair;
+typedef std::shared_ptr<EFst> Shared_EFst;
+typedef std::shared_ptr<ESnd> Shared_ESnd;
+typedef std::shared_ptr<EList> Shared_EList;
+typedef std::shared_ptr<ECons> Shared_ECons;
+typedef std::shared_ptr<ECar> Shared_ECar;
+typedef std::shared_ptr<ECdr> Shared_ECdr;
+typedef std::shared_ptr<EEmpty> Shared_EEmpty;
+
+typedef std::shared_ptr<Typ> Shared_Typ;
+typedef std::shared_ptr<TInt> Shared_TInt;
+typedef std::shared_ptr<TFloat> Shared_TFloat;
+typedef std::shared_ptr<TBool> Shared_TBool;
+typedef std::shared_ptr<TUnit> Shared_TUnit;
+typedef std::shared_ptr<TFunc> Shared_TFunc;
+typedef std::shared_ptr<TPair> Shared_TPair;
+typedef std::unordered_map<std::string, std::shared_ptr<Typ>> context_t;
 
 // Empty strings are place holders for int, float, bool, var and fun
 const std::vector<std::string> enum_string = {"(", ")",  "+",   "-",  "/", "*",
