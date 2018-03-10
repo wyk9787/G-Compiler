@@ -1,5 +1,5 @@
 <a name="1.1.0"></a>
-# 1.1.0 (2018-03-06)
+# 1.1.0 (2018-03-10)
 
 
 ### Bug Fixes
@@ -13,6 +13,7 @@
 * add Makefile ([c331a63](https://github.com/wyk9787/compiler/commit/c331a63))
 * add pairs, lists, type pair and type list ([3babde3](https://github.com/wyk9787/compiler/commit/3babde3))
 * add pre-commit hook ([5b69409](https://github.com/wyk9787/compiler/commit/5b69409))
+* add reference type, sequencing and while loop ([d9a56dd](https://github.com/wyk9787/compiler/commit/d9a56dd))
 * add supports for --lex and --parse flags so we can test lexing and parsing parts respectively ([23b29c5](https://github.com/wyk9787/compiler/commit/23b29c5))
 * add unit as an expression: (), and a type: unit ([373233e](https://github.com/wyk9787/compiler/commit/373233e))
 * change the grammer for the input of a function and let-binding ([8fd7d42](https://github.com/wyk9787/compiler/commit/8fd7d42))

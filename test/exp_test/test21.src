@@ -1,0 +1,7 @@
+let [x:<int>] = ref(10) in
+let [y:<{int}>] = ref({}:int) in
+while !(x) > 0 do
+y := !(x) :: !(y);
+x := !(x) - 1
+end ;
+!(y)

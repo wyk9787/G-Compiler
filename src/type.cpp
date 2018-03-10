@@ -124,3 +124,20 @@ std::string TList::get_type() {
 Shared_Typ TList::get_first_subtype() {
   return t;
 }
+
+//********************************TRef Implementaion****************************//
+
+TRef::TRef(Shared_Typ _t) : t(_t) {};
+
+bool TRef::eq(const Typ& other) const {
+  const TRef *res = dynamic_cast<const TRef*>(&other);
+  return res != nullptr && *t.get() == *const_cast<Typ&>(other).get_first_subtype().get();
+}
+
+std::string TRef::get_type() {
+  return "<" + t->get_type() + ">";
+}
+
+Shared_Typ TRef::get_first_subtype() {
+  return t;
+}
