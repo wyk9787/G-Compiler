@@ -16,7 +16,6 @@
 #include "expression.hpp"
 #include "type.hpp"
 class parser_driver;
-// using namespace std;
 }
 
 // The parsing context
@@ -39,13 +38,11 @@ class parser_driver;
 #include "token.hpp"
 #include "expression.hpp"
 #include "type.hpp"
-
-// using namespace std;
 }
 
 %define api.token.prefix {TOK_}
 %token
-  END     0    "eof"
+  EOF     0    "eof"
   PLUS         "+"
   SUBTRACT     "-"
   MULTIPLY     "*"
@@ -66,7 +63,7 @@ class parser_driver;
   FUNC         "func"
   FUNC_BODY    "->"
   LET          "let"
-  ASSIGN       "="
+  LET_ASSIGN   "="
   IN           "in"
   REC          "rec"
   COL          ":"
@@ -82,6 +79,13 @@ class parser_driver;
   CAR          "car"
   CDR          "cdr"
   EMPTY        "empty"
+  DEREF        "!"
+  REF          "ref"
+  ASSIGN       ":="
+  SEQ          ";"
+  WHILE        "while"
+  DO           "do"
+  END          "end"
 ;
 
 %token <int> INT "int"
@@ -92,6 +96,10 @@ class parser_driver;
 %token <Shared_TBool> TBOOL "tbool"
 %token <Shared_TUnit> TUNIT "tunit"
 
+
+%right "!" "ref"
+%left ";"
+%left ":="
 %precedence "if" "then" "else"
 %right "->" "::"
 %left "<=" "<" ">=" ">" "=="
@@ -143,9 +151,14 @@ exp:
 | exp "::" exp                    { $$ = std::make_shared<ECons>($1, $3); }
 | "{" "}" ":" typ                 { std::vector<Shared_Exp> v;
                                     $$ = std::make_shared<EList>(v, $4); }
+| "ref" "(" exp ")"               { $$ = std::make_shared<ERef>($3); }
+| "!" "(" exp ")"                  { $$ = std::make_shared<EDeref>($3); }
+| exp ":=" exp                    { $$ = std::make_shared<EAssign>($1, $3); }
+| exp ";" exp                     { $$ = std::make_shared<ESeq>($1, $3); }
 | "let" "[" "var" ":" typ "]" "=" exp "in" exp
                                   { $$ = std::make_shared<ELet>($3, $5, $8, $10); }
 | "if" exp "then" exp "else" exp  { $$ = std::make_shared<EIf>($2, $4, $6); }
+| "while" exp "do" exp "end"      { $$ = std::make_shared<EWhile>($2, $4, $2); }
 | "(" exp ")" %prec "->"          { $$ = $2; }
 
 typ:
@@ -156,6 +169,7 @@ typ:
 | typ "->" typ                    { $$ = std::make_shared<TFunc>($1, $3); }
 | typ "*" typ  %prec "->"         { $$ = std::make_shared<TPair>($1, $3); }
 | "{" typ "}"                     { $$ = std::make_shared<TList>($2); }
+| "<" typ ">"                     { $$ = std::make_shared<TRef>($2); }
 | "[" typ "]"                     { $$ = $2; }
 
 %%

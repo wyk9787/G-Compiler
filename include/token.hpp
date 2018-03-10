@@ -23,6 +23,12 @@ class ECons;
 class ECar;
 class ECdr;
 class EEmpty;
+class ERef;
+class EDeref;
+class EPtr;
+class EAssign;
+class ESeq;
+class EWhile;
 
 class Typ;
 class TInt;
@@ -32,6 +38,7 @@ class TFloat;
 class TFunc;
 class TPair;
 class TList;
+class TRef;
 
 /******************************************************************************
                                Alias for shared_ptr
@@ -54,6 +61,12 @@ typedef std::shared_ptr<ECons> Shared_ECons;
 typedef std::shared_ptr<ECar> Shared_ECar;
 typedef std::shared_ptr<ECdr> Shared_ECdr;
 typedef std::shared_ptr<EEmpty> Shared_EEmpty;
+typedef std::shared_ptr<ERef> Shared_ERef;
+typedef std::shared_ptr<EDeref> Shared_EDeref;
+typedef std::shared_ptr<EPtr> Shared_EPtr;
+typedef std::shared_ptr<EAssign> Shared_EAssign;
+typedef std::shared_ptr<ESeq> Shared_ESeq;
+typedef std::shared_ptr<EWhile> Shared_EWhile;
 
 typedef std::shared_ptr<Typ> Shared_Typ;
 typedef std::shared_ptr<TInt> Shared_TInt;
@@ -62,7 +75,10 @@ typedef std::shared_ptr<TBool> Shared_TBool;
 typedef std::shared_ptr<TUnit> Shared_TUnit;
 typedef std::shared_ptr<TFunc> Shared_TFunc;
 typedef std::shared_ptr<TPair> Shared_TPair;
+typedef std::shared_ptr<TRef> Shared_TRef;
+
 typedef std::unordered_map<std::string, std::shared_ptr<Typ>> context_t;
+typedef std::unordered_map<size_t, std::shared_ptr<Exp>> env_t;
 
 // Empty strings are place holders for int, float, bool, var and fun
 const std::vector<std::string> enum_string = {"(", ")",  "+",   "-",  "/", "*",
@@ -91,35 +107,5 @@ typedef enum {
   Var,
   Fun
 } TokenKind;
-
-// struct Func {
-//   std::string parameter;
-//   std::shared_ptr<Exp> e;
-//   bool is_recursive;
-//   std::string id;
-//
-//   // Func(std::string _parameter, std::shared_ptr<Exp> _e, bool _is_recursive,
-//   //      std::string _id)
-//   //     : parameter(_parameter), e(_e), is_recursive(_is_recursive), id(_id) {};
-// };
-//
-// typedef struct {
-//   TokenKind id;
-//   int int_data;
-//   double float_data;
-//   bool bool_data;
-//   std::string var_data;
-//   Func func_data;
-// } Token;
-
-// typedef enum { Int, Float, Bool, NaN, Var } ResultKind;
-//
-// typedef struct {
-//   ResultKind id;
-//   int int_data;
-//   double float_data;
-//   bool bool_data;
-//   std::string var_data;
-// } Result;
 
 #endif

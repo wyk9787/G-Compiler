@@ -62,8 +62,10 @@ e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
         | fun [x:t1] : t2 -> e | rec f [x:t1] : t2 -> e | e1 (e2)
         | () | (e1, e2) | fst (e) | snd (e)
         | [] : t | e1 :: e2 | car (e) | cdr (e) | empty? (e)
+        | ref (e) | e1 := e2 | !(e) | e1; e2
+        | while e1 do e2 end
 
-t ::= int | float | bool | t1 -> t2 | t1 * t2 | {t}
+t ::= int | float | bool | t1 -> t2 | t1 * t2 | unit | {t} | <t>
 ```
 
 ### Precedence
@@ -81,20 +83,13 @@ t ::= int | float | bool | t1 -> t2 | t1 * t2 | {t}
 
 6. if then else
 
+7. := left associative
+
+8. ; left associative
+
+9. ! ref right associative
+
 ```
-
-### Additional Rules: (Since there is no type system yet)
-
-1. `f` is a floating point with the form `[0-9]+.[0-9]+`
-
-2. `if` takes three expression, the first one has to be a boolean (`true` or `false`)
-
-3. `+`, `-`, `*`, `/`, `<=`, `<`, `==`, `>`, and `>=` do not take boolean as input
-
-4. Any arithmetic expressions including `NaN` will be evaluated to `NaN`.
-   - e.g. `NaN + 2` will be evaluated to `NaN`
-
-5. `0 / 0` is also evaluated to `NaN`
 
 ## Example
 
@@ -107,7 +102,7 @@ The program will return `NaN`
 The program will return
 
 ```
-(if (if false then (1 + 3) else false) then (10.230000 + 0.770000) else (if false then (3 + (2.500000 / 2)) else (0 / 0)))
+(if (if false then true else false) then (10.230000 + 0.770000) else (if false then (3.000000 + (2.500000 / 2.000000)) else (0.000000 / 0.000000)))
 ```
 
 `./build/compiler -f ./test/test1.src -s`
@@ -115,10 +110,10 @@ The program will return
 The program will return
 
 ```
-(if (if false then (1 + 3) else false) then (10.230000 + 0.770000) else (if false then (3 + (2.500000 / 2)) else (0 / 0)))
-(if false then (10.230000 + 0.770000) else (if false then (3 + (2.500000 / 2)) else (0 / 0)))
-(if false then (3 + (2.500000 / 2)) else (0 / 0))
-(0 / 0)
+(if (if false then true else false) then (10.230000 + 0.770000) else (if false then (3.000000 + (2.500000 / 2.000000)) else (0.000000 / 0.000000)))
+(if false then (10.230000 + 0.770000) else (if false then (3.000000 + (2.500000 / 2.000000)) else (0.000000 / 0.000000)))
+(if false then (3.000000 + (2.500000 / 2.000000)) else (0.000000 / 0.000000))
+(0.000000 / 0.000000)
 NaN
 ```
 

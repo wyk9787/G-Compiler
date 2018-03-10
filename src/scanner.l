@@ -57,7 +57,7 @@ blank [ \t]
 "fun"       { return yy::parser::make_FUNC(loc); }
 "->"        { return yy::parser::make_FUNC_BODY(loc); }
 "let"       { return yy::parser::make_LET(loc); }
-"="         { return yy::parser::make_ASSIGN(loc); }
+"="         { return yy::parser::make_LET_ASSIGN(loc); }
 "in"        { return yy::parser::make_IN(loc); }
 "rec"       { return yy::parser::make_REC(loc); }
 "int"       { return yy::parser::make_TINT(std::make_shared<TInt>(), loc); }
@@ -77,8 +77,13 @@ blank [ \t]
 "cdr"       { return yy::parser::make_CDR(loc); }
 "empty?"    { return yy::parser::make_EMPTY(loc); }
 "::"        { return yy::parser::make_CONS(loc); }
-
-
+"!"         { return yy::parser::make_DEREF(loc); }
+"ref"       { return yy::parser::make_REF(loc); }
+":="        { return yy::parser::make_ASSIGN(loc); }
+";"         { return yy::parser::make_SEQ(loc); }
+"while"     { return yy::parser::make_WHILE(loc); }
+"do"        { return yy::parser::make_DO(loc); }
+"end"       { return yy::parser::make_END(loc); }
 
 {var}       { return yy::parser::make_VAR(yytext, loc);}
 
@@ -99,7 +104,7 @@ blank [ \t]
 }
 
 .          { driver.error (loc, "invalid character"); }
-<<EOF>>    { return yy::parser::make_END(loc); }
+<<EOF>>    { return yy::parser::make_EOF(loc); }
 %%
 
 void parser_driver::scan_begin () {

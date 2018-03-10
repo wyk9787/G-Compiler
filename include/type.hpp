@@ -133,4 +133,19 @@ protected:
   bool eq(const Typ& other) const;
 };
 
+//********************************TRef Header*******************************//
+
+class TRef : public Typ {
+private:
+  Shared_Typ t;
+
+public:
+  TRef(Shared_Typ _t);
+  std::string get_type();
+  Shared_Typ get_first_subtype();
+
+protected:
+  bool eq(const Typ& other) const;
+};
+
 #endif

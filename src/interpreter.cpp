@@ -34,6 +34,7 @@ void interpret(Shared_Exp root, bool print_step) {
     return;
   } else {
     std::cerr << "Debug: Error! Shoule be evaluated to a value" << std::endl;
+    std::cerr << result->string_of_exp() << std::endl;
     exit(1);
   }
 }

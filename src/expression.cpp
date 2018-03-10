@@ -4,6 +4,9 @@
 #include <iostream>
 #include <stdlib.h>
 
+// Global environment
+env_t env;
+
 std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp, bool print_step) {
   while (!exp->is_value()) {
     if (print_step) {
@@ -65,9 +68,9 @@ Shared_Exp EOperator::evaluate_num(Shared_Exp e1_lit, Shared_Exp e2_lit,
 
 Shared_Exp EOperator::step() {
   if (!e1->is_value()) {
-    e1 = e1->step();
+    return std::make_shared<EOperator>(id, e1->step(), e2);
   } else if (!e2->is_value()) {
-    e2 = e2->step();
+    return std::make_shared<EOperator>(id, e1, e2->step());
   } else {
     if (e1->is_NaN() || e2->is_NaN()) {
       return std::make_shared<ELit>(false, 0, 0, true);
@@ -79,7 +82,6 @@ Shared_Exp EOperator::step() {
     bool is_int = e1->is_int() && e2->is_int();
     return evaluate_num(e1, e2, is_int);
   }
-  return std::make_shared<EOperator>(id, e1, e2);
 }
 
 Shared_Exp EOperator::substitute(std::string var, Shared_Exp e) {
@@ -148,9 +150,9 @@ Shared_Exp EComp::evaluate_bool(Shared_Exp e1, Shared_Exp e2) {
 
 Shared_Exp EComp::step() {
   if (!e1->is_value()) {
-    e1 = e1->step();
+    return std::make_shared<EComp>(id, e1->step(), e2);
   } else if (!e2->is_value()) {
-    e2 = e2->step();
+    return std::make_shared<EComp>(id, e1, e2->step());
   } else {
     if (e1->is_NaN() || e2->is_NaN()) {
       return std::make_shared<ELit>(false, 0, 0, true);
@@ -161,7 +163,6 @@ Shared_Exp EComp::step() {
     }
     return evaluate_bool(e1, e2);
   }
-  return std::make_shared<EComp>(id, e1, e2);
 }
 
 Shared_Exp EComp::substitute(std::string var, Shared_Exp e) {
@@ -382,8 +383,7 @@ EIf::EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3)
 
 Shared_Exp EIf::step() {
   if (!e1->is_value()) {
-    e1 = e1->step();
-    return std::make_shared<EIf>(e1, e2, e3);
+    return std::make_shared<EIf>(e1->step(), e2, e3);
   }
   if (e1->is_bool()) {
     if (e1->get_bool()) {
@@ -430,8 +430,7 @@ ELet::ELet(std::string _var, Shared_Typ _t, Shared_Exp _e1, Shared_Exp _e2)
 
 Shared_Exp ELet::step() {
   if (!e1->is_value()) {
-    e1 = e1->step();
-    return std::make_shared<ELet>(var, t, e1, e2);
+    return std::make_shared<ELet>(var, t, e1->step(), e2);
   } else {
     return e2->substitute(var, e1);
   }
@@ -467,8 +466,7 @@ EApp::EApp(Shared_Exp _function, Shared_Exp _e) : function(_function), e(_e) {}
 
 Shared_Exp EApp::step() {
   if (!function->is_value()) {
-    function = function->step();
-    return std::make_shared<EApp>(function, e);
+    return std::make_shared<EApp>(function->step(), e);
   }
 
   if (function->is_func()) {
@@ -519,6 +517,12 @@ Shared_Typ EApp::typecheck(context_t context) {
 EPair::EPair(Shared_Exp _e1, Shared_Exp _e2) : e1(_e1), e2(_e2) {}
 
 Shared_Exp EPair::step() {
+  if(!e1->is_value()) {
+    return std::make_shared<EPair>(e1->step(), e2);
+  } else if (!e2->is_value()) {
+    return std::make_shared<EPair>(e1, e2->step());
+  }
+
   return std::make_shared<EPair>(e1, e2);
 }
 
@@ -537,7 +541,7 @@ Shared_Typ EPair::typecheck(context_t context) {
 }
 
 bool EPair::is_value() {
-  return true;
+  return e1->is_value() && e2->is_value();
 }
 
 bool EPair::is_pair() {
@@ -564,8 +568,7 @@ EFst::EFst(Shared_Exp _e) : e(_e) {};
 
 Shared_Exp EFst::step() {
   if(!e->is_value()) {
-    e = e->step();
-    return std::make_shared<EFst>(e);
+    return std::make_shared<EFst>(e->step());
   }
   Shared_EPair pair = e->get_pair();
   return pair->get_first();
@@ -597,8 +600,7 @@ ESnd::ESnd(Shared_Exp _e) : e(_e) {}
 
 Shared_Exp ESnd::step() {
   if(!e->is_value()) {
-    e = e->step();
-    return std::make_shared<ESnd>(e);
+    return std::make_shared<ESnd>(e->step());
   }
   Shared_EPair pair = e->get_pair();
   return pair->get_second();
@@ -818,4 +820,199 @@ Shared_Typ EEmpty::typecheck(context_t context) {
   }
 
   return nullptr;
+}
+
+/******************************************************************************
+                               ERef Implementaion
+*******************************************************************************/
+
+ERef::ERef(Shared_Exp _e) : e(_e) {}
+
+Shared_Exp ERef::step() {
+  if(!e->is_value()) {
+    return std::make_shared<ERef>(e->step());
+  }
+  size_t n = env.size();
+  env.insert({n, e});
+  return std::make_shared<EPtr>(n);
+}
+
+Shared_Exp ERef::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<ERef>(this->e->substitute(var, e));
+}
+
+std::string ERef::string_of_exp() {
+  return "ref (" + e->string_of_exp() + ")";
+}
+
+Shared_Typ ERef::typecheck(context_t context) {
+  return std::make_shared<TRef>(e->typecheck(context));
+}
+
+/******************************************************************************
+                               EPtr Implementaion
+*******************************************************************************/
+
+EPtr::EPtr(size_t _n) : n(_n) {}
+
+Shared_Exp EPtr::step() {
+  return std::make_shared<EPtr>(n);
+}
+
+Shared_Exp EPtr::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EPtr>(n);
+}
+
+std::string EPtr::string_of_exp() {
+  return "ptr(" + std::to_string(n) + ")";
+}
+
+Shared_Typ EPtr::typecheck(context_t context) {
+  std::cerr << "Fatal: typecheck should happen before evaluation" << std::endl;
+  exit(1);
+}
+
+bool EPtr::is_value() {
+  return true;
+}
+
+Shared_EPtr EPtr::get_ptr() {
+  return std::make_shared<EPtr>(n);
+}
+
+size_t EPtr::get_addr() {
+  return n;
+}
+
+/******************************************************************************
+                               EDeref Implementaion
+*******************************************************************************/
+
+EDeref::EDeref(Shared_Exp _e) : e(_e) {}
+
+Shared_Exp EDeref::step() {
+  if(!e->is_value()) {
+    return std::make_shared<EDeref>(e->step());
+  }
+  Shared_EPtr p = e->get_ptr();
+  return env[p->get_addr()];
+}
+
+Shared_Exp EDeref::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EDeref>(this->e->substitute(var, e));
+}
+
+std::string EDeref::string_of_exp() {
+  return "!(" + e->string_of_exp() + ")";
+}
+
+Shared_Typ EDeref::typecheck(context_t context) {
+  Shared_Typ t = e->typecheck(context);
+  if(dynamic_cast<TRef*>(t.get()) != nullptr) {
+    return t->get_first_subtype();
+  } else {
+    type_error(string_of_exp(), "<t>", t->get_type());
+  }
+  return nullptr;
+}
+
+/******************************************************************************
+                               EAssign Implementaion
+*******************************************************************************/
+
+EAssign::EAssign(Shared_Exp _e1, Shared_Exp _e2) : e1(_e1), e2(_e2) {}
+
+Shared_Exp EAssign::step() {
+  if(!e1->is_value()) {
+    return std::make_shared<EAssign>(e1->step(), e2);
+  } else if (!e2->is_value()) {
+    return std::make_shared<EAssign>(e1, e2->step());
+  }
+  Shared_EPtr p = e1->get_ptr();
+  env[p->get_addr()] = e2;
+  return std::make_shared<EUnit>();
+}
+
+Shared_Exp EAssign::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EAssign>(e1->substitute(var, e), e2->substitute(var, e));
+}
+
+std::string EAssign::string_of_exp() {
+  return e1->string_of_exp() + " := " + e2->string_of_exp();
+}
+
+Shared_Typ EAssign::typecheck(context_t context) {
+  Shared_Typ t1 = e1->typecheck(context);
+  Shared_Typ t2 = e2->typecheck(context);
+  Shared_Typ t1_1 = t1->get_first_subtype();
+  if(dynamic_cast<TRef*>(t1.get()) == nullptr) {
+    type_error(string_of_exp(), "<t>", t1->get_type());
+  } else if(*t1_1.get() != *t2.get()) {
+    type_error(string_of_exp(), t1_1->get_type(), t2->get_type());
+  } else {
+    return std::make_shared<TUnit>();
+  }
+  return nullptr;
+}
+
+/******************************************************************************
+                               ESeq Implementaion
+*******************************************************************************/
+
+ESeq::ESeq(Shared_Exp _e1, Shared_Exp _e2) : e1(_e1), e2(_e2) {}
+
+Shared_Exp ESeq::step() {
+  if(!e1->is_value()) {
+    return std::make_shared<ESeq>(e1->step(), e2);
+  }
+  return e2;
+}
+
+Shared_Exp ESeq::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<ESeq>(e1->substitute(var, e), e2->substitute(var, e));
+}
+
+std::string ESeq::string_of_exp() {
+  return "[" + e1->string_of_exp() + "; " + e2->string_of_exp() + "]";
+}
+
+Shared_Typ ESeq::typecheck(context_t context) {
+  Shared_Typ t1 = e1->typecheck(context);
+  Shared_Typ t2 = e2->typecheck(context);
+  return t2;
+}
+
+/******************************************************************************
+                               EWhile Implementaion
+*******************************************************************************/
+
+EWhile::EWhile(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e_temp) : e1(_e1), e2(_e2), e_temp(_e_temp) {}
+
+Shared_Exp EWhile::step() {
+  if (!e1->is_value()) {
+    return std::make_shared<EWhile>(e1->step(), e2, e_temp);
+  }
+
+  if(e1->get_bool()) {
+    return std::make_shared<ESeq>(e2, std::make_shared<EWhile>(e_temp, e2, e_temp));
+  } else {
+    return std::make_shared<EUnit>();
+  }
+}
+
+Shared_Exp EWhile::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EWhile>(e1->substitute(var, e), e2->substitute(var, e), e_temp->substitute(var, e));
+}
+
+std::string EWhile::string_of_exp() {
+  return "while " + e1->string_of_exp() + " do " + e2->string_of_exp() + " end";
+}
+
+Shared_Typ EWhile::typecheck(context_t context) {
+  Shared_Typ t1 = e1->typecheck(context);
+  Shared_Typ t2 = e2->typecheck(context);
+  if(dynamic_cast<TBool*>(t1.get()) == nullptr) {
+    type_error(string_of_exp(), "Boolean", t1->get_type());
+  }
+  return std::make_shared<TUnit>();
 }
