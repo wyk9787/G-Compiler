@@ -2,9 +2,11 @@
 #define EXPRESSION_HPP
 #include "token.hpp"
 #include "type.hpp"
+#include "global.hpp"
 #include <memory>
 #include <iostream>
 #include <vector>
+
 
 /******************************************************************************
                                Helper
@@ -526,5 +528,41 @@ public:
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
 };
+
+/******************************************************************************
+                               EDef Header
+*******************************************************************************/
+
+class EDef : public Exp {
+private:
+  std::string id;
+  Shared_Exp e;
+  Shared_Typ t;
+
+public:
+  EDef(std::string _id, Shared_Exp _e, Shared_Typ _t);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
+
+/******************************************************************************
+                               EStruct Header
+*******************************************************************************/
+
+// class EStruct : public Exp {
+// private:
+//   std::string id;
+//   std::vector<Shared_Exp> e_list;
+//   std::vector<Shared_Typ> t_list;
+//
+// public:
+//   EStruct(std::string _id, std::vector<Shared_Exp> e_list, std::vector<Shared_Typ> t_list);
+//   Shared_Exp step();
+//   Shared_Exp substitute(std::string var, Shared_Exp e);
+//   std::string string_of_exp();
+//   Shared_Typ typecheck(context_t context);
+// };
 
 #endif

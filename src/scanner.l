@@ -17,7 +17,10 @@ static yy::location loc;
 
 %option noyywrap nounput batch debug noinput
 
-var    [a-zA-Z][a-zA-Z_0-9]*
+
+var         [a-zA-Z][a-zA-Z_0-9]*
+filename    [a-zA-Z][a-zA-Z_0-9./]*
+
 int   [0-9]+
 double [0-9]+"."[0-9]+
 blank [ \t]
@@ -84,8 +87,12 @@ blank [ \t]
 "while"     { return yy::parser::make_WHILE(loc); }
 "do"        { return yy::parser::make_DO(loc); }
 "end"       { return yy::parser::make_END(loc); }
+"#"         { return yy::parser::make_POND(loc); }
+"include"   { return yy::parser::make_INCLUDE(loc); }
+"def"       { return yy::parser::make_DEF(loc); }
 
 {var}       { return yy::parser::make_VAR(yytext, loc);}
+{filename}  { return yy::parser::make_FILENAME(yytext, loc);}
 
 {double} {
     errno = 0;

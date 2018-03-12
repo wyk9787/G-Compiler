@@ -1,9 +1,11 @@
 let [iota:int -> {int}->{int}] =
 rec f1 [n:int] : [{int}->{int}] ->
 fun [lst:{int}] : {int} ->
-if n == 0
-then lst
-else f1 (n-1) (n :: lst)
+if (n == 0) {
+  lst
+} else {
+  f1 (n-1) (n :: lst)
+}
 
 in
 

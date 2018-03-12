@@ -54,16 +54,19 @@ If there are errors present, you can find the error in `./test/diff.txt`
 ### Grammar
 
 ```
+#include <filename>
+
 e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
         | true | false | f | NaN | x
         | e1 <= e2 | e1 < e2 | e1 == e2 | e1 > e2 | e1 >= e2
-        | if e1 then e2 else e3
+        | if (e1) {e2} else {e3}
         | let [x:t] = e1 in e2
         | fun [x:t1] : t2 -> e | rec f [x:t1] : t2 -> e | e1 (e2)
         | () | (e1, e2) | fst (e) | snd (e)
         | [] : t | e1 :: e2 | car (e) | cdr (e) | empty? (e)
         | ref (e) | e1 := e2 | !(e) | e1; e2
-        | while e1 do e2 end
+        | while (e1) {e2}
+        | x = {e}
 
 t ::= int | float | bool | t1 -> t2 | t1 * t2 | unit | {t} | <t>
 ```

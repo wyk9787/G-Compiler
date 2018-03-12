@@ -1,8 +1,10 @@
 let [pair_func:[int*int] -> int] =
 fun [x:int*int] : int ->
-if fst(x) > snd(x)
-then fst (x) - snd(x)
-else fst (x) + snd(x)
+if (fst(x) > snd(x)) {
+  fst (x) - snd(x)
+} else {
+  fst (x) + snd(x)
+}
 in
 let [x: int*int] = (3, 5)
 in pair_func (x)

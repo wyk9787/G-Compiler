@@ -77,8 +77,10 @@ typedef std::shared_ptr<TFunc> Shared_TFunc;
 typedef std::shared_ptr<TPair> Shared_TPair;
 typedef std::shared_ptr<TRef> Shared_TRef;
 
+typedef std::unordered_map<std::string, std::shared_ptr<Exp>> global_stack_t;
 typedef std::unordered_map<std::string, std::shared_ptr<Typ>> context_t;
-typedef std::unordered_map<size_t, std::shared_ptr<Exp>> env_t;
+typedef std::unordered_map<size_t, std::shared_ptr<Exp>> global_heap_t;
+typedef std::vector<std::string> global_header_t;
 
 // Empty strings are place holders for int, float, bool, var and fun
 const std::vector<std::string> enum_string = {"(", ")",  "+",   "-",  "/", "*",

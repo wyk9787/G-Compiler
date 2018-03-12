@@ -1,0 +1,18 @@
+int->int factorial = {
+ rec f [n:int] : int ->
+ if (n > 0) {
+  n * f (n-1)
+ } else {
+  1
+ }
+};
+
+int -> int->int max2 = {
+  fun [x:int] : [int->int] ->
+    fun [y:int] : int ->
+      if (x > y) {
+        x
+      } else {
+        y
+      }
+}

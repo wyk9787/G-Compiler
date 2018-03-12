@@ -1,0 +1,18 @@
+{int} -> int list_sum = {
+  rec f [l : {int}] : int ->
+  if (empty? (l)) {
+    0
+  } else {
+    car (l) + f(cdr(l))
+  }
+};
+
+{int} -> {int}->int inner_product = {
+  rec f1 [l1:{int}] : [{int}->int] ->
+  fun [l2:{int}] : int ->
+  if (empty? (l1)) {
+    0
+  } else {
+    car(l1) * car(l2) +  f1 (cdr(l1)) (cdr(l2))
+  }
+}
