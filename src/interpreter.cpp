@@ -1,6 +1,8 @@
 #include "expression.hpp"
 #include "interpreter.hpp"
 #include "token.hpp"
+#include "parser_driver.h"
+#include "global.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -32,6 +34,8 @@ void interpret(Shared_Exp root, bool print_step) {
     std::cout << result->string_of_exp() << std::endl;
   } else if (result->is_unit()) {
     return;
+  } else if (result->is_struct()) {
+    std::cout << result->string_of_exp() << std::endl;
   } else {
     std::cerr << "Debug: Error! Shoule be evaluated to a value" << std::endl;
     std::cerr << result->string_of_exp() << std::endl;

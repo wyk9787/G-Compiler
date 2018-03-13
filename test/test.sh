@@ -1,16 +1,5 @@
 #!/bin/bash
 
-########### TEST PLAN ###########
-# test1: a comprehensive test1
-# test2: a comprehensive test2
-# test3: if then else
-# test4: arithmetic operation
-# test5: integer math
-# test6: floating math
-# test7: integer & floating
-# test8: math with NaN
-#################################
-
 # # set up diff.txt
 result="./test/diff.txt"
 rm -f "$result"
@@ -26,11 +15,11 @@ for filename in ./test/**/*.src; do
   if [[ $1 = "output" ]]
   then
     ./build/apps/compiler -f "$filename" -p > "$parse_output"
-    ./build/apps/compiler -f "$filename" > "$output"
+    ./build/apps/compiler -f "$filename" &> "$output"
   else
     echo "$filename"
     diff <(./build/apps/compiler -f "$filename" -p) "$parse_output" >> "$result"
-    diff <(./build/apps/compiler -f "$filename") "$output" >> "$result"
+    diff <(./build/apps/compiler -f "$filename" 2>&1) "$output" >> "$result"
   fi
 done
 

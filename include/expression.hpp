@@ -2,9 +2,11 @@
 #define EXPRESSION_HPP
 #include "token.hpp"
 #include "type.hpp"
+#include "global.hpp"
 #include <memory>
 #include <iostream>
 #include <vector>
+
 
 /******************************************************************************
                                Helper
@@ -32,6 +34,7 @@ public:
   virtual bool is_func() { return false; }
   virtual bool is_pair() { return false; }
   virtual bool is_list() { return false; }
+  virtual bool is_struct() { return false; }
 
   virtual bool get_bool() {
     std::cerr << "Debug: Expecting a boolean!\n";
@@ -521,6 +524,62 @@ private:
 
 public:
   EWhile(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e_temp);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
+
+/******************************************************************************
+                               EDef Header
+*******************************************************************************/
+
+class EDef : public Exp {
+private:
+  std::string id;
+  Shared_Exp e;
+  Shared_Typ t;
+
+public:
+  EDef(std::string _id, Shared_Exp _e, Shared_Typ _t);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
+
+/******************************************************************************
+                               EStruct Header
+*******************************************************************************/
+
+class EStruct : public Exp {
+private:
+  struct_data_t e_map;
+  struct_type_t t_map;
+
+public:
+  EStruct(struct_data_t _e_map, struct_type_t _t_map);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
+  bool is_value();
+  bool is_struct();
+  struct_data_t get_data();
+};
+
+/******************************************************************************
+                               EDot Header
+*******************************************************************************/
+
+class EDot : public Exp {
+private:
+  Shared_Exp e;
+  std::string id;
+
+public:
+  EDot(Shared_Exp _e, std::string _id);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();

@@ -1,10 +1,12 @@
+#include <language/lib/math.glib>
+
 let [res: <int * float>] = ref ( (0, 0.0) ) in
 let [l : <{int * float}>] = ref ( (1, 2.0) :: (3, 4.0) :: (5, 6.0) :: {} : int * float) in
 let [counter : <int>] = ref (0) in
-
 while (!(counter) < 3) {
   res := (fst(!(res)) + fst(car(!(l))),  snd(!(res)) + snd(car(!(l))));
   l := cdr(!(l));
   counter := !(counter) + 1
 };
-!(res)
+
+fst(!(res)) + factorial(5) + max2(3)(4)

@@ -1,11 +1,11 @@
 #include "expression.hpp"
-#include "interpreter.hpp"
-#include "type.hpp"
 #include <iostream>
 #include <stdlib.h>
 
-// Global environment
-env_t env;
+global_heap_t heap;
+global_stack_t stack;
+struct_data_t global_struct_data;
+struct_type_t global_struct_type;
 
 std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp, bool print_step) {
   while (!exp->is_value()) {
@@ -266,7 +266,13 @@ bool EBool::get_bool() { return data; }
 
 EVar::EVar(std::string _data) : data(_data){};
 
-Shared_Exp EVar::step() { return std::make_shared<EVar>(data); }
+Shared_Exp EVar::step() {
+  if(stack.find(data) != stack.end()) {
+    return stack[data];
+  } else {
+    return std::make_shared<EVar>(data);
+  }
+}
 
 Shared_Exp EVar::substitute(std::string var, Shared_Exp e) {
   if (var == data) {
@@ -281,13 +287,23 @@ std::string EVar::string_of_exp() { return data; }
 Shared_Typ EVar::typecheck(context_t context) {
   if (context.find(data) != context.end()) {
     return context[data];
+  } else if (stack.find(data) != stack.end()) {
+    context_t new_context;
+    // The definition is itself a new context
+    return stack[data]->typecheck(new_context);
   } else {
     std::cerr << "Requires a type for " << data << std::endl;
     exit(1);
   }
 }
 
-bool EVar::is_value() { return true; }
+bool EVar::is_value() {
+  if(stack.find(data) != stack.end()) {
+    return false;
+  } else {
+    return true;
+  }
+}
 
 bool EVar::is_var() { return true; }
 
@@ -306,14 +322,12 @@ Shared_Exp EFunc::step() {
 }
 
 Shared_Exp EFunc::substitute(std::string var, Shared_Exp e) {
-  if(is_rec) {
-    return std::make_shared<EFunc>(param, t1, t2, this->e,
-                                   is_rec, id);
+  if (is_rec) {
+    return std::make_shared<EFunc>(param, t1, t2, this->e, is_rec, id);
   } else {
     return std::make_shared<EFunc>(param, t1, t2, this->e->substitute(var, e),
                                    is_rec, id);
   }
-
 }
 
 std::string EFunc::string_of_exp() {
@@ -361,11 +375,15 @@ std::string EFunc::get_id() { return id; }
 *******************************************************************************/
 
 EUnit::EUnit(){};
+
 Shared_Exp EUnit::step() { return std::make_shared<EUnit>(); }
+
 Shared_Exp EUnit::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<EUnit>();
 }
+
 std::string EUnit::string_of_exp() { return "()"; }
+
 Shared_Typ EUnit::typecheck(context_t context) {
   return std::make_shared<TUnit>();
 }
@@ -417,8 +435,8 @@ Shared_Typ EIf::typecheck(context_t context) {
 }
 
 std::string EIf::string_of_exp() {
-  return "(if " + e1->string_of_exp() + " then " + e2->string_of_exp() +
-         " else " + e3->string_of_exp() + ")";
+  return "if (" + e1->string_of_exp() + ") {" + e2->string_of_exp() + "} else {"
+         + e3->string_of_exp() + "}";
 }
 
 /******************************************************************************
@@ -472,8 +490,7 @@ Shared_Exp EApp::step() {
   if (function->is_func()) {
     Shared_EFunc f = function->get_func();
     if (!e->is_value()) { // If the argument hasn't been evaluated yet
-      e = e->step();
-      return std::make_shared<EApp>(function, e);
+      return std::make_shared<EApp>(function, e->step());
     }
     if (f->get_is_rec()) { // Recursive function needs to substitute one more
                            // time (substitute itself)
@@ -517,7 +534,7 @@ Shared_Typ EApp::typecheck(context_t context) {
 EPair::EPair(Shared_Exp _e1, Shared_Exp _e2) : e1(_e1), e2(_e2) {}
 
 Shared_Exp EPair::step() {
-  if(!e1->is_value()) {
+  if (!e1->is_value()) {
     return std::make_shared<EPair>(e1->step(), e2);
   } else if (!e2->is_value()) {
     return std::make_shared<EPair>(e1, e2->step());
@@ -527,7 +544,8 @@ Shared_Exp EPair::step() {
 }
 
 Shared_Exp EPair::substitute(std::string var, Shared_Exp e) {
-  return std::make_shared<EPair>(e1->substitute(var, e), e2->substitute(var, e));
+  return std::make_shared<EPair>(e1->substitute(var, e),
+                                 e2->substitute(var, e));
 }
 
 std::string EPair::string_of_exp() {
@@ -540,34 +558,24 @@ Shared_Typ EPair::typecheck(context_t context) {
   return std::make_shared<TPair>(t1, t2);
 }
 
-bool EPair::is_value() {
-  return e1->is_value() && e2->is_value();
-}
+bool EPair::is_value() { return e1->is_value() && e2->is_value(); }
 
-bool EPair::is_pair() {
-  return e1->is_value() && e2->is_value();
-}
+bool EPair::is_pair() { return e1->is_value() && e2->is_value(); }
 
-Shared_EPair EPair::get_pair() {
-  return std::make_shared<EPair>(e1, e2);
-}
+Shared_EPair EPair::get_pair() { return std::make_shared<EPair>(e1, e2); }
 
-Shared_Exp EPair::get_first() {
-  return e1;
-}
+Shared_Exp EPair::get_first() { return e1; }
 
-Shared_Exp EPair::get_second() {
-  return e2;
-}
+Shared_Exp EPair::get_second() { return e2; }
 
 /******************************************************************************
                                EFst Implementaion
 *******************************************************************************/
 
-EFst::EFst(Shared_Exp _e) : e(_e) {};
+EFst::EFst(Shared_Exp _e) : e(_e){};
 
 Shared_Exp EFst::step() {
-  if(!e->is_value()) {
+  if (!e->is_value()) {
     return std::make_shared<EFst>(e->step());
   }
   Shared_EPair pair = e->get_pair();
@@ -578,13 +586,11 @@ Shared_Exp EFst::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<EFst>(this->e->substitute(var, e));
 }
 
-std::string EFst::string_of_exp() {
-  return "fst (" + e->string_of_exp() +")";
-}
+std::string EFst::string_of_exp() { return "fst (" + e->string_of_exp() + ")"; }
 
 Shared_Typ EFst::typecheck(context_t context) {
   Shared_Typ t = e->typecheck(context);
-  if(dynamic_cast<TPair*>(t.get()) == nullptr) {
+  if (dynamic_cast<TPair *>(t.get()) == nullptr) {
     type_error(string_of_exp(), "Pair", t->get_type());
   } else {
     return t->get_first_subtype();
@@ -599,7 +605,7 @@ Shared_Typ EFst::typecheck(context_t context) {
 ESnd::ESnd(Shared_Exp _e) : e(_e) {}
 
 Shared_Exp ESnd::step() {
-  if(!e->is_value()) {
+  if (!e->is_value()) {
     return std::make_shared<ESnd>(e->step());
   }
   Shared_EPair pair = e->get_pair();
@@ -610,13 +616,11 @@ Shared_Exp ESnd::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<ESnd>(this->e->substitute(var, e));
 }
 
-std::string ESnd::string_of_exp() {
-  return "snd (" + e->string_of_exp() +")";
-}
+std::string ESnd::string_of_exp() { return "snd (" + e->string_of_exp() + ")"; }
 
 Shared_Typ ESnd::typecheck(context_t context) {
   Shared_Typ t = e->typecheck(context);
-  if(dynamic_cast<TPair*>(t.get()) == nullptr) {
+  if (dynamic_cast<TPair *>(t.get()) == nullptr) {
     type_error(string_of_exp(), "Pair", t->get_type());
   } else {
     return t->get_second_subtype();
@@ -628,15 +632,14 @@ Shared_Typ ESnd::typecheck(context_t context) {
                                EList Implementaion
 *******************************************************************************/
 
-EList::EList(std::vector<Shared_Exp> _e_list, Shared_Typ _t) : e_list(_e_list), t(_t) {}
+EList::EList(std::vector<Shared_Exp> _e_list, Shared_Typ _t)
+    : e_list(_e_list), t(_t) {}
 
-Shared_Exp EList::step() {
-  return std::make_shared<EList>(e_list, t);
-}
+Shared_Exp EList::step() { return std::make_shared<EList>(e_list, t); }
 
 Shared_Exp EList::substitute(std::string var, Shared_Exp e) {
   std::vector<Shared_Exp> new_e_list;
-  for(size_t i = 0; i < e_list.size(); i++) {
+  for (size_t i = 0; i < e_list.size(); i++) {
     new_e_list.push_back(e_list[i]->substitute(var, e));
   }
   return std::make_shared<EList>(new_e_list, t);
@@ -644,9 +647,9 @@ Shared_Exp EList::substitute(std::string var, Shared_Exp e) {
 
 std::string EList::string_of_exp() {
   std::string res = "{";
-  for(size_t i = 0; i < e_list.size(); i++) {
+  for (size_t i = 0; i < e_list.size(); i++) {
     res += e_list[i]->string_of_exp();
-    if(i != e_list.size() - 1) {
+    if (i != e_list.size() - 1) {
       res += ", ";
     }
   }
@@ -658,25 +661,15 @@ Shared_Typ EList::typecheck(context_t context) {
   return std::make_shared<TList>(t);
 }
 
-bool EList::is_value() {
-  return true;
-}
+bool EList::is_value() { return true; }
 
-bool EList::is_list() {
-  return true;
-}
+bool EList::is_list() { return true; }
 
-Shared_EList EList::get_list() {
-  return std::make_shared<EList>(e_list, t);
-}
+Shared_EList EList::get_list() { return std::make_shared<EList>(e_list, t); }
 
-Shared_Typ EList::get_t() {
-  return t;
-}
+Shared_Typ EList::get_t() { return t; }
 
-std::vector<Shared_Exp> EList::get_e_list() {
-  return e_list;
-}
+std::vector<Shared_Exp> EList::get_e_list() { return e_list; }
 
 /******************************************************************************
                                ECons Implementaion
@@ -685,7 +678,7 @@ std::vector<Shared_Exp> EList::get_e_list() {
 ECons::ECons(Shared_Exp _e1, Shared_Exp _e2) : e1(_e1), e2(_e2) {}
 
 Shared_Exp ECons::step() {
-  if(!e1->is_value()) {
+  if (!e1->is_value()) {
     return std::make_shared<ECons>(e1->step(), e2);
   } else if (!e2->is_value()) {
     return std::make_shared<ECons>(e1, e2->step());
@@ -699,7 +692,8 @@ Shared_Exp ECons::step() {
 }
 
 Shared_Exp ECons::substitute(std::string var, Shared_Exp e) {
-  return std::make_shared<ECons>(e1->substitute(var, e), e2->substitute(var, e));
+  return std::make_shared<ECons>(e1->substitute(var, e),
+                                 e2->substitute(var, e));
 }
 
 std::string ECons::string_of_exp() {
@@ -709,11 +703,11 @@ std::string ECons::string_of_exp() {
 Shared_Typ ECons::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
-  if(dynamic_cast<TList*>(t2.get()) == nullptr) {
+  if (dynamic_cast<TList *>(t2.get()) == nullptr) {
     type_error(string_of_exp(), "{t}", t2->get_type());
   }
   Shared_Typ t2_1 = t2->get_first_subtype();
-  if(*t1.get() != *t2_1.get()) {
+  if (*t1.get() != *t2_1.get()) {
     type_error(string_of_exp(), t2_1->get_type(), t1->get_type());
   } else {
     return std::make_shared<TList>(t1);
@@ -728,7 +722,7 @@ Shared_Typ ECons::typecheck(context_t context) {
 ECar::ECar(Shared_Exp _e) : e(_e) {}
 
 Shared_Exp ECar::step() {
-  if(!e->is_value()) {
+  if (!e->is_value()) {
     return std::make_shared<ECar>(e->step());
   } else {
     return e->get_list()->get_e_list()[0];
@@ -739,13 +733,11 @@ Shared_Exp ECar::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<ECar>(this->e->substitute(var, e));
 }
 
-std::string ECar::string_of_exp() {
-  return "car (" + e->string_of_exp() + ")";
-}
+std::string ECar::string_of_exp() { return "car (" + e->string_of_exp() + ")"; }
 
 Shared_Typ ECar::typecheck(context_t context) {
   Shared_Typ t = e->typecheck(context);
-  if(dynamic_cast<TList*>(t.get()) == nullptr) {
+  if (dynamic_cast<TList *>(t.get()) == nullptr) {
     type_error(string_of_exp(), "{t}", t->get_type());
   } else {
     return t->get_first_subtype();
@@ -761,7 +753,7 @@ Shared_Typ ECar::typecheck(context_t context) {
 ECdr::ECdr(Shared_Exp _e) : e(_e) {}
 
 Shared_Exp ECdr::step() {
-  if(!e->is_value()) {
+  if (!e->is_value()) {
     return std::make_shared<ECdr>(e->step());
   } else {
     Shared_EList l = e->get_list();
@@ -775,13 +767,11 @@ Shared_Exp ECdr::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<ECdr>(this->e->substitute(var, e));
 }
 
-std::string ECdr::string_of_exp() {
-  return "cdr (" + e->string_of_exp() + ")";
-}
+std::string ECdr::string_of_exp() { return "cdr (" + e->string_of_exp() + ")"; }
 
 Shared_Typ ECdr::typecheck(context_t context) {
   Shared_Typ t = e->typecheck(context);
-  if(dynamic_cast<TList*>(t.get()) == nullptr) {
+  if (dynamic_cast<TList *>(t.get()) == nullptr) {
     type_error(string_of_exp(), "{t}", t->get_type());
   } else {
     return t;
@@ -797,7 +787,7 @@ Shared_Typ ECdr::typecheck(context_t context) {
 EEmpty::EEmpty(Shared_Exp _e) : e(_e) {}
 
 Shared_Exp EEmpty::step() {
-  if(!e->is_value()) {
+  if (!e->is_value()) {
     return std::make_shared<EEmpty>(e->step());
   }
   return std::make_shared<EBool>(e->get_list()->get_e_list().size() == 0);
@@ -813,7 +803,7 @@ std::string EEmpty::string_of_exp() {
 
 Shared_Typ EEmpty::typecheck(context_t context) {
   Shared_Typ t = e->typecheck(context);
-  if(dynamic_cast<TList*>(t.get()) == nullptr) {
+  if (dynamic_cast<TList *>(t.get()) == nullptr) {
     type_error(string_of_exp(), "{t}", t->get_type());
   } else {
     return std::make_shared<TBool>();
@@ -829,11 +819,11 @@ Shared_Typ EEmpty::typecheck(context_t context) {
 ERef::ERef(Shared_Exp _e) : e(_e) {}
 
 Shared_Exp ERef::step() {
-  if(!e->is_value()) {
+  if (!e->is_value()) {
     return std::make_shared<ERef>(e->step());
   }
-  size_t n = env.size();
-  env.insert({n, e});
+  size_t n = heap.size();
+  heap.insert({n, e});
   return std::make_shared<EPtr>(n);
 }
 
@@ -841,9 +831,7 @@ Shared_Exp ERef::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<ERef>(this->e->substitute(var, e));
 }
 
-std::string ERef::string_of_exp() {
-  return "ref (" + e->string_of_exp() + ")";
-}
+std::string ERef::string_of_exp() { return "ref (" + e->string_of_exp() + ")"; }
 
 Shared_Typ ERef::typecheck(context_t context) {
   return std::make_shared<TRef>(e->typecheck(context));
@@ -855,34 +843,24 @@ Shared_Typ ERef::typecheck(context_t context) {
 
 EPtr::EPtr(size_t _n) : n(_n) {}
 
-Shared_Exp EPtr::step() {
-  return std::make_shared<EPtr>(n);
-}
+Shared_Exp EPtr::step() { return std::make_shared<EPtr>(n); }
 
 Shared_Exp EPtr::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<EPtr>(n);
 }
 
-std::string EPtr::string_of_exp() {
-  return "ptr(" + std::to_string(n) + ")";
-}
+std::string EPtr::string_of_exp() { return "ptr(" + std::to_string(n) + ")"; }
 
 Shared_Typ EPtr::typecheck(context_t context) {
   std::cerr << "Fatal: typecheck should happen before evaluation" << std::endl;
   exit(1);
 }
 
-bool EPtr::is_value() {
-  return true;
-}
+bool EPtr::is_value() { return true; }
 
-Shared_EPtr EPtr::get_ptr() {
-  return std::make_shared<EPtr>(n);
-}
+Shared_EPtr EPtr::get_ptr() { return std::make_shared<EPtr>(n); }
 
-size_t EPtr::get_addr() {
-  return n;
-}
+size_t EPtr::get_addr() { return n; }
 
 /******************************************************************************
                                EDeref Implementaion
@@ -891,24 +869,22 @@ size_t EPtr::get_addr() {
 EDeref::EDeref(Shared_Exp _e) : e(_e) {}
 
 Shared_Exp EDeref::step() {
-  if(!e->is_value()) {
+  if (!e->is_value()) {
     return std::make_shared<EDeref>(e->step());
   }
   Shared_EPtr p = e->get_ptr();
-  return env[p->get_addr()];
+  return heap[p->get_addr()];
 }
 
 Shared_Exp EDeref::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<EDeref>(this->e->substitute(var, e));
 }
 
-std::string EDeref::string_of_exp() {
-  return "!(" + e->string_of_exp() + ")";
-}
+std::string EDeref::string_of_exp() { return "!(" + e->string_of_exp() + ")"; }
 
 Shared_Typ EDeref::typecheck(context_t context) {
   Shared_Typ t = e->typecheck(context);
-  if(dynamic_cast<TRef*>(t.get()) != nullptr) {
+  if (dynamic_cast<TRef *>(t.get()) != nullptr) {
     return t->get_first_subtype();
   } else {
     type_error(string_of_exp(), "<t>", t->get_type());
@@ -923,18 +899,19 @@ Shared_Typ EDeref::typecheck(context_t context) {
 EAssign::EAssign(Shared_Exp _e1, Shared_Exp _e2) : e1(_e1), e2(_e2) {}
 
 Shared_Exp EAssign::step() {
-  if(!e1->is_value()) {
+  if (!e1->is_value()) {
     return std::make_shared<EAssign>(e1->step(), e2);
   } else if (!e2->is_value()) {
     return std::make_shared<EAssign>(e1, e2->step());
   }
   Shared_EPtr p = e1->get_ptr();
-  env[p->get_addr()] = e2;
+  heap[p->get_addr()] = e2;
   return std::make_shared<EUnit>();
 }
 
 Shared_Exp EAssign::substitute(std::string var, Shared_Exp e) {
-  return std::make_shared<EAssign>(e1->substitute(var, e), e2->substitute(var, e));
+  return std::make_shared<EAssign>(e1->substitute(var, e),
+                                   e2->substitute(var, e));
 }
 
 std::string EAssign::string_of_exp() {
@@ -945,9 +922,9 @@ Shared_Typ EAssign::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
   Shared_Typ t1_1 = t1->get_first_subtype();
-  if(dynamic_cast<TRef*>(t1.get()) == nullptr) {
+  if (dynamic_cast<TRef *>(t1.get()) == nullptr) {
     type_error(string_of_exp(), "<t>", t1->get_type());
-  } else if(*t1_1.get() != *t2.get()) {
+  } else if (*t1_1.get() != *t2.get()) {
     type_error(string_of_exp(), t1_1->get_type(), t2->get_type());
   } else {
     return std::make_shared<TUnit>();
@@ -962,7 +939,7 @@ Shared_Typ EAssign::typecheck(context_t context) {
 ESeq::ESeq(Shared_Exp _e1, Shared_Exp _e2) : e1(_e1), e2(_e2) {}
 
 Shared_Exp ESeq::step() {
-  if(!e1->is_value()) {
+  if (!e1->is_value()) {
     return std::make_shared<ESeq>(e1->step(), e2);
   }
   return e2;
@@ -973,7 +950,7 @@ Shared_Exp ESeq::substitute(std::string var, Shared_Exp e) {
 }
 
 std::string ESeq::string_of_exp() {
-  return "[" + e1->string_of_exp() + "; " + e2->string_of_exp() + "]";
+  return e1->string_of_exp() + ";" + e2->string_of_exp();
 }
 
 Shared_Typ ESeq::typecheck(context_t context) {
@@ -986,33 +963,161 @@ Shared_Typ ESeq::typecheck(context_t context) {
                                EWhile Implementaion
 *******************************************************************************/
 
-EWhile::EWhile(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e_temp) : e1(_e1), e2(_e2), e_temp(_e_temp) {}
+EWhile::EWhile(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e_temp)
+    : e1(_e1), e2(_e2), e_temp(_e_temp) {}
 
 Shared_Exp EWhile::step() {
   if (!e1->is_value()) {
     return std::make_shared<EWhile>(e1->step(), e2, e_temp);
   }
 
-  if(e1->get_bool()) {
-    return std::make_shared<ESeq>(e2, std::make_shared<EWhile>(e_temp, e2, e_temp));
+  if (e1->get_bool()) {
+    return std::make_shared<ESeq>(e2,
+                                  std::make_shared<EWhile>(e_temp, e2, e_temp));
   } else {
     return std::make_shared<EUnit>();
   }
 }
 
 Shared_Exp EWhile::substitute(std::string var, Shared_Exp e) {
-  return std::make_shared<EWhile>(e1->substitute(var, e), e2->substitute(var, e), e_temp->substitute(var, e));
+  return std::make_shared<EWhile>(e1->substitute(var, e),
+                                  e2->substitute(var, e),
+                                  e_temp->substitute(var, e));
 }
 
 std::string EWhile::string_of_exp() {
-  return "while " + e1->string_of_exp() + " do " + e2->string_of_exp() + " end";
+  return "while (" +  e1->string_of_exp() + ") {" + e2->string_of_exp() + "}";
 }
 
 Shared_Typ EWhile::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
-  if(dynamic_cast<TBool*>(t1.get()) == nullptr) {
+  if (dynamic_cast<TBool *>(t1.get()) == nullptr) {
     type_error(string_of_exp(), "Boolean", t1->get_type());
   }
   return std::make_shared<TUnit>();
+}
+
+/******************************************************************************
+                               EDef Implementaion
+*******************************************************************************/
+
+EDef::EDef(std::string _id, Shared_Exp _e, Shared_Typ _t) : id(_id), e(_e), t(_t) {}
+
+Shared_Exp EDef::step() {
+  // stack.insert({id, e});
+  return std::make_shared<EUnit>();
+}
+
+Shared_Exp EDef::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EDef>(id, this->e, t);
+}
+
+std::string EDef::string_of_exp() {
+  return t->get_type() + " " + id + "= {" + e->string_of_exp() + "}";
+}
+
+Shared_Typ EDef::typecheck(context_t context) {
+  Shared_Typ t = e->typecheck(context);
+  if(*t.get() != *this->t.get()) {
+    type_error(string_of_exp(), t->get_type(), this->t->get_type());
+  }
+  stack.insert({id, e});
+  return std::make_shared<TUnit>();
+}
+
+/******************************************************************************
+                               EStruct Implementaion
+*******************************************************************************/
+
+EStruct::EStruct(struct_data_t _e_map, struct_type_t _t_map) : e_map(_e_map), t_map(_t_map) {}
+
+Shared_Exp EStruct::step() {
+  for(auto const &entry : e_map) {
+    if(!entry.second->is_value()) {
+      e_map[entry.first] = entry.second->step();
+      return std::make_shared<EStruct>(e_map, t_map);
+    }
+  }
+  return std::make_shared<EStruct>(e_map, t_map);
+}
+
+Shared_Exp EStruct::substitute(std::string var, Shared_Exp e) {
+  for(auto const &entry : e_map) {
+    e_map[entry.first] = entry.second->substitute(var, e);
+  }
+  return std::make_shared<EStruct>(e_map, t_map);
+}
+
+std::string EStruct::string_of_exp() {
+  std::string res = "struct {";
+  for(auto const &entry : e_map) {
+    res += t_map[entry.first]->get_type() + " " + entry.first + "=>" + entry.second->string_of_exp() + ", ";
+  }
+  return res + "}";
+}
+
+Shared_Typ EStruct::typecheck(context_t context) {
+  return std::make_shared<TStruct>(t_map);
+}
+
+bool EStruct::is_value() {
+  for(auto const &entry : e_map) {
+    if(!entry.second->is_value()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool EStruct::is_struct() { return true; }
+
+struct_data_t EStruct::get_data() {
+  return e_map;
+}
+
+/******************************************************************************
+                               EDot Implementaion
+*******************************************************************************/
+
+EDot::EDot(Shared_Exp _e, std::string _id) : e(_e), id(_id) {}
+
+Shared_Exp EDot::step() {
+  if(!e->is_value()) {
+    return std::make_shared<EDot>(e->step(), id);
+  }
+  EStruct* s = dynamic_cast<EStruct*>(e.get());
+  if(s == nullptr) {
+    std::cerr << "Debug: Not be able to cast to a EStruct!\n";
+    exit(1);
+  }
+  struct_data_t data = s->get_data();
+  if(data.find(id) != data.end()) {
+    return data[id];
+  } else {
+    std::cerr << "Debug: There is no " + id + " field in this sturct\n";
+    exit(1);
+  }
+}
+
+Shared_Exp EDot::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EDot>(this->e->substitute(var, e), id);
+}
+
+std::string EDot::string_of_exp() {
+  return e->string_of_exp() + "." + id;
+}
+
+Shared_Typ EDot::typecheck(context_t context) {
+  Shared_Typ t = e->typecheck(context);
+  if(dynamic_cast<TStruct*>(t.get()) == nullptr) {
+    type_error(string_of_exp(), "[-]", t->get_type());
+  }
+  struct_type_t t_map = t->get_type_map();
+  if(t_map.find(id) != t_map.end()) {
+    return t_map[id];
+  } else {
+    std::cerr << "There is no " + id + " field in this sturct\n";
+    exit(1);
+  }
 }

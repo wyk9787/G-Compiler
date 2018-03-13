@@ -5,7 +5,9 @@
 
 #include <cctype>
 #include <cstring>
+#include <cstdio>
 #include <fcntl.h>
+#include <fstream>
 #include <getopt.h>
 #include <iostream>
 #include <stdio.h>
@@ -36,8 +38,12 @@ static std::string flags =
     "\t-h --help\t\tprints the help message.\n";
 
 void processing(int argc, char **argv);
+std::string parse_header(std::string filename);
+void dump_file(std::string original_filename, std::ofstream& new_file);
 
-int main(int argc, char **argv) { processing(argc, argv); }
+int main(int argc, char **argv) {
+  processing(argc, argv);
+}
 
 void processing(int argc, char **argv) {
   if (argc == 1) {
@@ -45,28 +51,30 @@ void processing(int argc, char **argv) {
   }
   parser_driver driver("-"); // Default as stdin input
   int long_optind = 0;
-  static struct option long_options[] = {{"help", no_argument, 0, 'h'},
-                                         {"length", no_argument, 0, 'l'},
-                                         {"file", required_argument, 0, 'f'},
-                                         {"parse", no_argument, 0, 'p'},
-                                         {"PARSE", no_argument, 0, 'P'},
-                                         {"lex", no_argument, 0, 'L'},
-                                         {"step", no_argument, 0, 's'},
-                                         {0, 0, 0, 0}};
+  static struct option long_options[] = {
+      {"help", no_argument, 0, 'h'},       {"length", no_argument, 0, 'l'},
+      {"file", required_argument, 0, 'f'}, {"parse", no_argument, 0, 'p'},
+      {"PARSE", no_argument, 0, 'P'},      {"lex", no_argument, 0, 'L'},
+      {"step", no_argument, 0, 's'},       {0, 0, 0, 0}};
   std::vector<char> options; // Store all the options into the vector options
   char *opt_arg;
   int c;
-  while ((c = getopt_long(argc, argv, "lhsf:LpP", long_options, &long_optind)) !=
-         -1) {
+  while ((c = getopt_long(argc, argv, "lhsf:LpP", long_options,
+                          &long_optind)) != -1) {
     options.push_back(c);
     if (c == 'f') {
       opt_arg = strdup(optarg);
     }
   }
   Shared_Exp prog;
+  std::string new_filename;
   // If '-p' presents, then we will not interpret the output
   bool if_interpret = true;
   bool print_step = false;
+  if(find(options.begin(), options.end(), 'f') == options.end()) {
+    std::cerr << "Requires -f for a file" << std::endl;
+    exit(1);
+  }
   for (size_t i = 0; i < options.size(); i++) { // Processing flags
     c = options[i];
     if (c == 'l') { // -l --length
@@ -91,7 +99,8 @@ void processing(int argc, char **argv) {
       driver.trace_scanning = false;
       if_interpret = false;
     } else if (c == 'f') { // -f --file
-      driver = parser_driver(opt_arg);
+      new_filename = parse_header(opt_arg);
+      driver = parser_driver(new_filename);
     } else if (c == 's') {
       print_step = true;
     } else if (c == '?') {
@@ -103,4 +112,50 @@ void processing(int argc, char **argv) {
     prog = driver.parse();
     interpret(prog, print_step);
   }
+  if(remove(new_filename.c_str()) != 0 ) perror( "Error deleting file" );
+}
+
+std::string parse_header(std::string filename) {
+  std::string line;
+  std::string new_filename = filename + ".temp";
+  std::ifstream original_file(filename);
+  std::ofstream new_file(new_filename);
+  if (original_file.is_open()) {
+    while (getline (original_file, line)){
+      if(line.find("#include") != std::string::npos) {
+        int start = line.find("<");
+        int end = line.find(">");
+        if(start != std::string::npos && end != std::string::npos) {
+          dump_file(line.substr(start+1, end-start-1), new_file);
+        } else {
+          std::cerr << "Expect format: #include <filename>\n";
+          exit(1);
+        }
+      } else {
+        new_file << line << "\n";
+      }
+    }
+  } else {
+    std::cerr << "Unable to open file\n";
+    exit(1);
+  }
+  original_file.close();
+  new_file.close();
+  return new_filename;
+}
+
+void dump_file(std::string original_filename, std::ofstream& new_file) {
+  std::ifstream original_file(original_filename);
+  if (original_file.is_open()) {
+    // Copy char by char
+    while(!original_file.eof()){
+  		char c = original_file.get();
+      if(c != EOF) new_file << c;
+  	}
+    new_file << ";";
+  } else {
+    std::cerr << "Unable to open file\n";
+    exit(1);
+  }
+  original_file.close();
 }

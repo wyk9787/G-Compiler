@@ -1,0 +1,17 @@
+#include <language/lib/math.glib>
+
+[-] a = {
+  struct {
+    int x => 3,
+    int y => 4,
+  }
+};
+
+[-] b = {
+  struct {
+    int x => a.y,
+    int y => a.x,
+  }
+};
+
+max2(b.x)(b.y) + b.x

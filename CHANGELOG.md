@@ -1,5 +1,5 @@
 <a name="1.1.0"></a>
-# 1.1.0 (2018-03-10)
+# 1.1.0 (2018-03-13)
 
 
 ### Bug Fixes
@@ -23,6 +23,8 @@
 * now supports let binding, function, function application and recursive function ([cadf76a](https://github.com/wyk9787/compiler/commit/cadf76a))
 * now supports small step evaluation ([de0fd70](https://github.com/wyk9787/compiler/commit/de0fd70))
 * support --step flag so it can print the intermediate step of evaluation ([28ed1a1](https://github.com/wyk9787/compiler/commit/28ed1a1))
+* support immutable struct ([17f0238](https://github.com/wyk9787/compiler/commit/17f0238))
+* Support include statment(include header files), defining a variable on stack ([e2f5a2f](https://github.com/wyk9787/compiler/commit/e2f5a2f))
 
 
 

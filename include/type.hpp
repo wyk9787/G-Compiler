@@ -27,10 +27,17 @@ public:
     std::cerr << "There is no first subtype for this type!" << std::endl;
     exit(1);
   }
+
   virtual Shared_Typ get_second_subtype() {
     std::cerr << "There is no second subtype for this type!" << std::endl;
     exit(1);
   }
+
+  virtual struct_type_t get_type_map() {
+    std::cerr << "There is no type map for this type!" << std::endl;
+    exit(1);
+  }
+
   friend bool operator==(const Typ &first, const Typ &second);
   friend bool operator!=(const Typ &first, const Typ &second);
 
@@ -143,6 +150,21 @@ public:
   TRef(Shared_Typ _t);
   std::string get_type();
   Shared_Typ get_first_subtype();
+
+protected:
+  bool eq(const Typ& other) const;
+};
+
+//********************************TStruct Header*******************************//
+
+class TStruct : public Typ {
+private:
+  struct_type_t t_map;
+
+public:
+  TStruct(struct_type_t _t_map);
+  std::string get_type();
+  struct_type_t get_type_map();
 
 protected:
   bool eq(const Typ& other) const;

@@ -13,8 +13,8 @@
 #include <string>
 #include <memory>
 #include "token.hpp"
-#include "expression.hpp"
 #include "type.hpp"
+#include "global.hpp"
 class parser_driver;
 }
 
@@ -36,8 +36,8 @@ class parser_driver;
 %code {
 #include "parser_driver.h"
 #include "token.hpp"
-#include "expression.hpp"
 #include "type.hpp"
+#include "interpreter.hpp"
 }
 
 %define api.token.prefix {TOK_}
@@ -86,6 +86,12 @@ class parser_driver;
   WHILE        "while"
   DO           "do"
   END          "end"
+  INCLUDE      "include"
+  POND         "#"
+  DEF          "def"
+  ARROW        "=>"
+  STRUCT       "struct"
+  DOT          "."
 ;
 
 %token <int> INT "int"
@@ -95,7 +101,7 @@ class parser_driver;
 %token <Shared_TFloat> TFLOAT "tfloat"
 %token <Shared_TBool> TBOOL "tbool"
 %token <Shared_TUnit> TUNIT "tunit"
-
+%token <Shared_TStruct> TSTRUCT "tstruct"
 
 %right "!" "ref"
 %left ";"
@@ -105,11 +111,12 @@ class parser_driver;
 %left "<=" "<" ">=" ">" "=="
 %left "+" "-"
 %left "*" "/"
+%left "."
 %left "(" ")"
 
 
-%type  < Shared_Exp > exp
-%type  < Shared_Typ > typ
+%type  <Shared_Exp> exp
+%type  <Shared_Typ> typ
 %parse-param {Shared_Exp *ret}
 %printer { yyoutput << $$->string_of_exp(); } exp;
 
@@ -118,7 +125,17 @@ class parser_driver;
 %start prog;
 
 prog:
-  exp "eof"             { *ret = $1; }
+  exp "eof"                       { *ret = $1; }
+;
+
+struct_statement_list: struct_statement
+| struct_statement_list struct_statement
+;
+
+struct_statement:
+  typ "var" "=>" exp ","     { global_struct_data.insert({$2, $4});
+                               global_struct_type.insert({$2, $1}); }
+;
 
 exp:
   "int"                           { $$ = std::make_shared<ELit>(true, $1, 0, false); }
@@ -152,20 +169,29 @@ exp:
 | "{" "}" ":" typ                 { std::vector<Shared_Exp> v;
                                     $$ = std::make_shared<EList>(v, $4); }
 | "ref" "(" exp ")"               { $$ = std::make_shared<ERef>($3); }
-| "!" "(" exp ")"                  { $$ = std::make_shared<EDeref>($3); }
+| "!" "(" exp ")"                 { $$ = std::make_shared<EDeref>($3); }
 | exp ":=" exp                    { $$ = std::make_shared<EAssign>($1, $3); }
 | exp ";" exp                     { $$ = std::make_shared<ESeq>($1, $3); }
 | "let" "[" "var" ":" typ "]" "=" exp "in" exp
                                   { $$ = std::make_shared<ELet>($3, $5, $8, $10); }
-| "if" exp "then" exp "else" exp  { $$ = std::make_shared<EIf>($2, $4, $6); }
-| "while" exp "do" exp "end"      { $$ = std::make_shared<EWhile>($2, $4, $2); }
+| "if" "(" exp ")" "{" exp "}" "else" "{" exp "}"
+                                  { $$ = std::make_shared<EIf>($3, $6, $10); }
+| "while" "(" exp ")" "{" exp "}" { $$ = std::make_shared<EWhile>($3, $6, $3); }
 | "(" exp ")" %prec "->"          { $$ = $2; }
+| typ "var" "=" "{" exp "}"       { $$ = std::make_shared<EDef>($2, $5, $1); }
+| "struct" "{" struct_statement_list "}"
+                                  { $$ = std::make_shared<EStruct>(global_struct_data,        global_struct_type);
+                                    global_struct_data.clear();
+                                    global_struct_type.clear(); }
+| exp  "." "var"                  { $$ =  std::make_shared<EDot>($1, $3); }
+;
 
 typ:
   "tint"                          { $$ = $1; }
 | "tfloat"                        { $$ = $1; }
 | "tbool"                         { $$ = $1; }
 | "tunit"                         { $$ = $1; }
+| "tstruct"                           { $$ = $1; }
 | typ "->" typ                    { $$ = std::make_shared<TFunc>($1, $3); }
 | typ "*" typ  %prec "->"         { $$ = std::make_shared<TPair>($1, $3); }
 | "{" typ "}"                     { $$ = std::make_shared<TList>($2); }
