@@ -81,6 +81,8 @@ struct_statement ::= t x => e,
 
 ### Precedence
 
+```
+
 1. ( )  left associative
 
 2. . left associative
@@ -101,6 +103,7 @@ struct_statement ::= t x => e,
 
 10. ! ref right associative
 
+```
 
 ## Example
 
