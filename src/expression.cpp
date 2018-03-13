@@ -4,7 +4,8 @@
 
 global_heap_t heap;
 global_stack_t stack;
-global_header_t header;
+struct_data_t global_struct_data;
+struct_type_t global_struct_type;
 
 std::shared_ptr<Exp> evaluate(std::shared_ptr<Exp> exp, bool print_step) {
   while (!exp->is_value()) {
@@ -1029,16 +1030,94 @@ Shared_Typ EDef::typecheck(context_t context) {
                                EStruct Implementaion
 *******************************************************************************/
 
-// EStruct::EStruct(std::string _id, std::vector<Shared_Exp> e_list, std::vector<Shared_Typ> t_list) : id(_id), e_list(_e_list), t_list(_t_list) {}
-//
-// Shared_Exp EStruct::step() {
-//   for(int i = 0; i < e_list.size(); i++) {
-//
-//   }
-// }
-//
-// Shared_Exp EStruct::substitute(std::string var, Shared_Exp e);
-//
-// std::string EStruct::string_of_exp();
-//
-// Shared_Typ EStruct::typecheck(context_t context);
+EStruct::EStruct(struct_data_t _e_map, struct_type_t _t_map) : e_map(_e_map), t_map(_t_map) {}
+
+Shared_Exp EStruct::step() {
+  for(auto const &entry : e_map) {
+    if(!entry.second->is_value()) {
+      e_map[entry.first] = entry.second->step();
+      return std::make_shared<EStruct>(e_map, t_map);
+    }
+  }
+  return std::make_shared<EStruct>(e_map, t_map);
+}
+
+Shared_Exp EStruct::substitute(std::string var, Shared_Exp e) {
+  for(auto const &entry : e_map) {
+    e_map[entry.first] = entry.second->substitute(var, e);
+  }
+  return std::make_shared<EStruct>(e_map, t_map);
+}
+
+std::string EStruct::string_of_exp() {
+  std::string res = "struct {";
+  for(auto const &entry : e_map) {
+    res += t_map[entry.first]->get_type() + " " + entry.first + "=>" + entry.second->string_of_exp() + ", ";
+  }
+  return res + "}";
+}
+
+Shared_Typ EStruct::typecheck(context_t context) {
+  return std::make_shared<TStruct>(t_map);
+}
+
+bool EStruct::is_value() {
+  for(auto const &entry : e_map) {
+    if(!entry.second->is_value()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool EStruct::is_struct() { return true; }
+
+struct_data_t EStruct::get_data() {
+  return e_map;
+}
+
+/******************************************************************************
+                               EDot Implementaion
+*******************************************************************************/
+
+EDot::EDot(Shared_Exp _e, std::string _id) : e(_e), id(_id) {}
+
+Shared_Exp EDot::step() {
+  if(!e->is_value()) {
+    return std::make_shared<EDot>(e->step(), id);
+  }
+  EStruct* s = dynamic_cast<EStruct*>(e.get());
+  if(s == nullptr) {
+    std::cerr << "Debug: Not be able to cast to a EStruct!\n";
+    exit(1);
+  }
+  struct_data_t data = s->get_data();
+  if(data.find(id) != data.end()) {
+    return data[id];
+  } else {
+    std::cerr << "Debug: There is no " + id + " field in this sturct\n";
+    exit(1);
+  }
+}
+
+Shared_Exp EDot::substitute(std::string var, Shared_Exp e) {
+  return std::make_shared<EDot>(this->e->substitute(var, e), id);
+}
+
+std::string EDot::string_of_exp() {
+  return e->string_of_exp() + "." + id;
+}
+
+Shared_Typ EDot::typecheck(context_t context) {
+  Shared_Typ t = e->typecheck(context);
+  if(dynamic_cast<TStruct*>(t.get()) == nullptr) {
+    type_error(string_of_exp(), "[-]", t->get_type());
+  }
+  struct_type_t t_map = t->get_type_map();
+  if(t_map.find(id) != t_map.end()) {
+    return t_map[id];
+  } else {
+    std::cerr << "There is no " + id + " field in this sturct\n";
+    exit(1);
+  }
+}

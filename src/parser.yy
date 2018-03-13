@@ -89,17 +89,19 @@ class parser_driver;
   INCLUDE      "include"
   POND         "#"
   DEF          "def"
+  ARROW        "=>"
+  STRUCT       "struct"
+  DOT          "."
 ;
 
 %token <int> INT "int"
 %token <double> DOUBLE "double"
 %token <std::string> VAR "var"
-%token <std::string> FILENAME "filename"
 %token <Shared_TInt> TINT "tint"
 %token <Shared_TFloat> TFLOAT "tfloat"
 %token <Shared_TBool> TBOOL "tbool"
 %token <Shared_TUnit> TUNIT "tunit"
-
+%token <Shared_TStruct> TSTRUCT "tstruct"
 
 %right "!" "ref"
 %left ";"
@@ -109,6 +111,7 @@ class parser_driver;
 %left "<=" "<" ">=" ">" "=="
 %left "+" "-"
 %left "*" "/"
+%left "."
 %left "(" ")"
 
 
@@ -123,6 +126,15 @@ class parser_driver;
 
 prog:
   exp "eof"                       { *ret = $1; }
+;
+
+struct_statement_list: struct_statement
+| struct_statement_list struct_statement
+;
+
+struct_statement:
+  typ "var" "=>" exp ","     { global_struct_data.insert({$2, $4});
+                               global_struct_type.insert({$2, $1}); }
 ;
 
 exp:
@@ -167,6 +179,11 @@ exp:
 | "while" "(" exp ")" "{" exp "}" { $$ = std::make_shared<EWhile>($3, $6, $3); }
 | "(" exp ")" %prec "->"          { $$ = $2; }
 | typ "var" "=" "{" exp "}"       { $$ = std::make_shared<EDef>($2, $5, $1); }
+| "struct" "{" struct_statement_list "}"
+                                  { $$ = std::make_shared<EStruct>(global_struct_data,        global_struct_type);
+                                    global_struct_data.clear();
+                                    global_struct_type.clear(); }
+| exp  "." "var"                  { $$ =  std::make_shared<EDot>($1, $3); }
 ;
 
 typ:
@@ -174,6 +191,7 @@ typ:
 | "tfloat"                        { $$ = $1; }
 | "tbool"                         { $$ = $1; }
 | "tunit"                         { $$ = $1; }
+| "tstruct"                           { $$ = $1; }
 | typ "->" typ                    { $$ = std::make_shared<TFunc>($1, $3); }
 | typ "*" typ  %prec "->"         { $$ = std::make_shared<TPair>($1, $3); }
 | "{" typ "}"                     { $$ = std::make_shared<TList>($2); }

@@ -67,58 +67,44 @@ e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
         | ref (e) | e1 := e2 | !(e) | e1; e2
         | while (e1) {e2}
         | x = {e}
+        | struct { struct_statement_list }
+        | e.x
 
-t ::= int | float | bool | t1 -> t2 | t1 * t2 | unit | {t} | <t>
+t ::= int | float | bool | [-] | t1 -> t2 | t1 * t2 | unit | {t} | <t>
+
+struct_statement_list ::= struct_statement
+                        | struct_statement_list struct_statement
+
+struct_statement ::= t x => e,
+
 ```
 
 ### Precedence
 
-```
 1. ( )  left associative
 
-2. * / left associative
+2. . left associative
 
-3. + - left associative
+3. * / left associative
 
-4. <= < > >= == left associative
+4. + - left associative
 
-5. -> :: right associative
+5. <= < > >= == left associative
 
-6. if then else
+6. -> :: right associative
 
-7. := left associative
+7. if then else
 
-8. ; left associative
+8. := left associative
 
-9. ! ref right associative
+9. ; left associative
 
-```
+10. ! ref right associative
+
 
 ## Example
 
-`./build/compiler -f ./test/test1.src`
-
-The program will return `NaN`
-
-`./build/compiler -f ./test/test1.src -p`
-
-The program will return
-
-```
-(if (if false then true else false) then (10.230000 + 0.770000) else (if false then (3.000000 + (2.500000 / 2.000000)) else (0.000000 / 0.000000)))
-```
-
-`./build/compiler -f ./test/test1.src -s`
-
-The program will return
-
-```
-(if (if false then true else false) then (10.230000 + 0.770000) else (if false then (3.000000 + (2.500000 / 2.000000)) else (0.000000 / 0.000000)))
-(if false then (10.230000 + 0.770000) else (if false then (3.000000 + (2.500000 / 2.000000)) else (0.000000 / 0.000000)))
-(if false then (3.000000 + (2.500000 / 2.000000)) else (0.000000 / 0.000000))
-(0.000000 / 0.000000)
-NaN
-```
+See directory `./test` for examples.
 
 ## Author
 Garrett Wang

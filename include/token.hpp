@@ -29,6 +29,9 @@ class EPtr;
 class EAssign;
 class ESeq;
 class EWhile;
+class EDef;
+class EStruct;
+class EDot;
 
 class Typ;
 class TInt;
@@ -39,6 +42,7 @@ class TFunc;
 class TPair;
 class TList;
 class TRef;
+class TStruct;
 
 /******************************************************************************
                                Alias for shared_ptr
@@ -67,6 +71,9 @@ typedef std::shared_ptr<EPtr> Shared_EPtr;
 typedef std::shared_ptr<EAssign> Shared_EAssign;
 typedef std::shared_ptr<ESeq> Shared_ESeq;
 typedef std::shared_ptr<EWhile> Shared_EWhile;
+typedef std::shared_ptr<EDef> Shared_EDef;
+typedef std::shared_ptr<EStruct> Shared_EStruct;
+typedef std::shared_ptr<EDot> Shared_EDot;
 
 typedef std::shared_ptr<Typ> Shared_Typ;
 typedef std::shared_ptr<TInt> Shared_TInt;
@@ -76,11 +83,13 @@ typedef std::shared_ptr<TUnit> Shared_TUnit;
 typedef std::shared_ptr<TFunc> Shared_TFunc;
 typedef std::shared_ptr<TPair> Shared_TPair;
 typedef std::shared_ptr<TRef> Shared_TRef;
+typedef std::shared_ptr<TStruct> Shared_TStruct;
 
 typedef std::unordered_map<std::string, std::shared_ptr<Exp>> global_stack_t;
 typedef std::unordered_map<std::string, std::shared_ptr<Typ>> context_t;
 typedef std::unordered_map<size_t, std::shared_ptr<Exp>> global_heap_t;
-typedef std::vector<std::string> global_header_t;
+typedef std::unordered_map<std::string, std::shared_ptr<Exp>> struct_data_t;
+typedef std::unordered_map<std::string, std::shared_ptr<Typ>> struct_type_t;
 
 // Empty strings are place holders for int, float, bool, var and fun
 const std::vector<std::string> enum_string = {"(", ")",  "+",   "-",  "/", "*",

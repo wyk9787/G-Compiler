@@ -19,7 +19,6 @@ static yy::location loc;
 
 
 var         [a-zA-Z][a-zA-Z_0-9]*
-filename    [a-zA-Z][a-zA-Z_0-9./]*
 
 int   [0-9]+
 double [0-9]+"."[0-9]+
@@ -47,8 +46,8 @@ blank [ \t]
 "<="        { return yy::parser::make_LEQ(loc); }
 "<"         { return yy::parser::make_LESS(loc); }
 "=="        { return yy::parser::make_EQUAL(loc); }
-">"         { return yy::parser::make_GREATER(loc); }
 ">="        { return yy::parser::make_GEQ(loc); }
+">"         { return yy::parser::make_GREATER(loc); }
 "("         { return yy::parser::make_LPAREN(loc); }
 ")"         { return yy::parser::make_RPAREN(loc); }
 "true"      { return yy::parser::make_TRUE(loc); }
@@ -59,10 +58,14 @@ blank [ \t]
 "NaN"       { return yy::parser::make_NAN(loc); }
 "fun"       { return yy::parser::make_FUNC(loc); }
 "->"        { return yy::parser::make_FUNC_BODY(loc); }
+"=>"        { return yy::parser::make_ARROW(loc); }
+"struct"    { return yy::parser::make_STRUCT(loc); }
 "let"       { return yy::parser::make_LET(loc); }
 "="         { return yy::parser::make_LET_ASSIGN(loc); }
 "in"        { return yy::parser::make_IN(loc); }
 "rec"       { return yy::parser::make_REC(loc); }
+"[-]"       { struct_type_t temp;
+  return yy::parser::make_TSTRUCT(std::make_shared<TStruct>(temp), loc); }
 "int"       { return yy::parser::make_TINT(std::make_shared<TInt>(), loc); }
 "float"     { return yy::parser::make_TFLOAT(std::make_shared<TFloat>(), loc); }
 "bool"      { return yy::parser::make_TBOOL(std::make_shared<TBool>(), loc); }
@@ -90,9 +93,9 @@ blank [ \t]
 "#"         { return yy::parser::make_POND(loc); }
 "include"   { return yy::parser::make_INCLUDE(loc); }
 "def"       { return yy::parser::make_DEF(loc); }
+"."         { return yy::parser::make_DOT(loc); }
 
 {var}       { return yy::parser::make_VAR(yytext, loc);}
-{filename}  { return yy::parser::make_FILENAME(yytext, loc);}
 
 {double} {
     errno = 0;

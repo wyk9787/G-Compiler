@@ -34,6 +34,7 @@ public:
   virtual bool is_func() { return false; }
   virtual bool is_pair() { return false; }
   virtual bool is_list() { return false; }
+  virtual bool is_struct() { return false; }
 
   virtual bool get_bool() {
     std::cerr << "Debug: Expecting a boolean!\n";
@@ -551,18 +552,38 @@ public:
                                EStruct Header
 *******************************************************************************/
 
-// class EStruct : public Exp {
-// private:
-//   std::string id;
-//   std::vector<Shared_Exp> e_list;
-//   std::vector<Shared_Typ> t_list;
-//
-// public:
-//   EStruct(std::string _id, std::vector<Shared_Exp> e_list, std::vector<Shared_Typ> t_list);
-//   Shared_Exp step();
-//   Shared_Exp substitute(std::string var, Shared_Exp e);
-//   std::string string_of_exp();
-//   Shared_Typ typecheck(context_t context);
-// };
+class EStruct : public Exp {
+private:
+  struct_data_t e_map;
+  struct_type_t t_map;
+
+public:
+  EStruct(struct_data_t _e_map, struct_type_t _t_map);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+
+  bool is_value();
+  bool is_struct();
+  struct_data_t get_data();
+};
+
+/******************************************************************************
+                               EDot Header
+*******************************************************************************/
+
+class EDot : public Exp {
+private:
+  Shared_Exp e;
+  std::string id;
+
+public:
+  EDot(Shared_Exp _e, std::string _id);
+  Shared_Exp step();
+  Shared_Exp substitute(std::string var, Shared_Exp e);
+  std::string string_of_exp();
+  Shared_Typ typecheck(context_t context);
+};
 
 #endif

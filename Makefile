@@ -1,7 +1,7 @@
 # Copied from http://www.partow.net/programming/makefile/idx.html
 
 CXX       	 := clang++
-CXXFLAGS 	   := -std=c++11
+CXXFLAGS 	   := -std=c++14
 LDFLAGS      := -L/usr/lib -lstdc++ -lm
 BUILD        := ./build
 OBJ_DIR      := $(BUILD)/objects

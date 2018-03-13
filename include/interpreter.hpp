@@ -8,6 +8,4 @@
 
 void interpret(Shared_Exp, bool print_step);
 
-void include_header();
-
 #endif
