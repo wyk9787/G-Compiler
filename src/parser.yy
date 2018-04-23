@@ -16,6 +16,7 @@
 #include "type.hpp"
 #include "global.hpp"
 class parser_driver;
+using namespace fexp;
 }
 
 // The parsing context

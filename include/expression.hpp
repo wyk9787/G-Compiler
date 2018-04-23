@@ -1,12 +1,15 @@
 #ifndef EXPRESSION_HPP
 #define EXPRESSION_HPP
+#include "global.hpp"
 #include "token.hpp"
 #include "type.hpp"
-#include "global.hpp"
-#include <memory>
 #include <iostream>
+#include <memory>
 #include <vector>
 
+namespace fexp {
+
+using namespace fexp;
 
 /******************************************************************************
                                Helper
@@ -27,8 +30,8 @@ public:
   virtual bool is_value() { return false; }
   virtual bool is_bool() { return false; }
   virtual bool is_int() { return false; }
-  virtual bool is_float() {return false; }
-  virtual bool is_unit() {return false; }
+  virtual bool is_float() { return false; }
+  virtual bool is_unit() { return false; }
   virtual bool is_NaN() { return false; }
   virtual bool is_var() { return false; }
   virtual bool is_func() { return false; }
@@ -113,7 +116,6 @@ public:
   Shared_Typ typecheck(context_t context);
 };
 
-
 /******************************************************************************
                                ELit Header
 *******************************************************************************/
@@ -124,6 +126,7 @@ private:
   bool _is_NaN;
   int int_data;
   double float_data;
+
 public:
   ELit(bool __is_int, int _int_data, double _float_data, bool __is_NaN);
   Shared_Exp step();
@@ -147,6 +150,7 @@ public:
 class EBool : public Exp {
 private:
   bool data;
+
 public:
   EBool(bool _data);
   Shared_Exp step();
@@ -193,7 +197,8 @@ private:
   std::string id;
 
 public:
-  EFunc(std::string _param, Shared_Typ _t1, Shared_Typ _t2, Shared_Exp _e, bool _is_rec, std::string _id);
+  EFunc(std::string _param, Shared_Typ _t1, Shared_Typ _t2, Shared_Exp _e,
+        bool _is_rec, std::string _id);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
@@ -214,7 +219,6 @@ public:
 
 class EUnit : public Exp {
 private:
-
 public:
   EUnit();
   Shared_Exp step();
@@ -235,8 +239,7 @@ private:
   Shared_Exp e1, e2, e3;
 
 public:
-  EIf(Shared_Exp _e1, Shared_Exp _e2,
-      Shared_Exp _e3);
+  EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
@@ -270,7 +273,6 @@ private:
   Shared_Exp function;
   Shared_Exp e;
 
-
 public:
   EApp(Shared_Exp _function, Shared_Exp _e);
   Shared_Exp step();
@@ -301,7 +303,6 @@ public:
   Shared_EPair get_pair();
   Shared_Exp get_first();
   Shared_Exp get_second();
-
 };
 
 /******************************************************************************
@@ -318,7 +319,6 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-
 };
 
 /******************************************************************************
@@ -585,5 +585,5 @@ public:
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
 };
-
+}
 #endif

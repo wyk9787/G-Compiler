@@ -51,8 +51,9 @@
 #include "type.hpp"
 #include "global.hpp"
 class parser_driver;
+using namespace fexp;
 
-#line 56 "src/parser.yy.hpp" // lalr1.cc:392
+#line 57 "src/parser.yy.hpp" // lalr1.cc:392
 
 # include <cassert>
 # include <cstdlib> // std::abort
@@ -129,7 +130,7 @@ class parser_driver;
 
 
 namespace yy {
-#line 133 "src/parser.yy.hpp" // lalr1.cc:392
+#line 134 "src/parser.yy.hpp" // lalr1.cc:392
 
 
 
@@ -1782,7 +1783,7 @@ namespace yy {
 
 
 } // yy
-#line 1786 "src/parser.yy.hpp" // lalr1.cc:392
+#line 1787 "src/parser.yy.hpp" // lalr1.cc:392
 
 
 

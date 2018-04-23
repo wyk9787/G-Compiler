@@ -2,9 +2,10 @@
 #define TOKEN_HPP
 
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
+namespace fexp {
 class Exp;
 class EOperator;
 class EComp;
@@ -32,6 +33,7 @@ class EWhile;
 class EDef;
 class EStruct;
 class EDot;
+}
 
 class Typ;
 class TInt;
@@ -47,33 +49,33 @@ class TStruct;
 /******************************************************************************
                                Alias for shared_ptr
 *******************************************************************************/
-typedef std::shared_ptr<Exp> Shared_Exp;
-typedef std::shared_ptr<EOperator> Shared_EOperator;
-typedef std::shared_ptr<EComp> Shared_EComp;
-typedef std::shared_ptr<ELit> Shared_ELit;
-typedef std::shared_ptr<EBool> Shared_EBool;
-typedef std::shared_ptr<EVar> Shared_EVar;
-typedef std::shared_ptr<EFunc> Shared_EFunc;
-typedef std::shared_ptr<EIf> Shared_EIf;
-typedef std::shared_ptr<ELet> Shared_ELet;
-typedef std::shared_ptr<EApp> Shared_EApp;
-typedef std::shared_ptr<EPair> Shared_EPair;
-typedef std::shared_ptr<EFst> Shared_EFst;
-typedef std::shared_ptr<ESnd> Shared_ESnd;
-typedef std::shared_ptr<EList> Shared_EList;
-typedef std::shared_ptr<ECons> Shared_ECons;
-typedef std::shared_ptr<ECar> Shared_ECar;
-typedef std::shared_ptr<ECdr> Shared_ECdr;
-typedef std::shared_ptr<EEmpty> Shared_EEmpty;
-typedef std::shared_ptr<ERef> Shared_ERef;
-typedef std::shared_ptr<EDeref> Shared_EDeref;
-typedef std::shared_ptr<EPtr> Shared_EPtr;
-typedef std::shared_ptr<EAssign> Shared_EAssign;
-typedef std::shared_ptr<ESeq> Shared_ESeq;
-typedef std::shared_ptr<EWhile> Shared_EWhile;
-typedef std::shared_ptr<EDef> Shared_EDef;
-typedef std::shared_ptr<EStruct> Shared_EStruct;
-typedef std::shared_ptr<EDot> Shared_EDot;
+typedef std::shared_ptr<fexp::Exp> Shared_Exp;
+typedef std::shared_ptr<fexp::EOperator> Shared_EOperator;
+typedef std::shared_ptr<fexp::EComp> Shared_EComp;
+typedef std::shared_ptr<fexp::ELit> Shared_ELit;
+typedef std::shared_ptr<fexp::EBool> Shared_EBool;
+typedef std::shared_ptr<fexp::EVar> Shared_EVar;
+typedef std::shared_ptr<fexp::EFunc> Shared_EFunc;
+typedef std::shared_ptr<fexp::EIf> Shared_EIf;
+typedef std::shared_ptr<fexp::ELet> Shared_ELet;
+typedef std::shared_ptr<fexp::EApp> Shared_EApp;
+typedef std::shared_ptr<fexp::EPair> Shared_EPair;
+typedef std::shared_ptr<fexp::EFst> Shared_EFst;
+typedef std::shared_ptr<fexp::ESnd> Shared_ESnd;
+typedef std::shared_ptr<fexp::EList> Shared_EList;
+typedef std::shared_ptr<fexp::ECons> Shared_ECons;
+typedef std::shared_ptr<fexp::ECar> Shared_ECar;
+typedef std::shared_ptr<fexp::ECdr> Shared_ECdr;
+typedef std::shared_ptr<fexp::EEmpty> Shared_EEmpty;
+typedef std::shared_ptr<fexp::ERef> Shared_ERef;
+typedef std::shared_ptr<fexp::EDeref> Shared_EDeref;
+typedef std::shared_ptr<fexp::EPtr> Shared_EPtr;
+typedef std::shared_ptr<fexp::EAssign> Shared_EAssign;
+typedef std::shared_ptr<fexp::ESeq> Shared_ESeq;
+typedef std::shared_ptr<fexp::EWhile> Shared_EWhile;
+typedef std::shared_ptr<fexp::EDef> Shared_EDef;
+typedef std::shared_ptr<fexp::EStruct> Shared_EStruct;
+typedef std::shared_ptr<fexp::EDot> Shared_EDot;
 
 typedef std::shared_ptr<Typ> Shared_Typ;
 typedef std::shared_ptr<TInt> Shared_TInt;
@@ -85,10 +87,10 @@ typedef std::shared_ptr<TPair> Shared_TPair;
 typedef std::shared_ptr<TRef> Shared_TRef;
 typedef std::shared_ptr<TStruct> Shared_TStruct;
 
-typedef std::unordered_map<std::string, std::shared_ptr<Exp>> global_stack_t;
+typedef std::unordered_map<std::string, std::shared_ptr<fexp::Exp>> global_stack_t;
 typedef std::unordered_map<std::string, std::shared_ptr<Typ>> context_t;
-typedef std::unordered_map<size_t, std::shared_ptr<Exp>> global_heap_t;
-typedef std::unordered_map<std::string, std::shared_ptr<Exp>> struct_data_t;
+typedef std::unordered_map<size_t, std::shared_ptr<fexp::Exp>> global_heap_t;
+typedef std::unordered_map<std::string, std::shared_ptr<fexp::Exp>> struct_data_t;
 typedef std::unordered_map<std::string, std::shared_ptr<Typ>> struct_type_t;
 
 // Empty strings are place holders for int, float, bool, var and fun

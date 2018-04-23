@@ -49,7 +49,7 @@
 
 #line 51 "src/parser.yy.cpp" // lalr1.cc:412
 // Unqualified %code blocks.
-#line 36 "src/parser.yy" // lalr1.cc:413
+#line 37 "src/parser.yy" // lalr1.cc:413
 
 #include "parser_driver.h"
 #include "token.hpp"
@@ -388,7 +388,7 @@ namespace yy {
     {
             case 64: // exp
 
-#line 121 "src/parser.yy" // lalr1.cc:636
+#line 122 "src/parser.yy" // lalr1.cc:636
         { yyoutput << yysym.value.template as< Shared_Exp > ()->string_of_exp(); }
 #line 394 "src/parser.yy.cpp" // lalr1.cc:636
         break;
@@ -503,7 +503,7 @@ namespace yy {
 
 
     // User initialization code.
-    #line 27 "src/parser.yy" // lalr1.cc:745
+    #line 28 "src/parser.yy" // lalr1.cc:745
 {
   // Initialize the initial location.
   // NOTE: For some reasons unknown, I cannot access the filename when try to print error
@@ -658,237 +658,237 @@ namespace yy {
           switch (yyn)
             {
   case 2:
-#line 128 "src/parser.yy" // lalr1.cc:859
+#line 129 "src/parser.yy" // lalr1.cc:859
     { *ret = yystack_[1].value.as< Shared_Exp > (); }
 #line 664 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 5:
-#line 136 "src/parser.yy" // lalr1.cc:859
+#line 137 "src/parser.yy" // lalr1.cc:859
     { global_struct_data.insert({yystack_[3].value.as< std::string > (), yystack_[1].value.as< Shared_Exp > ()});
                                global_struct_type.insert({yystack_[3].value.as< std::string > (), yystack_[4].value.as< Shared_Typ > ()}); }
 #line 671 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 6:
-#line 141 "src/parser.yy" // lalr1.cc:859
+#line 142 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ELit>(true, yystack_[0].value.as< int > (), 0, false); }
 #line 677 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 7:
-#line 142 "src/parser.yy" // lalr1.cc:859
+#line 143 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ELit>(false, 0, yystack_[0].value.as< double > (), false); }
 #line 683 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 8:
-#line 143 "src/parser.yy" // lalr1.cc:859
+#line 144 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EBool>(true); }
 #line 689 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 9:
-#line 144 "src/parser.yy" // lalr1.cc:859
+#line 145 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EBool>(false); }
 #line 695 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 10:
-#line 145 "src/parser.yy" // lalr1.cc:859
+#line 146 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ELit>(false, 0, 0, true); }
 #line 701 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 11:
-#line 146 "src/parser.yy" // lalr1.cc:859
+#line 147 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EVar>(yystack_[0].value.as< std::string > ()); }
 #line 707 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 12:
-#line 147 "src/parser.yy" // lalr1.cc:859
+#line 148 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EUnit>(); }
 #line 713 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 13:
-#line 149 "src/parser.yy" // lalr1.cc:859
+#line 150 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EFunc>(yystack_[7].value.as< std::string > (), yystack_[5].value.as< Shared_Typ > (), yystack_[2].value.as< Shared_Typ > (), yystack_[0].value.as< Shared_Exp > (), true, yystack_[9].value.as< std::string > ()); }
 #line 719 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 14:
-#line 151 "src/parser.yy" // lalr1.cc:859
+#line 152 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EFunc>(yystack_[7].value.as< std::string > (), yystack_[5].value.as< Shared_Typ > (), yystack_[2].value.as< Shared_Typ > (), yystack_[0].value.as< Shared_Exp > (), false, ""); }
 #line 725 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 15:
-#line 152 "src/parser.yy" // lalr1.cc:859
+#line 153 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EOperator>(TokenKind::Plus, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 731 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 16:
-#line 153 "src/parser.yy" // lalr1.cc:859
+#line 154 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EOperator>(TokenKind::Subtract, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 737 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 17:
-#line 154 "src/parser.yy" // lalr1.cc:859
+#line 155 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EOperator>(TokenKind::Multiply, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 743 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 18:
-#line 155 "src/parser.yy" // lalr1.cc:859
+#line 156 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EOperator>(TokenKind::Divide, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 749 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 19:
-#line 156 "src/parser.yy" // lalr1.cc:859
+#line 157 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EComp>(TokenKind::Leq, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 755 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 20:
-#line 157 "src/parser.yy" // lalr1.cc:859
+#line 158 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EComp>(TokenKind::Less, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 761 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 21:
-#line 158 "src/parser.yy" // lalr1.cc:859
+#line 159 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EComp>(TokenKind::Equal, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 767 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 22:
-#line 159 "src/parser.yy" // lalr1.cc:859
+#line 160 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EComp>(TokenKind::Greater, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 773 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 23:
-#line 160 "src/parser.yy" // lalr1.cc:859
+#line 161 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EComp>(TokenKind::Geq, yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 779 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 24:
-#line 161 "src/parser.yy" // lalr1.cc:859
+#line 162 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EApp>(yystack_[3].value.as< Shared_Exp > (), yystack_[1].value.as< Shared_Exp > ()); }
 #line 785 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 25:
-#line 162 "src/parser.yy" // lalr1.cc:859
+#line 163 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EPair>(yystack_[3].value.as< Shared_Exp > (), yystack_[1].value.as< Shared_Exp > ()); }
 #line 791 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 26:
-#line 163 "src/parser.yy" // lalr1.cc:859
+#line 164 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EFst>(yystack_[1].value.as< Shared_Exp > ()); }
 #line 797 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 27:
-#line 164 "src/parser.yy" // lalr1.cc:859
+#line 165 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ESnd>(yystack_[1].value.as< Shared_Exp > ()); }
 #line 803 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 28:
-#line 165 "src/parser.yy" // lalr1.cc:859
+#line 166 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ECar>(yystack_[1].value.as< Shared_Exp > ()); }
 #line 809 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 29:
-#line 166 "src/parser.yy" // lalr1.cc:859
+#line 167 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ECdr>(yystack_[1].value.as< Shared_Exp > ()); }
 #line 815 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 30:
-#line 167 "src/parser.yy" // lalr1.cc:859
+#line 168 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EEmpty>(yystack_[1].value.as< Shared_Exp > ()); }
 #line 821 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 31:
-#line 168 "src/parser.yy" // lalr1.cc:859
+#line 169 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ECons>(yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 827 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 32:
-#line 169 "src/parser.yy" // lalr1.cc:859
+#line 170 "src/parser.yy" // lalr1.cc:859
     { std::vector<Shared_Exp> v;
                                     yylhs.value.as< Shared_Exp > () = std::make_shared<EList>(v, yystack_[0].value.as< Shared_Typ > ()); }
 #line 834 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 33:
-#line 171 "src/parser.yy" // lalr1.cc:859
+#line 172 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ERef>(yystack_[1].value.as< Shared_Exp > ()); }
 #line 840 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 34:
-#line 172 "src/parser.yy" // lalr1.cc:859
+#line 173 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EDeref>(yystack_[1].value.as< Shared_Exp > ()); }
 #line 846 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 35:
-#line 173 "src/parser.yy" // lalr1.cc:859
+#line 174 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EAssign>(yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 852 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 36:
-#line 174 "src/parser.yy" // lalr1.cc:859
+#line 175 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ESeq>(yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 858 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 37:
-#line 176 "src/parser.yy" // lalr1.cc:859
+#line 177 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<ELet>(yystack_[7].value.as< std::string > (), yystack_[5].value.as< Shared_Typ > (), yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< Shared_Exp > ()); }
 #line 864 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 38:
-#line 178 "src/parser.yy" // lalr1.cc:859
+#line 179 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EIf>(yystack_[8].value.as< Shared_Exp > (), yystack_[5].value.as< Shared_Exp > (), yystack_[1].value.as< Shared_Exp > ()); }
 #line 870 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 39:
-#line 179 "src/parser.yy" // lalr1.cc:859
+#line 180 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EWhile>(yystack_[4].value.as< Shared_Exp > (), yystack_[1].value.as< Shared_Exp > (), yystack_[4].value.as< Shared_Exp > ()); }
 #line 876 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 40:
-#line 180 "src/parser.yy" // lalr1.cc:859
+#line 181 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = yystack_[1].value.as< Shared_Exp > (); }
 #line 882 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 41:
-#line 181 "src/parser.yy" // lalr1.cc:859
+#line 182 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EDef>(yystack_[4].value.as< std::string > (), yystack_[1].value.as< Shared_Exp > (), yystack_[5].value.as< Shared_Typ > ()); }
 #line 888 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 42:
-#line 183 "src/parser.yy" // lalr1.cc:859
+#line 184 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () = std::make_shared<EStruct>(global_struct_data,        global_struct_type);
                                     global_struct_data.clear();
                                     global_struct_type.clear(); }
@@ -896,67 +896,67 @@ namespace yy {
     break;
 
   case 43:
-#line 186 "src/parser.yy" // lalr1.cc:859
+#line 187 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Exp > () =  std::make_shared<EDot>(yystack_[2].value.as< Shared_Exp > (), yystack_[0].value.as< std::string > ()); }
 #line 902 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 44:
-#line 190 "src/parser.yy" // lalr1.cc:859
+#line 191 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = yystack_[0].value.as< Shared_TInt > (); }
 #line 908 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 45:
-#line 191 "src/parser.yy" // lalr1.cc:859
+#line 192 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = yystack_[0].value.as< Shared_TFloat > (); }
 #line 914 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 46:
-#line 192 "src/parser.yy" // lalr1.cc:859
+#line 193 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = yystack_[0].value.as< Shared_TBool > (); }
 #line 920 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 47:
-#line 193 "src/parser.yy" // lalr1.cc:859
+#line 194 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = yystack_[0].value.as< Shared_TUnit > (); }
 #line 926 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 48:
-#line 194 "src/parser.yy" // lalr1.cc:859
+#line 195 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = yystack_[0].value.as< Shared_TStruct > (); }
 #line 932 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 49:
-#line 195 "src/parser.yy" // lalr1.cc:859
+#line 196 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = std::make_shared<TFunc>(yystack_[2].value.as< Shared_Typ > (), yystack_[0].value.as< Shared_Typ > ()); }
 #line 938 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 50:
-#line 196 "src/parser.yy" // lalr1.cc:859
+#line 197 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = std::make_shared<TPair>(yystack_[2].value.as< Shared_Typ > (), yystack_[0].value.as< Shared_Typ > ()); }
 #line 944 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 51:
-#line 197 "src/parser.yy" // lalr1.cc:859
+#line 198 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = std::make_shared<TList>(yystack_[1].value.as< Shared_Typ > ()); }
 #line 950 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 52:
-#line 198 "src/parser.yy" // lalr1.cc:859
+#line 199 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = std::make_shared<TRef>(yystack_[1].value.as< Shared_Typ > ()); }
 #line 956 "src/parser.yy.cpp" // lalr1.cc:859
     break;
 
   case 53:
-#line 199 "src/parser.yy" // lalr1.cc:859
+#line 200 "src/parser.yy" // lalr1.cc:859
     { yylhs.value.as< Shared_Typ > () = yystack_[1].value.as< Shared_Typ > (); }
 #line 962 "src/parser.yy.cpp" // lalr1.cc:859
     break;
@@ -1519,12 +1519,12 @@ namespace yy {
   const unsigned char
   parser::yyrline_[] =
   {
-       0,   128,   128,   131,   132,   136,   141,   142,   143,   144,
-     145,   146,   147,   148,   150,   152,   153,   154,   155,   156,
-     157,   158,   159,   160,   161,   162,   163,   164,   165,   166,
-     167,   168,   169,   171,   172,   173,   174,   175,   177,   179,
-     180,   181,   182,   186,   190,   191,   192,   193,   194,   195,
-     196,   197,   198,   199
+       0,   129,   129,   132,   133,   137,   142,   143,   144,   145,
+     146,   147,   148,   149,   151,   153,   154,   155,   156,   157,
+     158,   159,   160,   161,   162,   163,   164,   165,   166,   167,
+     168,   169,   170,   172,   173,   174,   175,   176,   178,   180,
+     181,   182,   183,   187,   191,   192,   193,   194,   195,   196,
+     197,   198,   199,   200
   };
 
   // Print the state stack on the debug stream.
@@ -1560,7 +1560,7 @@ namespace yy {
 
 } // yy
 #line 1563 "src/parser.yy.cpp" // lalr1.cc:1167
-#line 201 "src/parser.yy" // lalr1.cc:1168
+#line 202 "src/parser.yy" // lalr1.cc:1168
 
 
 // NOTE: Bison's error reporting simply forwards to the driver
