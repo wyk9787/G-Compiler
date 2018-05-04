@@ -56,7 +56,6 @@ blank [ \t]
 "else"      { return yy::parser::make_ELSE(loc); }
 "then"      { return yy::parser::make_THEN(loc); }
 "NaN"       { return yy::parser::make_NAN(loc); }
-"fun"       { return yy::parser::make_FUNC(loc); }
 "->"        { return yy::parser::make_FUNC_BODY(loc); }
 "=>"        { return yy::parser::make_ARROW(loc); }
 "struct"    { return yy::parser::make_STRUCT(loc); }
@@ -73,7 +72,6 @@ blank [ \t]
 ":"         { return yy::parser::make_COL(loc); }
 "["         { return yy::parser::make_LBRA(loc); }
 "]"         { return yy::parser::make_RBRA(loc); }
-"()"        { return yy::parser::make_UNIT(loc); }
 ","         { return yy::parser::make_COMMA(loc); }
 "fst"       { return yy::parser::make_FST(loc); }
 "snd"       { return yy::parser::make_SND(loc); }
@@ -86,6 +84,7 @@ blank [ \t]
 "!"         { return yy::parser::make_DEREF(loc); }
 "ref"       { return yy::parser::make_REF(loc); }
 ":="        { return yy::parser::make_ASSIGN(loc); }
+";;"        { return yy::parser::make_END_DECL(loc); }
 ";"         { return yy::parser::make_SEQ(loc); }
 "while"     { return yy::parser::make_WHILE(loc); }
 "do"        { return yy::parser::make_DO(loc); }

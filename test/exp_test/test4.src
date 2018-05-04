@@ -1,1 +1,7 @@
-3 + 5*6 - 2/1 * 10 + 6
+let prog(c : int) : int =
+  3 + 5*6 - 2/1 * 10 + c
+;;
+
+let main(a : int) : int =
+  prog(a)
+;;

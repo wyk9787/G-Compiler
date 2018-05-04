@@ -1,10 +1,14 @@
-if (
-    if (2.3 <= 4.6) {
-      true
-    } else {
-      3 > 4
-    }) {
-  1 <= (3)
-} else {
-  false
-}
+let prog(a : int) : bool =
+  if 
+    if 2.3 <= 4.6 
+    then true
+    else 3 > 4 
+  then 1 <= (a)
+  else false
+;;
+
+let main(a : int) : int =
+  if (prog 2) 
+  then 1 
+  else  2 
+;;

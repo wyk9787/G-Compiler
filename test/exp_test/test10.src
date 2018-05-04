@@ -1,7 +1,10 @@
 
-let [max2 : int-> int -> int] =
-  fun [x:int] : [int->int] -> (fun [y:int] : int -> if (x > y) {x} else {y} )
-in
-let [a:int] = 5 in
-let [b:int] = 2 in
-max2 (a) (b)
+let max2 (x : int, y : int) : int =
+  if x > y 
+  then x
+  else (y)
+;;
+
+let main (a : int) : int =
+  (max2 3 4)
+;;

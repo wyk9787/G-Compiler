@@ -6,6 +6,7 @@ global_heap_t heap;
 global_stack_t stack;
 struct_data_t global_struct_data;
 struct_type_t global_struct_type;
+global_function_t global_functions;
 
 using namespace fexp;
 
@@ -112,6 +113,10 @@ Shared_Typ EOperator::typecheck(context_t context) {
   }
 
   return nullptr;
+}
+
+cexp::Shared_Exp EOperator::convert() {
+  
 }
 
 /******************************************************************************
@@ -312,67 +317,6 @@ bool EVar::is_var() { return true; }
 std::string EVar::get_var() { return data; }
 
 /******************************************************************************
-                        EFunc Implementaion
-*******************************************************************************/
-
-EFunc::EFunc(std::string _param, Shared_Typ _t1, Shared_Typ _t2, Shared_Exp _e,
-             bool _is_rec, std::string _id)
-    : param(_param), t1(_t1), t2(_t2), e(_e), is_rec(_is_rec), id(_id){};
-
-Shared_Exp EFunc::step() {
-  return std::make_shared<EFunc>(param, t1, t2, e, is_rec, id);
-}
-
-Shared_Exp EFunc::substitute(std::string var, Shared_Exp e) {
-  if (is_rec) {
-    return std::make_shared<EFunc>(param, t1, t2, this->e, is_rec, id);
-  } else {
-    return std::make_shared<EFunc>(param, t1, t2, this->e->substitute(var, e),
-                                   is_rec, id);
-  }
-}
-
-std::string EFunc::string_of_exp() {
-  if (is_rec) {
-    return "(rec " + id + " [" + param + " : " + t1->get_type() + "] : " +
-           t2->get_type() + " -> " + e->string_of_exp() + ")";
-  } else {
-    return "(fun [" + param + " : " + t1->get_type() + "] : " + t2->get_type() +
-           " -> " + e->string_of_exp() + ")";
-  }
-}
-
-Shared_Typ EFunc::typecheck(context_t context) {
-  if (is_rec) {
-    context.insert({id, std::make_shared<TFunc>(t1, t2)});
-  }
-  context.insert({param, t1});
-  Shared_Typ e_type = e->typecheck(context);
-  if (*e_type.get() == *t2.get()) {
-    return std::make_shared<TFunc>(t1, t2);
-  } else {
-    type_error(string_of_exp(), t2->get_type(), e_type->get_type());
-  }
-  return nullptr;
-}
-
-bool EFunc::is_value() { return true; }
-
-bool EFunc::is_func() { return true; }
-
-Shared_EFunc EFunc::get_func() {
-  return std::make_shared<EFunc>(param, t1, t2, e, is_rec, id);
-}
-
-Shared_Exp EFunc::get_function_body() { return e; }
-
-std::string EFunc::get_param() { return param; }
-
-bool EFunc::get_is_rec() { return is_rec; }
-
-std::string EFunc::get_id() { return id; }
-
-/******************************************************************************
                                EUnit Header
 *******************************************************************************/
 
@@ -468,7 +412,12 @@ std::string ELet::string_of_exp() {
 
 Shared_Typ ELet::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
-  context.insert({var, t});
+  if(context.find(var) == context.end()) {
+    context.insert({var, t});
+  } else {
+    context[var] = t;
+  }
+
   Shared_Typ t2 = e2->typecheck(context);
   if (*t1.get() != *t.get()) {
     type_error(string_of_exp(), t->get_type(), t1->get_type());
@@ -482,52 +431,72 @@ Shared_Typ ELet::typecheck(context_t context) {
                         EApp Implementaion
 *******************************************************************************/
 
-EApp::EApp(Shared_Exp _function, Shared_Exp _e) : function(_function), e(_e) {}
+EApp::EApp(std::string _id, std::vector<Shared_Exp> _v) : id(_id), v(_v) {}
 
 Shared_Exp EApp::step() {
-  if (!function->is_value()) {
-    return std::make_shared<EApp>(function->step(), e);
+  for(int i = 0; i < v.size(); i++) {
+    if(!v[i]->is_value()) {
+      v[i] = v[i]->step();
+      return std::make_shared<EApp>(id, v);
+    }
   }
 
-  if (function->is_func()) {
-    Shared_EFunc f = function->get_func();
-    if (!e->is_value()) { // If the argument hasn't been evaluated yet
-      return std::make_shared<EApp>(function, e->step());
-    }
-    if (f->get_is_rec()) { // Recursive function needs to substitute one more
-                           // time (substitute itself)
-      return f->get_function_body()
-          ->substitute(f->get_param(), e)
-          ->substitute(f->get_id(), f);
-    } else {
-      return f->get_function_body()->substitute(f->get_param(), e);
-    }
-  } else {
-    std::cerr << "Expecting a function for function application" << std::endl;
-    exit(1);
+  function_t func = global_functions[id];
+  arglist_t arglist = func.arglist;
+  Shared_Exp ret = func.e;
+  for(int i = 0; i < v.size(); i++) {
+    ret = ret->substitute(arglist[i].first, v[i]);
   }
+
+  return ret;
 }
 
 Shared_Exp EApp::substitute(std::string var, Shared_Exp _e) {
-  return std::make_shared<EApp>(function->substitute(var, _e),
-                                e->substitute(var, _e));
+  for(int i = 0; i < v.size(); i++) {
+    v[i] = v[i]->substitute(var, _e);
+  }
+  return std::make_shared<EApp>(id, v);
 }
 
 std::string EApp::string_of_exp() {
-  return function->string_of_exp() + "(" + e->string_of_exp() + ")";
+  std::string ret = id + "(";
+  for(int i = 0; i < v.size(); i++) {
+    ret += v[i]->string_of_exp();
+    if(i != v.size() - 1) {
+      ret += ", ";
+    }
+  }
+  ret += ")";
+  return ret;
 }
 
 Shared_Typ EApp::typecheck(context_t context) {
-  Shared_Typ t1 = function->typecheck(context);
-  Shared_Typ t1_1 = t1->get_first_subtype();
-  Shared_Typ t1_2 = t1->get_second_subtype();
-  Shared_Typ t2 = e->typecheck(context);
-  if (*t1_1.get() != *t2.get()) {
-    type_error(string_of_exp(), t1_1->get_type(), t2->get_type());
+  function_t func;
+
+  // Find the function, if not, throw an error
+  if(global_functions.find(id) != global_functions.end()) {
+    func = global_functions[id];
   } else {
-    return t1_2;
+    std::cerr << "There is no function named " << id << std::endl;
+    exit(1);
   }
-  return nullptr;
+
+  // Check for if the number of arguments match or not
+  arglist_t arglist = func.arglist;
+  if(arglist.size() != v.size()) {
+    std::cerr << "Number of argument mismatches: Expect " << arglist.size() << "arguments, given " << v.size() << std::endl;
+    exit(1);
+  }
+
+  // Typecheck each arguments
+  for(int i = 0; i < arglist.size(); i++) {
+    Shared_Typ t = v[i]->typecheck(context);
+    if(*t.get() != *arglist[i].second.get()) {
+      type_error(string_of_exp(), arglist[i].second->get_type(), t->get_type());
+    }
+  }
+
+  return func.return_type;
 }
 
 /******************************************************************************

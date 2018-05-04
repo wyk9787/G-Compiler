@@ -1,0 +1,35 @@
+let fact (n : int) : int = 
+  if (n > 0) 
+  then n * (fact (n-1))
+  else 1
+;;
+
+let max2 (x : int, y : int) : int = 
+  if x > y 
+  then x
+  else y
+;;
+
+let list_sum (l : {int}) : int =  
+  if (empty? (l)) 
+  then 0
+  else car (l) + (list_sum cdr(l))
+;;
+
+let inner_product (l1 : {int}, l2 : {int}) : int =
+  if (empty? (l1)) 
+  then 0
+  else car(l1) * car(l2) +  (inner_product (cdr(l1)) (cdr(l2)))
+;;
+
+let init (a : unit): unit=
+  {int} lst1 = { 1 :: 2 :: 3 :: {}:int };
+  {int} lst2 = { 3 :: 0 :: 2 :: {}:int };
+  int sum1 = { (list_sum lst1) };
+  int sum2 = { (list_sum lst2) };
+  int ip = { (inner_product lst1 lst2) }
+;;
+
+let main (a : int) : int =
+  (fact (max2 (max2 sum1 sum2) ip))
+;;

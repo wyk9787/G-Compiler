@@ -298,6 +298,9 @@ namespace yy {
     union union_type
     {
       // exp
+      // exp_app
+      // exp_ops
+      // exp_base
       char dummy1[sizeof(Shared_Exp)];
 
       // "tbool"
@@ -318,14 +321,23 @@ namespace yy {
       // typ
       char dummy7[sizeof(Shared_Typ)];
 
+      // formal
+      char dummy8[sizeof(arg_t)];
+
+      // formallist
+      char dummy9[sizeof(arglist_t)];
+
       // "double"
-      char dummy8[sizeof(double)];
+      char dummy10[sizeof(double)];
 
       // "int"
-      char dummy9[sizeof(int)];
+      char dummy11[sizeof(int)];
 
       // "var"
-      char dummy10[sizeof(std::string)];
+      char dummy12[sizeof(std::string)];
+
+      // expslist
+      char dummy13[sizeof(std::vector<Shared_Exp>)];
 };
 
     /// Symbol semantic values.
@@ -366,46 +378,45 @@ namespace yy {
         TOK_THEN = 272,
         TOK_TRUE = 273,
         TOK_FALSE = 274,
-        TOK_FUNC = 275,
-        TOK_FUNC_BODY = 276,
-        TOK_LET = 277,
-        TOK_LET_ASSIGN = 278,
-        TOK_IN = 279,
-        TOK_REC = 280,
-        TOK_COL = 281,
-        TOK_LBRA = 282,
-        TOK_RBRA = 283,
-        TOK_UNIT = 284,
-        TOK_FST = 285,
-        TOK_SND = 286,
-        TOK_COMMA = 287,
-        TOK_LCURLY = 288,
-        TOK_RCURLY = 289,
-        TOK_CONS = 290,
-        TOK_CAR = 291,
-        TOK_CDR = 292,
-        TOK_EMPTY = 293,
-        TOK_DEREF = 294,
-        TOK_REF = 295,
-        TOK_ASSIGN = 296,
-        TOK_SEQ = 297,
-        TOK_WHILE = 298,
-        TOK_DO = 299,
-        TOK_END = 300,
-        TOK_INCLUDE = 301,
-        TOK_POND = 302,
-        TOK_DEF = 303,
-        TOK_ARROW = 304,
-        TOK_STRUCT = 305,
-        TOK_DOT = 306,
-        TOK_INT = 307,
-        TOK_DOUBLE = 308,
-        TOK_VAR = 309,
-        TOK_TINT = 310,
-        TOK_TFLOAT = 311,
-        TOK_TBOOL = 312,
-        TOK_TUNIT = 313,
-        TOK_TSTRUCT = 314
+        TOK_FUNC_BODY = 275,
+        TOK_LET = 276,
+        TOK_LET_ASSIGN = 277,
+        TOK_IN = 278,
+        TOK_REC = 279,
+        TOK_COL = 280,
+        TOK_LBRA = 281,
+        TOK_RBRA = 282,
+        TOK_FST = 283,
+        TOK_SND = 284,
+        TOK_COMMA = 285,
+        TOK_LCURLY = 286,
+        TOK_RCURLY = 287,
+        TOK_CONS = 288,
+        TOK_CAR = 289,
+        TOK_CDR = 290,
+        TOK_EMPTY = 291,
+        TOK_DEREF = 292,
+        TOK_REF = 293,
+        TOK_ASSIGN = 294,
+        TOK_SEQ = 295,
+        TOK_WHILE = 296,
+        TOK_DO = 297,
+        TOK_END = 298,
+        TOK_INCLUDE = 299,
+        TOK_POND = 300,
+        TOK_DEF = 301,
+        TOK_ARROW = 302,
+        TOK_STRUCT = 303,
+        TOK_DOT = 304,
+        TOK_END_DECL = 305,
+        TOK_INT = 306,
+        TOK_DOUBLE = 307,
+        TOK_VAR = 308,
+        TOK_TINT = 309,
+        TOK_TFLOAT = 310,
+        TOK_TBOOL = 311,
+        TOK_TUNIT = 312,
+        TOK_TSTRUCT = 313
       };
     };
 
@@ -457,11 +468,17 @@ namespace yy {
 
   basic_symbol (typename Base::kind_type t, const Shared_Typ v, const location_type& l);
 
+  basic_symbol (typename Base::kind_type t, const arg_t v, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const arglist_t v, const location_type& l);
+
   basic_symbol (typename Base::kind_type t, const double v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const int v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const std::vector<Shared_Exp> v, const location_type& l);
 
 
       /// Constructor for symbols with semantic value.
@@ -604,10 +621,6 @@ namespace yy {
 
     static inline
     symbol_type
-    make_FUNC (const location_type& l);
-
-    static inline
-    symbol_type
     make_FUNC_BODY (const location_type& l);
 
     static inline
@@ -637,10 +650,6 @@ namespace yy {
     static inline
     symbol_type
     make_RBRA (const location_type& l);
-
-    static inline
-    symbol_type
-    make_UNIT (const location_type& l);
 
     static inline
     symbol_type
@@ -729,6 +738,10 @@ namespace yy {
     static inline
     symbol_type
     make_DOT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_END_DECL (const location_type& l);
 
     static inline
     symbol_type
@@ -868,7 +881,7 @@ namespace yy {
     static const char* const yytname_[];
 #if YYDEBUG
   // YYRLINE[YYN] -- Source line where rule number YYN was defined.
-  static const unsigned char yyrline_[];
+  static const unsigned short int yyrline_[];
     /// Report on the debug stream that the rule \a r is going to be reduced.
     virtual void yy_reduce_print_ (int r);
     /// Print the state stack on the debug stream.
@@ -967,12 +980,12 @@ namespace yy {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 818,     ///< Last index in yytable_.
-      yynnts_ = 6,  ///< Number of nonterminal symbols.
-      yyfinal_ = 52, ///< Termination state number.
+      yylast_ = 634,     ///< Last index in yytable_.
+      yynnts_ = 14,  ///< Number of nonterminal symbols.
+      yyfinal_ = 6, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 60  ///< Number of tokens.
+      yyntokens_ = 59  ///< Number of tokens.
     };
 
 
@@ -1021,9 +1034,9 @@ namespace yy {
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
       45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
-      55,    56,    57,    58,    59
+      55,    56,    57,    58
     };
-    const unsigned int user_token_number_max_ = 314;
+    const unsigned int user_token_number_max_ = 313;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int>(t) <= yyeof_)
@@ -1056,44 +1069,59 @@ namespace yy {
   {
       switch (other.type_get ())
     {
-      case 64: // exp
+      case 65: // exp
+      case 66: // exp_app
+      case 68: // exp_ops
+      case 69: // exp_base
         value.copy< Shared_Exp > (other.value);
         break;
 
-      case 57: // "tbool"
+      case 56: // "tbool"
         value.copy< Shared_TBool > (other.value);
         break;
 
-      case 56: // "tfloat"
+      case 55: // "tfloat"
         value.copy< Shared_TFloat > (other.value);
         break;
 
-      case 55: // "tint"
+      case 54: // "tint"
         value.copy< Shared_TInt > (other.value);
         break;
 
-      case 59: // "tstruct"
+      case 58: // "tstruct"
         value.copy< Shared_TStruct > (other.value);
         break;
 
-      case 58: // "tunit"
+      case 57: // "tunit"
         value.copy< Shared_TUnit > (other.value);
         break;
 
-      case 65: // typ
+      case 72: // typ
         value.copy< Shared_Typ > (other.value);
         break;
 
-      case 53: // "double"
+      case 61: // formal
+        value.copy< arg_t > (other.value);
+        break;
+
+      case 62: // formallist
+        value.copy< arglist_t > (other.value);
+        break;
+
+      case 52: // "double"
         value.copy< double > (other.value);
         break;
 
-      case 52: // "int"
+      case 51: // "int"
         value.copy< int > (other.value);
         break;
 
-      case 54: // "var"
+      case 53: // "var"
         value.copy< std::string > (other.value);
+        break;
+
+      case 67: // expslist
+        value.copy< std::vector<Shared_Exp> > (other.value);
         break;
 
       default:
@@ -1113,44 +1141,59 @@ namespace yy {
     (void) v;
       switch (this->type_get ())
     {
-      case 64: // exp
+      case 65: // exp
+      case 66: // exp_app
+      case 68: // exp_ops
+      case 69: // exp_base
         value.copy< Shared_Exp > (v);
         break;
 
-      case 57: // "tbool"
+      case 56: // "tbool"
         value.copy< Shared_TBool > (v);
         break;
 
-      case 56: // "tfloat"
+      case 55: // "tfloat"
         value.copy< Shared_TFloat > (v);
         break;
 
-      case 55: // "tint"
+      case 54: // "tint"
         value.copy< Shared_TInt > (v);
         break;
 
-      case 59: // "tstruct"
+      case 58: // "tstruct"
         value.copy< Shared_TStruct > (v);
         break;
 
-      case 58: // "tunit"
+      case 57: // "tunit"
         value.copy< Shared_TUnit > (v);
         break;
 
-      case 65: // typ
+      case 72: // typ
         value.copy< Shared_Typ > (v);
         break;
 
-      case 53: // "double"
+      case 61: // formal
+        value.copy< arg_t > (v);
+        break;
+
+      case 62: // formallist
+        value.copy< arglist_t > (v);
+        break;
+
+      case 52: // "double"
         value.copy< double > (v);
         break;
 
-      case 52: // "int"
+      case 51: // "int"
         value.copy< int > (v);
         break;
 
-      case 54: // "var"
+      case 53: // "var"
         value.copy< std::string > (v);
+        break;
+
+      case 67: // expslist
+        value.copy< std::vector<Shared_Exp> > (v);
         break;
 
       default:
@@ -1218,6 +1261,20 @@ namespace yy {
   {}
 
   template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const arg_t v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
+  template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const arglist_t v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
+  template <typename Base>
   parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const double v, const location_type& l)
     : Base (t)
     , value (v)
@@ -1233,6 +1290,13 @@ namespace yy {
 
   template <typename Base>
   parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
+  template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const std::vector<Shared_Exp> v, const location_type& l)
     : Base (t)
     , value (v)
     , location (l)
@@ -1264,44 +1328,59 @@ namespace yy {
     // Type destructor.
     switch (yytype)
     {
-      case 64: // exp
+      case 65: // exp
+      case 66: // exp_app
+      case 68: // exp_ops
+      case 69: // exp_base
         value.template destroy< Shared_Exp > ();
         break;
 
-      case 57: // "tbool"
+      case 56: // "tbool"
         value.template destroy< Shared_TBool > ();
         break;
 
-      case 56: // "tfloat"
+      case 55: // "tfloat"
         value.template destroy< Shared_TFloat > ();
         break;
 
-      case 55: // "tint"
+      case 54: // "tint"
         value.template destroy< Shared_TInt > ();
         break;
 
-      case 59: // "tstruct"
+      case 58: // "tstruct"
         value.template destroy< Shared_TStruct > ();
         break;
 
-      case 58: // "tunit"
+      case 57: // "tunit"
         value.template destroy< Shared_TUnit > ();
         break;
 
-      case 65: // typ
+      case 72: // typ
         value.template destroy< Shared_Typ > ();
         break;
 
-      case 53: // "double"
+      case 61: // formal
+        value.template destroy< arg_t > ();
+        break;
+
+      case 62: // formallist
+        value.template destroy< arglist_t > ();
+        break;
+
+      case 52: // "double"
         value.template destroy< double > ();
         break;
 
-      case 52: // "int"
+      case 51: // "int"
         value.template destroy< int > ();
         break;
 
-      case 54: // "var"
+      case 53: // "var"
         value.template destroy< std::string > ();
+        break;
+
+      case 67: // expslist
+        value.template destroy< std::vector<Shared_Exp> > ();
         break;
 
       default:
@@ -1327,44 +1406,59 @@ namespace yy {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 64: // exp
+      case 65: // exp
+      case 66: // exp_app
+      case 68: // exp_ops
+      case 69: // exp_base
         value.move< Shared_Exp > (s.value);
         break;
 
-      case 57: // "tbool"
+      case 56: // "tbool"
         value.move< Shared_TBool > (s.value);
         break;
 
-      case 56: // "tfloat"
+      case 55: // "tfloat"
         value.move< Shared_TFloat > (s.value);
         break;
 
-      case 55: // "tint"
+      case 54: // "tint"
         value.move< Shared_TInt > (s.value);
         break;
 
-      case 59: // "tstruct"
+      case 58: // "tstruct"
         value.move< Shared_TStruct > (s.value);
         break;
 
-      case 58: // "tunit"
+      case 57: // "tunit"
         value.move< Shared_TUnit > (s.value);
         break;
 
-      case 65: // typ
+      case 72: // typ
         value.move< Shared_Typ > (s.value);
         break;
 
-      case 53: // "double"
+      case 61: // formal
+        value.move< arg_t > (s.value);
+        break;
+
+      case 62: // formallist
+        value.move< arglist_t > (s.value);
+        break;
+
+      case 52: // "double"
         value.move< double > (s.value);
         break;
 
-      case 52: // "int"
+      case 51: // "int"
         value.move< int > (s.value);
         break;
 
-      case 54: // "var"
+      case 53: // "var"
         value.move< std::string > (s.value);
+        break;
+
+      case 67: // expslist
+        value.move< std::vector<Shared_Exp> > (s.value);
         break;
 
       default:
@@ -1427,7 +1521,7 @@ namespace yy {
      275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
      285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
      295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
-     305,   306,   307,   308,   309,   310,   311,   312,   313,   314
+     305,   306,   307,   308,   309,   310,   311,   312,   313
     };
     return static_cast<token_type> (yytoken_number_[type]);
   }
@@ -1541,12 +1635,6 @@ namespace yy {
   }
 
   parser::symbol_type
-  parser::make_FUNC (const location_type& l)
-  {
-    return symbol_type (token::TOK_FUNC, l);
-  }
-
-  parser::symbol_type
   parser::make_FUNC_BODY (const location_type& l)
   {
     return symbol_type (token::TOK_FUNC_BODY, l);
@@ -1592,12 +1680,6 @@ namespace yy {
   parser::make_RBRA (const location_type& l)
   {
     return symbol_type (token::TOK_RBRA, l);
-  }
-
-  parser::symbol_type
-  parser::make_UNIT (const location_type& l)
-  {
-    return symbol_type (token::TOK_UNIT, l);
   }
 
   parser::symbol_type
@@ -1733,6 +1815,12 @@ namespace yy {
   }
 
   parser::symbol_type
+  parser::make_END_DECL (const location_type& l)
+  {
+    return symbol_type (token::TOK_END_DECL, l);
+  }
+
+  parser::symbol_type
   parser::make_INT (const int& v, const location_type& l)
   {
     return symbol_type (token::TOK_INT, v, l);
@@ -1783,7 +1871,7 @@ namespace yy {
 
 
 } // yy
-#line 1787 "src/parser.yy.hpp" // lalr1.cc:392
+#line 1875 "src/parser.yy.hpp" // lalr1.cc:392
 
 
 

@@ -1,18 +1,12 @@
-int->int factorial = {
- rec f [n:int] : int ->
- if (n > 0) {
-  n * f (n-1)
- } else {
-  1
- }
-};
+let fact (n : int) : int = 
+  if (n > 0) 
+  then n * (fact (n-1))
+  else 1
+;;
 
-int -> int->int max2 = {
-  fun [x:int] : [int->int] ->
-    fun [y:int] : int ->
-      if (x > y) {
-        x
-      } else {
-        y
-      }
-}
+let max2 (x : int, y : int) : int = 
+  if x > y 
+  then x
+  else y
+;;
+

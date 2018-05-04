@@ -48,6 +48,7 @@ int main(int argc, char **argv) {
 void processing(int argc, char **argv) {
   if (argc == 1) {
     std::cout << usage << std::endl;
+    return;
   }
   parser_driver driver("-"); // Default as stdin input
   int long_optind = 0;
@@ -152,7 +153,6 @@ void dump_file(std::string original_filename, std::ofstream& new_file) {
   		char c = original_file.get();
       if(c != EOF) new_file << c;
   	}
-    new_file << ";";
   } else {
     std::cerr << "Unable to open file\n";
     exit(1);

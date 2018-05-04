@@ -1,13 +1,15 @@
-if ( if (false) {
-      true
-     } else {
-      false
-     }) {
-  (10.23+0.77)
-} else {
-  if (false) {
-    3.0+2.5/2.0
-  } else {
-    0.0/0.0
-  }
-}
+let prog (a : float) : float = 
+  if if false 
+     then true
+     else false
+  then 10.23+0.77
+  else
+    if false
+    then 3.0+2.5/2.0
+    else 0.0/0.0
+  + a
+;;
+
+let main (a : int) : int =
+  (prog 3.5)
+;;

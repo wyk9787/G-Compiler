@@ -1,13 +1,17 @@
-#include <language/lib/math.glib>
-#include <language/lib/list.glib>
-
-let initialize (a : unit): unit =
-  {int} lst1 = { 1 :: 2 :: 3 :: 4 :: {}:int };
-  {int} lst2 = { 4 :: 3 :: 2 :: 1 :: {}:int }
+let fact (n : int) : int = 
+  if (n > 0) 
+  then n * (fact (n-1))
+  else 1
 ;;
 
-let main(a : int) : int =
-  (initialize ());  
+let max2 (x : int, y : int) : int = 
+  if x > y 
+  then x
+  else y
+;;
+
+
+let proc (a : unit): int = 
   let res: <int * float> = ref ( (0, 0.0) ) in
   let l : <{int * float}> = ref ( (1, 2.0) :: (3, 4.0) :: (5, 6.0) :: {} : int * float) in
   let counter : <int> = ref (0) in
@@ -16,5 +20,9 @@ let main(a : int) : int =
     l := cdr(!(l));
     counter := !(counter) + 1
   end;
-  fst(!(res)) + (fact 5) + (max2 3 4) + (list_sum lst1) + (inner_product lst1 lst2)
+  fst(!(res)) + (fact 5) + (max2 3 4)
+;;
+
+let main (a : int) : int =
+  (proc ())
 ;;

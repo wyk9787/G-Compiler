@@ -1,1 +1,7 @@
-(fun [x:unit] : int -> 3 + 5) (())
+let fun (x : unit) : int = 
+  3 + 5
+;;
+
+let main(a : int) : int =
+  (fun ())
+;;

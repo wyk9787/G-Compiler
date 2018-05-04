@@ -11,34 +11,25 @@
 #include <memory>
 #include <vector>
 
-void interpret(Shared_Exp root, bool print_step) {
-  context_t context;
-  root->typecheck(context);
-  Shared_Exp result = evaluate(root, print_step);
-  assert(result->is_value() == true);
-  if (result->is_NaN()) {
-    std::cout << result->get_NaN() << std::endl;
-  } else if (result->is_int()) {
-    std::cout << result->get_int() << std::endl;
-  } else if (result->is_float()) {
-    std::cout << result->get_float() << std::endl;
-  } else if (result->is_bool()) {
-    std::cout << (result->get_bool() ? "true" : "false") << std::endl;
-  } else if (result->is_var()) {
-    std::cout << result->get_var() << std::endl;
-  } else if (result->is_func()) {
-    std::cout << result->string_of_exp() << std::endl;
-  } else if (result->is_pair()) {
-    std::cout << result->string_of_exp() << std::endl;
-  } else if (result->is_list()) {
-    std::cout << result->string_of_exp() << std::endl;
-  } else if (result->is_unit()) {
-    return;
-  } else if (result->is_struct()) {
-    std::cout << result->string_of_exp() << std::endl;
-  } else {
-    std::cerr << "Debug: Error! Shoule be evaluated to a value" << std::endl;
-    std::cerr << result->string_of_exp() << std::endl;
-    exit(1);
+void typecheck_all() {
+  for(auto function : global_functions) {
+    if(function.first == "main") continue; // Main can have any signature
+    context_t context;
+    function_t func = function.second;
+    arglist_t arglist = func.arglist;
+    for(size_t i = 0; i < arglist.size(); i++) {
+      arg_t arg = arglist[i];
+      context.insert({arg.first, arg.second});
+    }
+    Shared_Typ t_body = func.e->typecheck(context);
+    if(*t_body.get() != *func.return_type.get()) {
+      type_error("Type checking function " + function.first, func.return_type->get_type(), t_body->get_type());
+    }
   }
+}
+
+void interpret(Shared_Exp root, bool print_step) {
+  typecheck_all();
+  Shared_Exp result = evaluate(root, print_step);
+  std::cout << result->string_of_exp() << std::endl;
 }

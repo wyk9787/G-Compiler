@@ -1,11 +1,14 @@
 #include <language/lib/math.glib>
 #include <language/lib/list.glib>
 
-{int} lst1 = { 1 :: 2 :: 3 :: {}:int };
-{int} lst2 = { 3 :: 0 :: 2 :: {}:int };
+let init (a : unit): unit=
+  {int} lst1 = { 1 :: 2 :: 3 :: {}:int };
+  {int} lst2 = { 3 :: 0 :: 2 :: {}:int };
+  int sum1 = { (list_sum lst1) };
+  int sum2 = { (list_sum lst2) };
+  int ip = { (inner_product lst1 lst2) }
+;;
 
-int sum1 = { list_sum(lst1) };
-int sum2 = { list_sum(lst2) };
-int ip = { inner_product(lst1)(lst2) };
-
-factorial( max2( max2(sum1)(sum2) ) (ip) )
+let main (a : int) : int =
+  (fact (max2 (max2 sum1 sum2) ip))
+;;

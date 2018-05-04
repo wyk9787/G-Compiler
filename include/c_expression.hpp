@@ -7,12 +7,7 @@
 #include <memory>
 #include <vector>
 
-namespace fexp {
-
-/******************************************************************************
-                               Helper
-*******************************************************************************/
-Shared_Exp evaluate(Shared_Exp exp, bool print_step);
+namespace cexp {
 
 /******************************************************************************
                                Exp Header
@@ -20,11 +15,7 @@ Shared_Exp evaluate(Shared_Exp exp, bool print_step);
 
 class Exp {
 public:
-  virtual Shared_Exp step() = 0;
-  virtual Shared_Exp substitute(std::string var, Shared_Exp t) = 0;
   virtual std::string string_of_exp() = 0;
-  virtual Shared_Typ typecheck(context_t context) = 0;
-  virtual cexp::Shared_Exp convert() = 0;
 
   virtual bool is_value() { return false; }
   virtual bool is_bool() { return false; }
@@ -82,15 +73,10 @@ class EOperator : public Exp {
 private:
   TokenKind id;
   Shared_Exp e1, e2;
-  Shared_Exp evaluate_num(Shared_Exp e1, Shared_Exp e2, bool is_int);
 
 public:
   EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -101,15 +87,10 @@ class EComp : public Exp {
 private:
   TokenKind id;
   Shared_Exp e1, e2;
-  Shared_Exp evaluate_bool(Shared_Exp e1, Shared_Exp e2);
 
 public:
   EComp(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -125,11 +106,8 @@ private:
 
 public:
   ELit(bool __is_int, int _int_data, double _float_data, bool __is_NaN);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 
   bool is_value();
   bool is_int();
@@ -150,11 +128,8 @@ private:
 
 public:
   EBool(bool _data);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 
   bool is_value();
   bool is_bool();
@@ -171,11 +146,8 @@ private:
 
 public:
   EVar(std::string _data);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 
   bool is_value();
   bool is_var();
@@ -190,11 +162,8 @@ class EUnit : public Exp {
 private:
 public:
   EUnit();
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 
   bool is_value();
   bool is_unit();
@@ -210,11 +179,8 @@ private:
 
 public:
   EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -229,11 +195,8 @@ private:
 
 public:
   ELet(std::string _var, Shared_Typ _t, Shared_Exp _e1, Shared_Exp _e2);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -247,11 +210,8 @@ private:
 
 public:
   EApp(std::string _id, std::vector<Shared_Exp> _v);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -265,11 +225,8 @@ private:
 
 public:
   EPair(Shared_Exp _e1, Shared_Exp _e2);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 
   bool is_value();
   bool is_pair();
@@ -289,11 +246,8 @@ private:
 
 public:
   EFst(Shared_Exp _e);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -306,11 +260,8 @@ private:
 
 public:
   ESnd(Shared_Exp _e);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -324,11 +275,9 @@ private:
 
 public:
   EList(std::vector<Shared_Exp> _e_list, Shared_Typ e);
-  Shared_Exp step();
+
   Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 
   bool is_value();
   bool is_list();
@@ -349,11 +298,8 @@ private:
 
 public:
   ECons(Shared_Exp _e1, Shared_Exp _e2);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -366,11 +312,8 @@ private:
 
 public:
   ECar(Shared_Exp _e);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -383,11 +326,8 @@ private:
 
 public:
   ECdr(Shared_Exp _e);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -400,11 +340,8 @@ private:
 
 public:
   EEmpty(Shared_Exp _e);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -417,11 +354,8 @@ private:
 
 public:
   ERef(Shared_Exp _e);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -434,11 +368,8 @@ private:
 
 public:
   EPtr(size_t _n);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 
   bool is_value();
   Shared_EPtr get_ptr();
@@ -455,11 +386,8 @@ private:
 
 public:
   EDeref(Shared_Exp _e);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -473,11 +401,8 @@ private:
 
 public:
   EAssign(Shared_Exp _e1, Shared_Exp _e2);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -491,11 +416,8 @@ private:
 
 public:
   ESeq(Shared_Exp _e1, Shared_Exp _e2);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -510,11 +432,8 @@ private:
 
 public:
   EWhile(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e_temp);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -529,11 +448,8 @@ private:
 
 public:
   EDef(std::string _id, Shared_Exp _e, Shared_Typ _t);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 
 /******************************************************************************
@@ -547,11 +463,8 @@ private:
 
 public:
   EStruct(struct_data_t _e_map, struct_type_t _t_map);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 
   bool is_value();
   bool is_struct();
@@ -569,11 +482,8 @@ private:
 
 public:
   EDot(Shared_Exp _e, std::string _id);
-  Shared_Exp step();
-  Shared_Exp substitute(std::string var, Shared_Exp e);
+
   std::string string_of_exp();
-  Shared_Typ typecheck(context_t context);
-  cexp::Shared_Exp convert();
 };
 }
 #endif

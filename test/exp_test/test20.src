@@ -1,9 +1,9 @@
-let [x:<int>]= ref (3+2)
-in
-x := !(x) + 10;
-x := !(x) + 5;
-if(!(x) > !(x)/2) {
-  !(x)
-} else {
-  3
-}
+let main (a : int) : int =
+  let x:<int> = ref (3+2)
+  in
+    x := !(x) + 10;
+    x := !(x) + 5;
+    if(!(x) > !(x)/2)
+    then !(x)
+    else 3
+;;

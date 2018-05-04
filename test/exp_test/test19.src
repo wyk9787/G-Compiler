@@ -1,14 +1,11 @@
-let [iota:int -> {int}->{int}] =
-rec f1 [n:int] : [{int}->{int}] ->
-fun [lst:{int}] : {int} ->
-if (n == 0) {
-  lst
-} else {
-  f1 (n-1) (n :: lst)
-}
+let iota (n : int,  lst : {int}) : {int} =
+  if (n == 0)
+  then lst
+  else (iota (n-1) (n :: lst))
+;;
 
-in
-
-let [num:int] = 10 in
-let [list:{int}] = {}:int in
-iota (num) (list)
+let main (a : int) : int = 
+  let num:int = 10 in
+  let list:{int} = {}:int in
+    (iota num list)
+;;
