@@ -1,7 +1,7 @@
 # Compiler
 
 ## Overview
-This is a simple compiler written in C/C++ that will be able to compile a primitive language created in this project.
+G-compiler is a simple toy compiler written in C/C++ that is able to compile a OCaml-syntax-like programming language. You can find grammar for this language [here](#grammar). G-compiler is able to compile the program into intermediate C program and then compile down to web assembly.
 
 ## Usage
 
@@ -56,27 +56,92 @@ If there are errors present, you can find the error in `./test/diff.txt`
 ```
 #include <filename>
 
-e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
-        | true | false | f | NaN | x
-        | e1 <= e2 | e1 < e2 | e1 == e2 | e1 > e2 | e1 >= e2
-        | if (e1) {e2} else {e3}
-        | let [x:t] = e1 in e2
-        | fun [x:t1] : t2 -> e | rec f [x:t1] : t2 -> e | e1 (e2)
-        | () | (e1, e2) | fst (e) | snd (e)
-        | [] : t | e1 :: e2 | car (e) | cdr (e) | empty? (e)
-        | ref (e) | e1 := e2 | !(e) | e1; e2
-        | while (e1) {e2}
-        | x = {e}
-        | struct { struct_statement_list }
-        | e.x
+prog:
+  decllist eof                  
 
-t ::= int | float | bool | [-] | t1 -> t2 | t1 * t2 | unit | {t} | <t>
+formal:
+  var : typ                 
 
-struct_statement_list ::= struct_statement
-                        | struct_statement_list struct_statement
+formallist:
+  formal    
+| formallist , formal    
 
-struct_statement ::= t x => e,
+decl:
+  let var ( formallist ) : typ = exp ;;
 
+decllist:
+  decl
+| decllist decl
+
+exp:
+  exp_app             
+
+exp_app:
+  var expslist    
+| exp_ops                        
+
+expslist:
+  exp_ops       
+| expslist exp_ops     
+
+exp_ops:
+  exp_ops + exp_ops             
+| exp_ops - exp_ops             
+| exp_ops * exp_ops             
+| exp_ops / exp_ops             
+| exp_ops <= exp_ops            
+| exp_ops < exp_ops             
+| exp_ops == exp_ops            
+| exp_ops > exp_ops             
+| exp_ops >= exp_ops            
+| ( exp_ops , exp_ops )     
+| fst ( exp_ops )           
+| snd ( exp_ops )           
+| car ( exp_ops )           
+| cdr ( exp_ops )           
+| empty ( exp_ops )         
+| exp_ops :: exp_ops            
+| { } : typ                 
+| ref ( exp_ops )           
+| ! ( exp_ops )             
+| exp_ops := exp_ops            
+| exp_ops ; exp_ops             
+// | ( exp_ops ) %prec ->    
+| typ var = { exp_ops }   
+| struct { struct_statement_list }
+| exp_ops  . var              
+| exp_base                        
+
+exp_base:
+  ( )                         
+| int                           
+| double                        
+| true                          
+| false                         
+| NaN                           
+| var                           
+| if exp then exp else exp
+| let var : typ  = exp in exp
+| while exp do exp end
+| ( exp )                   
+
+struct_statement_list: struct_statement
+| struct_statement_list struct_statement
+
+struct_statement:
+  typ var => exp     
+
+typ:
+  int                          
+| float                        
+| bool                         
+| unit                         
+| struct                       
+| typ -> typ                    
+| typ * typ         
+| { typ }                    
+| < typ >                     
+| ( typ )                     
 ```
 
 ### Precedence
