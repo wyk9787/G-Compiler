@@ -1,9 +1,0 @@
-let f (x : int) : int =
-  if (x <= 100) 
-  then (x + (f (x + 1)))
-  else (x)
-;;
-
-let main (a : int) : int =
-  (f 1)
-;;

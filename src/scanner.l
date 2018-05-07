@@ -57,14 +57,10 @@ blank [ \t]
 "then"      { return yy::parser::make_THEN(loc); }
 "NaN"       { return yy::parser::make_NAN(loc); }
 "->"        { return yy::parser::make_FUNC_BODY(loc); }
-"=>"        { return yy::parser::make_ARROW(loc); }
-"struct"    { return yy::parser::make_STRUCT(loc); }
 "let"       { return yy::parser::make_LET(loc); }
 "="         { return yy::parser::make_LET_ASSIGN(loc); }
 "in"        { return yy::parser::make_IN(loc); }
 "rec"       { return yy::parser::make_REC(loc); }
-"[-]"       { struct_type_t temp;
-  return yy::parser::make_TSTRUCT(std::make_shared<TStruct>(temp), loc); }
 "int"       { return yy::parser::make_TINT(std::make_shared<TInt>(), loc); }
 "float"     { return yy::parser::make_TFLOAT(std::make_shared<TFloat>(), loc); }
 "bool"      { return yy::parser::make_TBOOL(std::make_shared<TBool>(), loc); }
@@ -89,10 +85,6 @@ blank [ \t]
 "while"     { return yy::parser::make_WHILE(loc); }
 "do"        { return yy::parser::make_DO(loc); }
 "end"       { return yy::parser::make_END(loc); }
-"#"         { return yy::parser::make_POND(loc); }
-"include"   { return yy::parser::make_INCLUDE(loc); }
-"def"       { return yy::parser::make_DEF(loc); }
-"."         { return yy::parser::make_DOT(loc); }
 
 {var}       { return yy::parser::make_VAR(yytext, loc);}
 

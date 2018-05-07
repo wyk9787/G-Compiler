@@ -1,13 +1,21 @@
-let [inner_product : {int}->{bool}->int] =
-rec f1 [l1:{int}] : [{int}->int] ->
-fun [l2:{int}] : int ->
-if (empty? (l1)){
-  0
-} else {
-  car(l1) * car(l2) +  f1 (cdr(l1)) (cdr(l2))
-}
+#include <language/lib/math.glib>
+#include <language/lib/list.glib>
 
-in
-let [lst1:{int}] = 1::2::{}:int in
-let [lst2:{int}] = 3::4::{}:int in
-inner_product (lst1) (lst2)
+let cool_func(x : int, y : int, z : int) : int =
+  (fact x) + (max2 y z)
+;;
+
+let main(a : int) : int =
+  let lst1 : <{int}> = ref(1 :: 2 :: 3 :: 4 :: {}:int) in
+  let lst2 : <{int}> = ref(4 :: 3 :: 2 :: 1 :: {}:int) in
+  let res: <int * float> = ref ( (0, 0.0) ) in
+  let l : <{int * float}> = ref ( (1, 2.0) :: (3, 4.0) :: (5, 6.0) :: {} : int * float) in
+  let counter : <int> = ref (0) in
+  while ((!counter) < 3) do
+    res := (fst(!res) + fst(car(!l)),  snd(!res) + snd(car(!l)));
+    l := cdr(!(l));
+    counter := (!counter) + 1
+  end;
+  let temp : int = fst(!res) in
+    (cool_func (cool_func 3 2 1) (list_sum !lst1)) + (inner_product !lst1 !lst2)
+;;

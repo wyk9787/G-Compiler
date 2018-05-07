@@ -30,9 +30,6 @@ class EPtr;
 class EAssign;
 class ESeq;
 class EWhile;
-class EDef;
-class EStruct;
-class EDot;
 }
 
 namespace cexp {
@@ -60,9 +57,6 @@ class EPtr;
 class EAssign;
 class ESeq;
 class EWhile;
-class EDef;
-class EStruct;
-class EDot;
 }
 
 class Typ;
@@ -74,7 +68,6 @@ class TFunc;
 class TPair;
 class TList;
 class TRef;
-class TStruct;
 
 /******************************************************************************
                                Alias for shared_ptr
@@ -105,9 +98,6 @@ typedef std::shared_ptr<EPtr> Shared_EPtr;
 typedef std::shared_ptr<EAssign> Shared_EAssign;
 typedef std::shared_ptr<ESeq> Shared_ESeq;
 typedef std::shared_ptr<EWhile> Shared_EWhile;
-typedef std::shared_ptr<EDef> Shared_EDef;
-typedef std::shared_ptr<EStruct> Shared_EStruct;
-typedef std::shared_ptr<EDot> Shared_EDot;
 }
 
 namespace cexp {
@@ -136,9 +126,6 @@ typedef std::shared_ptr<EPtr> Shared_EPtr;
 typedef std::shared_ptr<EAssign> Shared_EAssign;
 typedef std::shared_ptr<ESeq> Shared_ESeq;
 typedef std::shared_ptr<EWhile> Shared_EWhile;
-typedef std::shared_ptr<EDef> Shared_EDef;
-typedef std::shared_ptr<EStruct> Shared_EStruct;
-typedef std::shared_ptr<EDot> Shared_EDot;
 }
 
 typedef std::shared_ptr<Typ> Shared_Typ;
@@ -149,15 +136,11 @@ typedef std::shared_ptr<TUnit> Shared_TUnit;
 typedef std::shared_ptr<TFunc> Shared_TFunc;
 typedef std::shared_ptr<TPair> Shared_TPair;
 typedef std::shared_ptr<TRef> Shared_TRef;
-typedef std::shared_ptr<TStruct> Shared_TStruct;
 
 using namespace fexp;
 
-typedef std::unordered_map<std::string, std::shared_ptr<Exp>> global_stack_t;
 typedef std::unordered_map<std::string, std::shared_ptr<Typ>> context_t;
 typedef std::unordered_map<size_t, std::shared_ptr<Exp>> global_heap_t;
-typedef std::unordered_map<std::string, std::shared_ptr<Exp>> struct_data_t;
-typedef std::unordered_map<std::string, std::shared_ptr<Typ>> struct_type_t;
 typedef std::pair<std::string, Shared_Typ> arg_t;
 typedef std::vector<arg_t> arglist_t;
 typedef struct _function {

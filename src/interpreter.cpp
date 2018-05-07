@@ -13,7 +13,6 @@
 
 void typecheck_all() {
   for(auto function : global_functions) {
-    if(function.first == "main") continue; // Main can have any signature
     context_t context;
     function_t func = function.second;
     arglist_t arglist = func.arglist;
@@ -22,6 +21,7 @@ void typecheck_all() {
       context.insert({arg.first, arg.second});
     }
     Shared_Typ t_body = func.e->typecheck(context);
+    if(function.first == "main") continue; // The body of main do not need to match the return type
     if(*t_body.get() != *func.return_type.get()) {
       type_error("Type checking function " + function.first, func.return_type->get_type(), t_body->get_type());
     }

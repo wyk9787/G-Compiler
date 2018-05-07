@@ -13,12 +13,12 @@ for filename in ./test/**/*.src; do
   parse_output="${filename%.src}.parse.out"
   output="${filename%.src}.out"
   if [[ $1 = "output" ]]
-  then
-    ./build/apps/compiler -f "$filename" -p > "$parse_output"
+  then # generate outputs (after manually checking every single output)
+    # ./build/apps/compiler -f "$filename" -p > "$parse_output"
     ./build/apps/compiler -f "$filename" &> "$output"
   else
     echo "$filename"
-    diff <(./build/apps/compiler -f "$filename" -p) "$parse_output" >> "$result"
+    # diff <(./build/apps/compiler -f "$filename" -p) "$parse_output" >> "$result"
     diff <(./build/apps/compiler -f "$filename" 2>&1) "$output" >> "$result"
   fi
 done

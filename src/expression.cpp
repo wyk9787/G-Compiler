@@ -3,14 +3,12 @@
 #include <stdlib.h>
 
 global_heap_t heap;
-global_stack_t stack;
-struct_data_t global_struct_data;
-struct_type_t global_struct_type;
 global_function_t global_functions;
 
 using namespace fexp;
 
 std::shared_ptr<Exp> fexp::evaluate(std::shared_ptr<Exp> exp, bool print_step) {
+  // int count = 20;
   while (!exp->is_value()) {
     if (print_step) {
       std::cout << exp->string_of_exp() << std::endl;
@@ -115,9 +113,10 @@ Shared_Typ EOperator::typecheck(context_t context) {
   return nullptr;
 }
 
-cexp::Shared_Exp EOperator::convert() {
-  
-}
+// cexp::Shared_Exp EOperator::convert() {
+//   //TODO: Implement this!
+//   return nullptr;
+// }
 
 /******************************************************************************
                         EComp Implementaion
@@ -274,11 +273,7 @@ bool EBool::get_bool() { return data; }
 EVar::EVar(std::string _data) : data(_data){};
 
 Shared_Exp EVar::step() {
-  if (stack.find(data) != stack.end()) {
-    return stack[data];
-  } else {
-    return std::make_shared<EVar>(data);
-  }
+  return std::make_shared<EVar>(data);
 }
 
 Shared_Exp EVar::substitute(std::string var, Shared_Exp e) {
@@ -294,10 +289,6 @@ std::string EVar::string_of_exp() { return data; }
 Shared_Typ EVar::typecheck(context_t context) {
   if (context.find(data) != context.end()) {
     return context[data];
-  } else if (stack.find(data) != stack.end()) {
-    context_t new_context;
-    // The definition is itself a new context
-    return stack[data]->typecheck(new_context);
   } else {
     std::cerr << "Requires a type for " << data << std::endl;
     exit(1);
@@ -305,11 +296,7 @@ Shared_Typ EVar::typecheck(context_t context) {
 }
 
 bool EVar::is_value() {
-  if (stack.find(data) != stack.end()) {
-    return false;
-  } else {
-    return true;
-  }
+  return true;
 }
 
 bool EVar::is_var() { return true; }
@@ -452,10 +439,11 @@ Shared_Exp EApp::step() {
 }
 
 Shared_Exp EApp::substitute(std::string var, Shared_Exp _e) {
+  std::vector<Shared_Exp> new_v(v);
   for(int i = 0; i < v.size(); i++) {
-    v[i] = v[i]->substitute(var, _e);
+    new_v[i] = new_v[i]->substitute(var, _e);
   }
-  return std::make_shared<EApp>(id, v);
+  return std::make_shared<EApp>(id, new_v);
 }
 
 std::string EApp::string_of_exp() {
@@ -484,7 +472,7 @@ Shared_Typ EApp::typecheck(context_t context) {
   // Check for if the number of arguments match or not
   arglist_t arglist = func.arglist;
   if(arglist.size() != v.size()) {
-    std::cerr << "Number of argument mismatches: Expect " << arglist.size() << "arguments, given " << v.size() << std::endl;
+    std::cerr << "Number of argument mismatches: Expect " << arglist.size() << " arguments, given " << v.size() << std::endl;
     exit(1);
   }
 
@@ -967,127 +955,4 @@ Shared_Typ EWhile::typecheck(context_t context) {
     type_error(string_of_exp(), "Boolean", t1->get_type());
   }
   return std::make_shared<TUnit>();
-}
-
-/******************************************************************************
-                               EDef Implementaion
-*******************************************************************************/
-
-EDef::EDef(std::string _id, Shared_Exp _e, Shared_Typ _t)
-    : id(_id), e(_e), t(_t) {}
-
-Shared_Exp EDef::step() {
-  // stack.insert({id, e});
-  return std::make_shared<EUnit>();
-}
-
-Shared_Exp EDef::substitute(std::string var, Shared_Exp e) {
-  return std::make_shared<EDef>(id, this->e, t);
-}
-
-std::string EDef::string_of_exp() {
-  return t->get_type() + " " + id + "= {" + e->string_of_exp() + "}";
-}
-
-Shared_Typ EDef::typecheck(context_t context) {
-  Shared_Typ t = e->typecheck(context);
-  if (*t.get() != *this->t.get()) {
-    type_error(string_of_exp(), t->get_type(), this->t->get_type());
-  }
-  stack.insert({id, e});
-  return std::make_shared<TUnit>();
-}
-
-/******************************************************************************
-                               EStruct Implementaion
-*******************************************************************************/
-
-EStruct::EStruct(struct_data_t _e_map, struct_type_t _t_map)
-    : e_map(_e_map), t_map(_t_map) {}
-
-Shared_Exp EStruct::step() {
-  for (auto const &entry : e_map) {
-    if (!entry.second->is_value()) {
-      e_map[entry.first] = entry.second->step();
-      return std::make_shared<EStruct>(e_map, t_map);
-    }
-  }
-  return std::make_shared<EStruct>(e_map, t_map);
-}
-
-Shared_Exp EStruct::substitute(std::string var, Shared_Exp e) {
-  for (auto const &entry : e_map) {
-    e_map[entry.first] = entry.second->substitute(var, e);
-  }
-  return std::make_shared<EStruct>(e_map, t_map);
-}
-
-std::string EStruct::string_of_exp() {
-  std::string res = "struct {";
-  for (auto const &entry : e_map) {
-    res += t_map[entry.first]->get_type() + " " + entry.first + "=>" +
-           entry.second->string_of_exp() + ", ";
-  }
-  return res + "}";
-}
-
-Shared_Typ EStruct::typecheck(context_t context) {
-  return std::make_shared<TStruct>(t_map);
-}
-
-bool EStruct::is_value() {
-  for (auto const &entry : e_map) {
-    if (!entry.second->is_value()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool EStruct::is_struct() { return true; }
-
-struct_data_t EStruct::get_data() { return e_map; }
-
-/******************************************************************************
-                               EDot Implementaion
-*******************************************************************************/
-
-EDot::EDot(Shared_Exp _e, std::string _id) : e(_e), id(_id) {}
-
-Shared_Exp EDot::step() {
-  if (!e->is_value()) {
-    return std::make_shared<EDot>(e->step(), id);
-  }
-  EStruct *s = dynamic_cast<EStruct *>(e.get());
-  if (s == nullptr) {
-    std::cerr << "Debug: Not be able to cast to a EStruct!\n";
-    exit(1);
-  }
-  struct_data_t data = s->get_data();
-  if (data.find(id) != data.end()) {
-    return data[id];
-  } else {
-    std::cerr << "Debug: There is no " + id + " field in this sturct\n";
-    exit(1);
-  }
-}
-
-Shared_Exp EDot::substitute(std::string var, Shared_Exp e) {
-  return std::make_shared<EDot>(this->e->substitute(var, e), id);
-}
-
-std::string EDot::string_of_exp() { return e->string_of_exp() + "." + id; }
-
-Shared_Typ EDot::typecheck(context_t context) {
-  Shared_Typ t = e->typecheck(context);
-  if (dynamic_cast<TStruct *>(t.get()) == nullptr) {
-    type_error(string_of_exp(), "[-]", t->get_type());
-  }
-  struct_type_t t_map = t->get_type_map();
-  if (t_map.find(id) != t_map.end()) {
-    return t_map[id];
-  } else {
-    std::cerr << "There is no " + id + " field in this sturct\n";
-    exit(1);
-  }
 }

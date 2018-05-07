@@ -85,12 +85,6 @@ using namespace fexp;
   WHILE        "while"
   DO           "do"
   END          "end"
-  INCLUDE      "include"
-  POND         "#"
-  DEF          "def"
-  ARROW        "=>"
-  STRUCT       "struct"
-  DOT          "."
   END_DECL     ";;"
 ;
 
@@ -101,7 +95,6 @@ using namespace fexp;
 %token <Shared_TFloat> TFLOAT "tfloat"
 %token <Shared_TBool> TBOOL "tbool"
 %token <Shared_TUnit> TUNIT "tunit"
-%token <Shared_TStruct> TSTRUCT "tstruct"
 
 %right "->" "::"
 %right "!" "ref"
@@ -217,18 +210,9 @@ exp_ops:
                                     $$ = std::make_shared<EList>(v, $4);
                                   }
 | "ref" "(" exp_ops ")"           { $$ = std::make_shared<ERef>($3); }
-| "!" "(" exp_ops ")"             { $$ = std::make_shared<EDeref>($3); }
+| "!" exp_ops                     { $$ = std::make_shared<EDeref>($2); }
 | exp_ops ":=" exp_ops            { $$ = std::make_shared<EAssign>($1, $3); }
 | exp_ops ";" exp_ops             { $$ = std::make_shared<ESeq>($1, $3); }
-// | "(" exp_ops ")" %prec "->"      { $$ = $2; }
-| typ "var" "=" "{" exp_ops "}"   { $$ = std::make_shared<EDef>($2, $5, $1); }
-| "struct" "{" struct_statement_list "}"
-                                  {
-                                    $$ = std::make_shared<EStruct>(global_struct_data, global_struct_type);
-                                    global_struct_data.clear();
-                                    global_struct_type.clear();
-                                  }
-| exp_ops  "." "var"              { $$ =  std::make_shared<EDot>($1, $3); }
 | exp_base                        { $$ = $1; }
 ;
 
@@ -248,23 +232,11 @@ exp_base:
                                   { $$ = std::make_shared<EWhile>($2, $4, $2); }
 | "(" exp ")"                     { $$ = $2; }
 
-struct_statement_list: struct_statement
-| struct_statement_list struct_statement
-;
-
-struct_statement:
-  typ "var" "=>" exp ","          {
-                                        global_struct_data.insert({$2, $4});
-                                        global_struct_type.insert({$2, $1});
-                                      }
-;
-
 typ:
   "tint"                          { $$ = $1; }
 | "tfloat"                        { $$ = $1; }
 | "tbool"                         { $$ = $1; }
 | "tunit"                         { $$ = $1; }
-| "tstruct"                       { $$ = $1; }
 | typ "->" typ                    { $$ = std::make_shared<TFunc>($1, $3); }
 | typ "*" typ  %prec "->"         { $$ = std::make_shared<TPair>($1, $3); }
 | "{" typ "}"                     { $$ = std::make_shared<TList>($2); }

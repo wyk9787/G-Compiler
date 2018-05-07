@@ -1,14 +1,11 @@
 #include <language/lib/math.glib>
 #include <language/lib/list.glib>
 
-let init (a : unit): unit=
-  {int} lst1 = { 1 :: 2 :: 3 :: {}:int };
-  {int} lst2 = { 3 :: 0 :: 2 :: {}:int };
-  int sum1 = { (list_sum lst1) };
-  int sum2 = { (list_sum lst2) };
-  int ip = { (inner_product lst1 lst2) }
-;;
-
 let main (a : int) : int =
+  let lst1 : <{int}> = ref(1 :: 2 :: 3 :: {}:int) in
+  let lst2 : <{int}> = ref(3 :: 0 :: 2 :: {}:int) in
+  let sum1 : int = (list_sum !lst1) in
+  let sum2 : int = (list_sum !lst2) in
+  let ip : int = (inner_product !lst1 !lst2) in
   (fact (max2 (max2 sum1 sum2) ip))
 ;;

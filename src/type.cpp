@@ -141,20 +141,3 @@ std::string TRef::get_type() {
 Shared_Typ TRef::get_first_subtype() {
   return t;
 }
-
-//********************************TStruct Implementaion****************************//
-
-TStruct::TStruct(struct_type_t _t_map) : t_map(_t_map) {}
-
-std::string TStruct::get_type() {
-  return "[-]";
-}
-
-struct_type_t TStruct::get_type_map() {
-  return t_map;
-}
-
-bool TStruct::eq(const Typ& other) const {
-  const TStruct *res = dynamic_cast<const TStruct*>(&other);
-  return res != nullptr;
-}

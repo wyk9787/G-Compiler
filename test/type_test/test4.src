@@ -1,17 +1,21 @@
-(let
-  [fact : int->int] = rec f [n:int] : int ->
-  if (n > 0) {
-    n * f (n-1)
-  } else {
-    1
-  }
-in fact (5))
+#include <language/lib/math.glib>
+#include <language/lib/list.glib>
 
-+
+let cool_func(x : int, y : int, z : int) : int =
+  (fact x) + (max2 y z)
+;;
 
-(let [max2 : int-> int -> int] =
-  fun [x:int] : [int->int] -> (fun [y:int] : int -> if (x > y){true}else{y})
-in
-let [a:int] = 5 in
-let [b:int] = 2 in
-max2 (a) (b))
+let main(a : int) : int =
+  let lst1 : <{int}> = ref(1 :: 2 :: 3 :: 4 :: {}:int) in
+  let lst2 : <{int}> = ref(4 :: 3 :: 2 :: 1 :: {}:int) in
+  let res: <int * float> = ref ( (0, 0.0) ) in
+  let l : <{int * float}> = ref ( (1, 2.0) :: (3, 4.0) :: (5, 6.0) :: {} : int * float) in
+  let counter : <int> = ref (0) in
+  while ((!counter) < 3) do
+    res := (fst(!res) + fst(car(!l)),  snd(!res) + snd(car(!l)));
+    l := cdr(!(l));
+    counter := (!counter) + 1
+  end;
+  let temp : int = fst(!res) in
+    (cool_func temp (cool_func 3 2 1.0) (list_sum !lst1)) + (inner_product !lst1 !lst2)
+;;
