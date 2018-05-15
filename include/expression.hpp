@@ -9,6 +9,20 @@
 
 namespace fexp {
 
+/****** Helper Functions for Converting to C *****/
+
+std::string fresh_name();
+
+std::tuple<std::string id, std::vector<Shared_Stmt>, Shared_Stmt>
+factor_subexp(fexp::Shared_Exp e);
+
+std::pair<std::vector<Shared_Exp>, std::vector<Shared_Stmt>>
+factor_subexps(std::vector<fexp::Shared_Exp> es,
+               std::vector<Shared_Exp> exp_so_far,
+               std::vector<Shared_Stmt> stmt_so_far);
+
+/*************************************************/
+
 /******************************************************************************
                                Helper
 *******************************************************************************/
@@ -20,16 +34,28 @@ Shared_Exp evaluate(Shared_Exp exp, bool print_step);
 
 class Exp {
 public:
+  // Step evaluation the program
   virtual Shared_Exp step() = 0;
+
+  // Variable substituttion
   virtual Shared_Exp substitute(std::string var, Shared_Exp t) = 0;
+
+  // Print this expression
   virtual std::string string_of_exp() = 0;
+
+  // Typecheck the program
   virtual Shared_Typ typecheck(context_t context) = 0;
-  // virtual cexp::Shared_Exp convert() = 0;
+
+  // Convert to intemediate language (C)
+  virtual std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert() {
+    // TODO: Place holder
+    std::std::vector<Shared_Stmt> v;
+    return {nullptr, v};
+  }
 
   virtual bool is_value() { return false; }
   virtual bool is_bool() { return false; }
-  virtual bool is_int() { return false; }
-  virtual bool is_float() { return false; }
+  virtual bool is_lit() { return false; }
   virtual bool is_unit() { return false; }
   virtual bool is_NaN() { return false; }
   virtual bool is_var() { return false; }
@@ -89,7 +115,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -108,7 +134,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -117,10 +143,7 @@ public:
 
 class ELit : public Exp {
 private:
-  bool _is_int;
-  bool _is_NaN;
-  int int_data;
-  double float_data;
+  int data;
 
 public:
   ELit(bool __is_int, int _int_data, double _float_data, bool __is_NaN);
@@ -128,15 +151,11 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 
   bool is_value();
-  bool is_int();
-  int get_int();
-  bool is_float();
-  double get_float();
-  bool is_NaN();
-  std::string get_NaN();
+  bool is_lit();
+  int get_lit();
 };
 
 /******************************************************************************
@@ -153,7 +172,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 
   bool is_value();
   bool is_bool();
@@ -174,7 +193,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 
   bool is_value();
   bool is_var();
@@ -193,7 +212,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 
   bool is_value();
   bool is_unit();
@@ -213,7 +232,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -232,7 +251,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -250,7 +269,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -268,7 +287,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 
   bool is_value();
   bool is_pair();
@@ -292,7 +311,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -309,7 +328,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -327,7 +346,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp t);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 
   bool is_value();
   bool is_list();
@@ -352,7 +371,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -369,7 +388,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -386,7 +405,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -403,7 +422,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -420,7 +439,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -437,7 +456,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 
   bool is_value();
   Shared_EPtr get_ptr();
@@ -458,7 +477,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -476,7 +495,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -494,7 +513,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
 
 /******************************************************************************
@@ -513,8 +532,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  //cexp::Shared_Exp convert();
+  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 };
-
 }
 #endif

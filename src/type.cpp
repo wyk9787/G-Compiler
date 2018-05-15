@@ -1,5 +1,7 @@
 #include <type.hpp>
 
+using namespace ftyp;
+
 void type_error(std::string expression, std::string expect, std::string actual) {
   std::cerr << "In " << expression << std::endl;
   std::cerr << "Expecting type " << expect << ", receiving type " << actual << std::endl;

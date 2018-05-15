@@ -12,6 +12,8 @@ class TBool;
 class TFloat;
 class TFunc;
 
+namespace ftyp {
+
 void type_error(std::string expression, std::string expected,
                 std::string actual);
 
@@ -149,5 +151,6 @@ public:
 protected:
   bool eq(const Typ& other) const;
 };
+} // End of name space
 
 #endif

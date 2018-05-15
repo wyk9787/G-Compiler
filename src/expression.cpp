@@ -1,4 +1,5 @@
 #include "expression.hpp"
+#include "c_expression.hpp"
 #include <iostream>
 #include <stdlib.h>
 
@@ -6,9 +7,44 @@ global_heap_t heap;
 global_function_t global_functions;
 
 using namespace fexp;
+using namespace ftyp;
+
+/****** Helper Functions for Converting to C *****/
+
+std::string fresh_name() {
+  static size_t count = 0;
+  return "_g" + std::to_string(count++) + "comp";
+}
+
+std::tuple<std::string id, std::vector<Shared_Stmt>, Shared_Stmt> factor_subexp(Shared_Exp e) {
+  std::string name = fresh_name();
+  auto conv = e->convert();
+  return std::make_tuple(name, conv.second,
+                         std::make_shared<SDecl>(name, std::make_shared<ctyp::Tint>(),
+                                                 conv.first));
+}
+
+std::pair<std::vector<Shared_Exp>, std::vector<Shared_Stmt>> factor_subexps(std::vector<Shared_Exp> es, std::vector<cexp::Shared_Exp> exp_so_far, std::vector<Shared_Stmt> stmt_so_far) {
+  if(es.size() == 0) {
+    return {exp_so_far, stmt_so_far};
+  } else {
+    auto subexp = factor_subexp(es[0]);
+    es.erase(subexp);
+
+    std::vector<cexp::Shared_Exp> new_exp_so_far(exp_so_far);
+    new_exp_so_far.push_back(std::make_shared<cexp::EVar>(std::get<0>(subexp)));
+
+    std::vector<cexp::Shared_Stmt> new_stmt_so_far(stmt_so_far);
+    auto new_ss = std::get<1>(subexp);
+    new_stmt_so_far.insert(new_stmt_so_far.end(), new_ss.begin(), new_ss.end());
+    new_stmt_so_far.push_back(std::get<2>(subexp));
+    return factor_subexps(es, new_exp_so_far, new_stmt_so_far);
+  }
+}
+
+/*************************************************/
 
 std::shared_ptr<Exp> fexp::evaluate(std::shared_ptr<Exp> exp, bool print_step) {
-  // int count = 20;
   while (!exp->is_value()) {
     if (print_step) {
       std::cout << exp->string_of_exp() << std::endl;
@@ -113,10 +149,17 @@ Shared_Typ EOperator::typecheck(context_t context) {
   return nullptr;
 }
 
-// cexp::Shared_Exp EOperator::convert() {
-//   //TODO: Implement this!
-//   return nullptr;
-// }
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EOperator::convert() {
+  // TODO: Can we save a local variable here?
+  auto subexp1 = factor_subexp(e1);
+  auto subexp2 = factor_subexp(e2);
+  std::vector<Shared_Stmt> v(std::get<1>(subexp1));
+  auto v2 = std::get<1>(subexp2);
+  v.insert(v.end(), v2.begin(), v2.end());
+  v.push_back(std::get<2>(subexp1));
+  v.push_back(std::get<2>(subexp2));
+  return {std::make_shared<cexp::EOperator>(id, std::make_share<EVar>(std::get<0>(subexp1)), std::make_share<EVar>(std::get<0>(subexp2))),v};
+}
 
 /******************************************************************************
                         EComp Implementaion
@@ -199,48 +242,47 @@ Shared_Typ EComp::typecheck(context_t context) {
   return nullptr;
 }
 
+// This is exactly the same as the version in EOperator because I only have cexp::EOperator
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EComp::convert() {
+  // TODO: Can we save a local variable here?
+  auto subexp1 = factor_subexp(e1);
+  auto subexp2 = factor_subexp(e2);
+  std::vector<Shared_Stmt> v(std::get<1>(subexp1));
+  auto v2 = std::get<1>(subexp2);
+  v.insert(v.end(), v2.begin(), v2.end());
+  v.push_back(std::get<2>(subexp1));
+  v.push_back(std::get<2>(subexp2));
+  return {std::make_shared<cexp::EOperator>(id, std::make_share<EVar>(std::get<0>(subexp1)), std::make_share<EVar>(std::get<0>(subexp2))),v};
+}
+
 /******************************************************************************
                         ELit Implementaion
 *******************************************************************************/
 
-ELit::ELit(bool __is_int, int _int_data, double _float_data, bool __is_NaN)
-    : _is_int(__is_int), int_data(_int_data), float_data(_float_data),
-      _is_NaN(__is_NaN){};
+ELit::ELit(int _data) : data(_data){};
 
-Shared_Exp ELit::step() {
-  return std::make_shared<ELit>(_is_int, int_data, float_data, _is_NaN);
-}
+Shared_Exp ELit::step() { return std::make_shared<ELit>(data); }
 
 Shared_Exp ELit::substitute(std::string var, Shared_Exp e) {
-  return std::make_shared<ELit>(_is_int, int_data, float_data, _is_NaN);
+  return std::make_shared<ELit>(data);
 }
 
-std::string ELit::string_of_exp() {
-  return _is_NaN
-             ? "NaN"
-             : _is_int ? std::to_string(int_data) : std::to_string(float_data);
-}
+std::string ELit::string_of_exp() { return std::to_string(data); }
 
 Shared_Typ ELit::typecheck(context_t context) {
-  if (_is_int)
-    return std::make_shared<TInt>();
-  else
-    return std::make_shared<TFloat>();
+  return std::make_shared<TInt>();
 }
 
 bool ELit::is_value() { return true; }
 
-bool ELit::is_int() { return _is_int; }
+bool ELit::is_Lit() { return true; }
 
-int ELit::get_int() { return int_data; }
+int ELit::get_lit() { return data; }
 
-bool ELit::is_float() { return !_is_int; }
-
-double ELit::get_float() { return float_data; }
-
-bool ELit::is_NaN() { return _is_NaN; }
-
-std::string ELit::get_NaN() { return "NaN"; }
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ELit::convert() {
+  std::vector<Shared_Stmt> v;
+  return {std::make_shared<cexp::EInt>(data), v};
+}
 
 /******************************************************************************
                         EBool Implementaion
@@ -260,6 +302,11 @@ Shared_Typ EBool::typecheck(context_t context) {
   return std::make_shared<TBool>();
 }
 
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EBool::convert() {
+  std::vector<Shared_Stmt> v;
+  return {std::make_shared<cexp::EBool>(data), v};
+}
+
 bool EBool::is_value() { return true; }
 
 bool EBool::is_bool() { return true; }
@@ -272,9 +319,7 @@ bool EBool::get_bool() { return data; }
 
 EVar::EVar(std::string _data) : data(_data){};
 
-Shared_Exp EVar::step() {
-  return std::make_shared<EVar>(data);
-}
+Shared_Exp EVar::step() { return std::make_shared<EVar>(data); }
 
 Shared_Exp EVar::substitute(std::string var, Shared_Exp e) {
   if (var == data) {
@@ -295,9 +340,12 @@ Shared_Typ EVar::typecheck(context_t context) {
   }
 }
 
-bool EVar::is_value() {
-  return true;
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EVar::convert() {
+  std::vector<Shared_Stmt> v;
+  return {std::make_shared<cexp::EVar>(data), v};
 }
+
+bool EVar::is_value() { return true; }
 
 bool EVar::is_var() { return true; }
 
@@ -321,10 +369,14 @@ Shared_Typ EUnit::typecheck(context_t context) {
   return std::make_shared<TUnit>();
 }
 
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EUnit::convert() {
+  std::vector<Shared_Stmt> v;
+  return {std::make_shared<cexp::EInt>(0), v};
+}
+
 bool EUnit::is_value() { return true; }
 
 bool EUnit::is_unit() { return true; }
-
 /******************************************************************************
                         EIf Implementaion
 *******************************************************************************/
@@ -372,6 +424,25 @@ std::string EIf::string_of_exp() {
          "} else {" + e3->string_of_exp() + "}";
 }
 
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EIf::convert() {
+  auto subexp1 = factor_subexp(e1);
+  auto subexp2 = factor_subexp(e2);
+  auto subexp3 = factor_subexp(e3);
+  std::string ret = fresh_name();
+
+  std::vector<Shared_Stmt> ss2(std::get<1>(subexp2));
+  v.push_back(std::get<2>(subexp2));
+  v.push_back(std::make_shared<SDecl>(ret, std::make_shared<ctyp::TInt>(), std::make_shared<cexp::Var>(std::get<0>(subexp3))));
+
+  std::vector<Shared_Stmt> ss3(std::get<1>(subexp3));
+  v.push_back(std::get<2>(subexp3));
+  v.push_back(std::make_shared<SDecl>(ret, std::make_shared<ctyp::TInt>(), std::make_shared<cexp::Var>(std::get<0>(subexp3))));
+
+  std::vector<Shared_Stmt> res(std::get<0>(subexp1));
+  res.push_back(std::make_shared<SIf>(std::make_shared<cexp::EVar>(std::get<0>(subexp1)), ss2, ss3));
+  return {std::make_shared<cexp::EVar>(ret), rest};
+}
+
 /******************************************************************************
                         ELet Implementaion
 *******************************************************************************/
@@ -399,7 +470,7 @@ std::string ELet::string_of_exp() {
 
 Shared_Typ ELet::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
-  if(context.find(var) == context.end()) {
+  if (context.find(var) == context.end()) {
     context.insert({var, t});
   } else {
     context[var] = t;
@@ -414,6 +485,17 @@ Shared_Typ ELet::typecheck(context_t context) {
   return nullptr;
 }
 
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ELet::convert() {
+  auto convert_exp = e1->convert();
+  auto subexp1 = factor_subexp(e2);
+  std::vector<Shared_Stmt> v(std::get<1>(convert_exp));
+  v.push_back(std::make_shared<SDecl>(var, std::make_shared<ctyp::TInt>(), std::get<0>(convert_exp)));
+  auto v2 = std::get<1>(subexp1);
+  v.push_back(v.end(), v2.begin(), v2.end());
+  v.push_back(std::get<2>(subexp1));
+  return {std::make_shared<cexp::EVar>(std::get<0>(subexp1)), v};
+}
+
 /******************************************************************************
                         EApp Implementaion
 *******************************************************************************/
@@ -421,8 +503,8 @@ Shared_Typ ELet::typecheck(context_t context) {
 EApp::EApp(std::string _id, std::vector<Shared_Exp> _v) : id(_id), v(_v) {}
 
 Shared_Exp EApp::step() {
-  for(int i = 0; i < v.size(); i++) {
-    if(!v[i]->is_value()) {
+  for (int i = 0; i < v.size(); i++) {
+    if (!v[i]->is_value()) {
       v[i] = v[i]->step();
       return std::make_shared<EApp>(id, v);
     }
@@ -431,7 +513,7 @@ Shared_Exp EApp::step() {
   function_t func = global_functions[id];
   arglist_t arglist = func.arglist;
   Shared_Exp ret = func.e;
-  for(int i = 0; i < v.size(); i++) {
+  for (int i = 0; i < v.size(); i++) {
     ret = ret->substitute(arglist[i].first, v[i]);
   }
 
@@ -440,7 +522,7 @@ Shared_Exp EApp::step() {
 
 Shared_Exp EApp::substitute(std::string var, Shared_Exp _e) {
   std::vector<Shared_Exp> new_v(v);
-  for(int i = 0; i < v.size(); i++) {
+  for (int i = 0; i < v.size(); i++) {
     new_v[i] = new_v[i]->substitute(var, _e);
   }
   return std::make_shared<EApp>(id, new_v);
@@ -448,9 +530,9 @@ Shared_Exp EApp::substitute(std::string var, Shared_Exp _e) {
 
 std::string EApp::string_of_exp() {
   std::string ret = id + "(";
-  for(int i = 0; i < v.size(); i++) {
+  for (int i = 0; i < v.size(); i++) {
     ret += v[i]->string_of_exp();
-    if(i != v.size() - 1) {
+    if (i != v.size() - 1) {
       ret += ", ";
     }
   }
@@ -462,7 +544,7 @@ Shared_Typ EApp::typecheck(context_t context) {
   function_t func;
 
   // Find the function, if not, throw an error
-  if(global_functions.find(id) != global_functions.end()) {
+  if (global_functions.find(id) != global_functions.end()) {
     func = global_functions[id];
   } else {
     std::cerr << "There is no function named " << id << std::endl;
@@ -471,20 +553,28 @@ Shared_Typ EApp::typecheck(context_t context) {
 
   // Check for if the number of arguments match or not
   arglist_t arglist = func.arglist;
-  if(arglist.size() != v.size()) {
-    std::cerr << "Number of argument mismatches: Expect " << arglist.size() << " arguments, given " << v.size() << std::endl;
+  if (arglist.size() != v.size()) {
+    std::cerr << "Number of argument mismatches: Expect " << arglist.size()
+              << " arguments, given " << v.size() << std::endl;
     exit(1);
   }
 
   // Typecheck each arguments
-  for(int i = 0; i < arglist.size(); i++) {
+  for (int i = 0; i < arglist.size(); i++) {
     Shared_Typ t = v[i]->typecheck(context);
-    if(*t.get() != *arglist[i].second.get()) {
+    if (*t.get() != *arglist[i].second.get()) {
       type_error(string_of_exp(), arglist[i].second->get_type(), t->get_type());
     }
   }
 
   return func.return_type;
+}
+
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EApp::convert() {
+  std::vector<cexp::Shared_Exp> exp_so_far;
+  std::vector<Shared_Stmt> stmt_so_far;
+  auto subexps = factor_subexps(v, exp_so_far, stmt_so_far);
+  return {std::make_shared<cexp::EApp>(id, std::get<0>(subexps)), std::get<1>(subexps)};
 }
 
 /******************************************************************************
@@ -916,6 +1006,17 @@ Shared_Typ ESeq::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
   return t2;
+}
+
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ESeq::convert() {
+  auto subexp1 = factor_subexp(e1);
+  auto subexp2 = factor_subexp(e2);
+  std::vector<Shared_Stmt> v(std::get<1>(subexp1));
+  auto v2 = std::get<1>(subexp2);
+  v.insert(v.begin(), v2.begin(), v2.end());
+  v.push_back(std::get<2>(subexp1));
+  v.push_back(std::get<2>(subexp2));
+  return {std::make_shared<cexp::EVar>(std::get<0>(subexp2)), v};
 }
 
 /******************************************************************************

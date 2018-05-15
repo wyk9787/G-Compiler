@@ -152,6 +152,7 @@ decl:
                                   {
                                     std::reverse($4.begin(), $4.end());
                                     function_t func = {
+                                      .name = $2,
                                       .arglist = $4,
                                       .return_type = $7,
                                       .e = $9

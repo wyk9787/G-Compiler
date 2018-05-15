@@ -1,199 +1,165 @@
 #include "c_expression.hpp"
+#include <algorithm>
 
 using namespace cexp;
+using namespace ctyp;
+
+/************* Print to C file *******************/
+
+std::string string_of_blk(std::vector<Shared_Stmt> stmt_list, std::string ret) {
+  if(stmt_list.size() == 0) {
+    return ret;
+  } else {
+    // TODO: Watch out local variable here
+    Shared_Stmt first = stmt_list[0];
+    stmt_list.erase(stmt_list.begin());
+    return string_of_blk(stmt_list, ret + " " + first->string_of_stmt());
+  }
+}
+
+std::string string_of_arg(c_arg_t arg) {
+  return arg.first + " " + arg.second->string_of_typ();
+}
+
+std::string string_of_fn(c_function_t func) {
+  std::string arglist_str = "";
+  for(int i = 0; i < func.arglist.size(); i++) {
+    if(i != func.arglist.size()-1)
+      str += string_of_arg(func.arglist[i]) + ", ";
+    else
+      str += string_of_arg(func.arglist[i]);
+  }
+
+  std::transform(arglist.begin(), arglist.end(), )
+  return func.return_type->string_of_typ() + " " + func.name + " " + arglist_str + " { " + string_of_blk(func.stmt_list) + " }";
+}
+
+std::string string_of_prog(c_global_function_t functions) {
+  std::string ret = "#include <stdio.h>\n";
+  for(int i = 0; i < functions.size(); i++) {
+    ret += string_of_fn(functions);
+  }
+  return ret;
+}
+
+
+/************** Convert Functions ****************/
+
+c_arg_t conv_arg(arg_t arg) {
+  return {arg.first, std::make_shared<TInt>()};
+}
+
+c_function_t conv_fn(function_t func) {
+  auto conv_exp = func.e->convert();
+
+  arglist_t arglist = func.arglist;
+  c_arglist_t c_arglist;
+  c_arglist.resize(arglist.size());
+  std::transform(arglist.begin(), arglist.end(), c_arglist.begin(), conv_arg);
+  std::vector<Shared_Stmt> stmt_list(std::get<1>(conv_exp));
+  if(func.name == "main") {
+    stmt_list.push_back(std::make_shared<SPrint>(std::get<0>(conv_exp)));
+  } else {
+    stmt_list.push_back(std::make_shared<SRet>(std::get<0>(conv_exp)));
+  }
+
+  c_function_t ret = {
+    .name = func.name,
+    .arglist = c_arglist,
+    .return_type = std::make_shared<TInt>(),
+    .stmt_list = stmt_list
+  };
+
+  return ret;
+}
+
+c_global_function_t conv_prog() {
+  c_global_function_t ret;
+  for(auto cur : global_functions) {
+    ret.insert({cur.first, conv_fn(cur.second)});
+  }
+  return ret;
+}
+
+/***********************************************/
 
 /******************************************************************************
-                               Exp Header
+                               Exp Implementation
 *******************************************************************************/
 
 class Exp {
 public:
   virtual std::string string_of_exp() = 0;
-
-  virtual bool is_value() { return false; }
-  virtual bool is_bool() { return false; }
-  virtual bool is_int() { return false; }
-  virtual bool is_float() { return false; }
-  virtual bool is_unit() { return false; }
-  virtual bool is_NaN() { return false; }
-  virtual bool is_var() { return false; }
-  virtual bool is_pair() { return false; }
-  virtual bool is_list() { return false; }
-  virtual bool is_struct() { return false; }
-
-  virtual bool get_bool() {
-    std::cerr << "Debug: Expecting a boolean!\n";
-    exit(1);
-  }
-  virtual int get_int() {
-    std::cerr << "Debug: Expecting an integer!\n";
-    exit(1);
-  }
-  virtual std::string get_NaN() {
-    std::cerr << "Debug: Expecting an integer!\n";
-    exit(1);
-  }
-  virtual double get_float() {
-    std::cerr << "Debug: Expecting a float!\n";
-    exit(1);
-  }
-  virtual std::string get_var() {
-    std::cerr << "Debug: Expecting a variable!\n";
-    exit(1);
-  }
-  virtual Shared_EPair get_pair() {
-    std::cerr << "Debug: Expecting a pair!\n";
-    exit(1);
-  }
-  virtual Shared_EList get_list() {
-    std::cerr << "Debug: Expecting a list!\n";
-    exit(1);
-  }
-
-  virtual Shared_EPtr get_ptr() {
-    std::cerr << "Debug: Expecting a pointer!\n";
-    exit(1);
-  }
-
   virtual ~Exp(){};
 };
 
 /******************************************************************************
-                               EOperator Header
+                               EOperator Implementation
 *******************************************************************************/
 
 class EOperator : public Exp {
-private:
-  TokenKind id;
-  Shared_Exp e1, e2;
-
-public:
-  EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
-  std::string string_of_exp();
+  EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2) : id(_id), e1(_e1), e2(_e2) {}
+  std::string string_of_exp() {
+    return "(" + e1->string_of_exp() + " " + enum_string[id] + " " + e2->string_of_exp() + ")"
+  }
 };
 
 /******************************************************************************
-                               EComp Header
-*******************************************************************************/
-
-class EComp : public Exp {
-private:
-  TokenKind id;
-  Shared_Exp e1, e2;
-
-public:
-  EComp(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               ELit Header
+                               ELit Implementation
 *******************************************************************************/
 
 class ELit : public Exp {
 private:
-  bool _is_int;
-  bool _is_NaN;
-  int int_data;
-  double float_data;
+  int data;
 
 public:
-  ELit(bool __is_int, int _int_data, double _float_data, bool __is_NaN);
-
-  std::string string_of_exp();
-
-  bool is_value();
-  bool is_int();
-  int get_int();
-  bool is_float();
-  double get_float();
-  bool is_NaN();
-  std::string get_NaN();
+  ELit(int _data) : data(_data);
+  std::string string_of_exp() {
+    return std::to_string(data);
+  }
 };
 
 /******************************************************************************
-                               EBool Header
+                               EBool Implementation
 *******************************************************************************/
 
 class EBool : public Exp {
-private:
-  bool data;
-
 public:
-  EBool(bool _data);
+  EBool(bool _data) : data(_data) {}
 
-  std::string string_of_exp();
-
-  bool is_value();
-  bool is_bool();
-  bool get_bool();
+  std::string string_of_exp() {
+    return std::to_string(data);
+  }
 };
 
 /******************************************************************************
-                               EVar Header
+                               EVar Implementation
 *******************************************************************************/
 
 class EVar : public Exp {
-private:
-  std::string data;
-
 public:
-  EVar(std::string _data);
+  EVar(std::string _data) : data(_data) {}
 
-  std::string string_of_exp();
-
-  bool is_value();
-  bool is_var();
-  std::string get_var();
+  std::string string_of_exp() { return data; }
 };
 
-/******************************************************************************
-                               EUnit Header
-*******************************************************************************/
-
-class EUnit : public Exp {
-private:
-public:
-  EUnit();
-
-  std::string string_of_exp();
-
-  bool is_value();
-  bool is_unit();
-};
 
 /******************************************************************************
-                               EIf Header
+                               EIf Implementation
 *******************************************************************************/
 
 class EIf : public Exp {
-private:
-  Shared_Exp e1, e2, e3;
-
 public:
-  EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3);
+  EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3) : e1(_e1), e2(_e2), e3(_e3) {}
 
-  std::string string_of_exp();
+  std::string string_of_exp() {
+    return "(" + e1->string_of_exp() + " ? " + e2->string_of_exp() + " : " + e3->string_of_exp() + ")";
+  }
 };
 
-/******************************************************************************
-                               ELet Header
-*******************************************************************************/
-
-class ELet : public Exp {
-private:
-  std::string var;
-  Shared_Typ t;
-  Shared_Exp e1, e2;
-
-public:
-  ELet(std::string _var, Shared_Typ _t, Shared_Exp _e1, Shared_Exp _e2);
-
-  std::string string_of_exp();
-};
 
 /******************************************************************************
-                               EApp Header
+                               EApp Implementation
 *******************************************************************************/
 
 class EApp : public Exp {
@@ -202,281 +168,16 @@ private:
   std::vector<Shared_Exp> v;
 
 public:
-  EApp(std::string _id, std::vector<Shared_Exp> _v);
+  EApp(std::string _id, std::vector<Shared_Exp> _v) : id(_id), v(_v) {}
 
-  std::string string_of_exp();
+  std::string string_of_exp() {
+    std::string ret = id + "(";
+    for(int i = 0; i < v.size(); i++) {
+      if(i != v.size() - 1)
+        ret += v[i]->string_of_exp() + ", ";
+      else
+        ret += v[i]->string_of_exp();
+    }
+    return ret + ")"
+  }
 };
-
-/******************************************************************************
-                               EPair Header
-*******************************************************************************/
-
-class EPair : public Exp {
-private:
-  Shared_Exp e1;
-  Shared_Exp e2;
-
-public:
-  EPair(Shared_Exp _e1, Shared_Exp _e2);
-
-  std::string string_of_exp();
-
-  bool is_value();
-  bool is_pair();
-
-  Shared_EPair get_pair();
-  Shared_Exp get_first();
-  Shared_Exp get_second();
-};
-
-/******************************************************************************
-                               EFst Header
-*******************************************************************************/
-
-class EFst : public Exp {
-private:
-  Shared_Exp e;
-
-public:
-  EFst(Shared_Exp _e);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               ESnd Header
-*******************************************************************************/
-
-class ESnd : public Exp {
-private:
-  Shared_Exp e;
-
-public:
-  ESnd(Shared_Exp _e);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               EList Header
-*******************************************************************************/
-
-class EList : public Exp {
-private:
-  std::vector<Shared_Exp> e_list;
-  Shared_Typ t;
-
-public:
-  EList(std::vector<Shared_Exp> _e_list, Shared_Typ e);
-
-  Shared_Exp substitute(std::string var, Shared_Exp t);
-  std::string string_of_exp();
-
-  bool is_value();
-  bool is_list();
-
-  Shared_EList get_list();
-  Shared_Typ get_t();
-  std::vector<Shared_Exp> get_e_list();
-};
-
-/******************************************************************************
-                               ECons Header
-*******************************************************************************/
-
-class ECons : public Exp {
-private:
-  Shared_Exp e1;
-  Shared_Exp e2;
-
-public:
-  ECons(Shared_Exp _e1, Shared_Exp _e2);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               ECar Header
-*******************************************************************************/
-
-class ECar : public Exp {
-private:
-  Shared_Exp e;
-
-public:
-  ECar(Shared_Exp _e);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               ECdr Header
-*******************************************************************************/
-
-class ECdr : public Exp {
-private:
-  Shared_Exp e;
-
-public:
-  ECdr(Shared_Exp _e);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               EEmpty Header
-*******************************************************************************/
-
-class EEmpty : public Exp {
-private:
-  Shared_Exp e;
-
-public:
-  EEmpty(Shared_Exp _e);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               ERef Header
-*******************************************************************************/
-
-class ERef : public Exp {
-private:
-  Shared_Exp e;
-
-public:
-  ERef(Shared_Exp _e);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               EPtr Header
-*******************************************************************************/
-
-class EPtr : public Exp {
-private:
-  size_t n;
-
-public:
-  EPtr(size_t _n);
-
-  std::string string_of_exp();
-
-  bool is_value();
-  Shared_EPtr get_ptr();
-  size_t get_addr();
-};
-
-/******************************************************************************
-                               EDeref Header
-*******************************************************************************/
-
-class EDeref : public Exp {
-private:
-  Shared_Exp e;
-
-public:
-  EDeref(Shared_Exp _e);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               EAssign Header
-*******************************************************************************/
-
-class EAssign : public Exp {
-private:
-  Shared_Exp e1;
-  Shared_Exp e2;
-
-public:
-  EAssign(Shared_Exp _e1, Shared_Exp _e2);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               ESeq Header
-*******************************************************************************/
-
-class ESeq : public Exp {
-private:
-  Shared_Exp e1;
-  Shared_Exp e2;
-
-public:
-  ESeq(Shared_Exp _e1, Shared_Exp _e2);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               EWhile Header
-*******************************************************************************/
-
-class EWhile : public Exp {
-private:
-  Shared_Exp e1;
-  Shared_Exp e2;
-  Shared_Exp e_temp;
-
-public:
-  EWhile(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e_temp);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               EDef Header
-*******************************************************************************/
-
-class EDef : public Exp {
-private:
-  std::string id;
-  Shared_Exp e;
-  Shared_Typ t;
-
-public:
-  EDef(std::string _id, Shared_Exp _e, Shared_Typ _t);
-
-  std::string string_of_exp();
-};
-
-/******************************************************************************
-                               EStruct Header
-*******************************************************************************/
-
-class EStruct : public Exp {
-private:
-  struct_data_t e_map;
-  struct_type_t t_map;
-
-public:
-  EStruct(struct_data_t _e_map, struct_type_t _t_map);
-
-  std::string string_of_exp();
-
-  bool is_value();
-  bool is_struct();
-  struct_data_t get_data();
-};
-
-/******************************************************************************
-                               EDot Header
-*******************************************************************************/
-
-class EDot : public Exp {
-private:
-  Shared_Exp e;
-  std::string id;
-
-public:
-  EDot(Shared_Exp _e, std::string _id);
-
-  std::string string_of_exp();
-};
-}
-#endif
