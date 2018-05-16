@@ -1,24 +1,22 @@
 #ifndef TYPE_HPP
 #define TYPE_HPP
 
-#include <expression.hpp>
+#include "global.hpp"
+#include "expression.hpp"
 #include <unordered_map>
 #include <iostream>
 #include <typeinfo>
 
-class Typ;
-class TInt;
-class TBool;
-class TFloat;
-class TFunc;
-
-namespace ftyp {
 
 void type_error(std::string expression, std::string expected,
                 std::string actual);
 
-bool operator ==(const Typ &first, const Typ &second);
-bool operator !=(const Typ &first, const Typ &second);
+bool operator ==(const ftyp::Typ &first, const ftyp::Typ &second);
+bool operator !=(const ftyp::Typ &first, const ftyp::Typ &second);
+
+namespace ftyp {
+
+using namespace ftyp;
 
 //********************************Typ Header*********************************//
 
@@ -35,10 +33,7 @@ public:
     exit(1);
   }
 
-  friend bool operator==(const Typ &first, const Typ &second);
-  friend bool operator!=(const Typ &first, const Typ &second);
-
-protected:
+//protected:
   virtual bool eq(const Typ& other) const {
     return false;
   };
@@ -51,7 +46,7 @@ public:
   TInt();
   std::string get_type();
 
-protected:
+//protected:
   bool eq(const Typ& other) const;
 };
 
@@ -62,7 +57,7 @@ public:
   TFloat();
   std::string get_type();
 
-protected:
+//protected:
   bool eq(const Typ& other) const;
 };
 
@@ -73,7 +68,7 @@ public:
   TBool();
   std::string get_type();
 
-protected:
+//protected:
   bool eq(const Typ& other) const;
 };
 
@@ -84,7 +79,7 @@ public:
   TUnit();
   std::string get_type();
 
-protected:
+//protected:
   bool eq(const Typ& other) const;
 };
 
@@ -101,7 +96,7 @@ public:
   Shared_Typ get_first_subtype();
   Shared_Typ get_second_subtype();
 
-protected:
+//protected:
   bool eq(const Typ& other) const;
 };
 
@@ -118,7 +113,7 @@ public:
   Shared_Typ get_first_subtype();
   Shared_Typ get_second_subtype();
 
-protected:
+//protected:
   bool eq(const Typ& other) const;
 };
 
@@ -133,7 +128,7 @@ public:
   std::string get_type();
   Shared_Typ get_first_subtype();
 
-protected:
+//protected:
   bool eq(const Typ& other) const;
 };
 
@@ -148,7 +143,7 @@ public:
   std::string get_type();
   Shared_Typ get_first_subtype();
 
-protected:
+//protected:
   bool eq(const Typ& other) const;
 };
 } // End of name space

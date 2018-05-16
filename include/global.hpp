@@ -1,7 +1,7 @@
 #ifndef GLOBAL_HPP
 #define GLOBAL_HPP
-#include<token.hpp>
 #include <string>
+#include <token.hpp>
 #include <unordered_map>
 #include <vector>
 
@@ -47,14 +47,13 @@ class Typ;
 class TInt;
 class TBool;
 class TUnit;
-class TFloat;
-class TFunc;
 class TPair;
 class TList;
 class TRef;
 }
 
 namespace ctyp {
+class Typ;
 class TInt;
 class TBool;
 }
@@ -79,7 +78,6 @@ typedef std::shared_ptr<EComp> Shared_EComp;
 typedef std::shared_ptr<ELit> Shared_ELit;
 typedef std::shared_ptr<EBool> Shared_EBool;
 typedef std::shared_ptr<EVar> Shared_EVar;
-typedef std::shared_ptr<EFunc> Shared_EFunc;
 typedef std::shared_ptr<EIf> Shared_EIf;
 typedef std::shared_ptr<ELet> Shared_ELet;
 typedef std::shared_ptr<EApp> Shared_EApp;
@@ -119,10 +117,8 @@ using namespace ftyp;
 
 typedef std::shared_ptr<Typ> Shared_Typ;
 typedef std::shared_ptr<TInt> Shared_TInt;
-typedef std::shared_ptr<TFloat> Shared_TFloat;
 typedef std::shared_ptr<TBool> Shared_TBool;
 typedef std::shared_ptr<TUnit> Shared_TUnit;
-typedef std::shared_ptr<TFunc> Shared_TFunc;
 typedef std::shared_ptr<TPair> Shared_TPair;
 typedef std::shared_ptr<TRef> Shared_TRef;
 }
@@ -131,18 +127,23 @@ namespace ctyp {
 
 using namespace ctyp;
 
+typedef std::shared_ptr<Typ> Shared_Typ;
 typedef std::shared_ptr<TInt> Shared_TInt;
 typedef std::shared_ptr<TBool> Shared_TBool;
 }
 
+typedef std::shared_ptr<Stmt> Shared_Stmt;
+typedef std::shared_ptr<SDecl> Shared_SDecl;
+typedef std::shared_ptr<SWhile> Shared_SWhile;
+typedef std::shared_ptr<SIf> Shared_SIf;
+typedef std::shared_ptr<SRet> Shared_SRet;
+typedef std::shared_ptr<SPrint> Shared_SPrint;
 /******************************************************************************
 
 *******************************************************************************/
 
-using namespace fexp;
-
-typedef std::unordered_map<std::string, std::shared_ptr<Typ>> context_t;
-typedef std::unordered_map<size_t, std::shared_ptr<Exp>> global_heap_t;
+typedef std::unordered_map<std::string, ftyp::Shared_Typ> context_t;
+typedef std::unordered_map<size_t, fexp::Shared_Exp> global_heap_t;
 
 // Functions for the functional language
 typedef std::pair<std::string, ftyp::Shared_Typ> arg_t;
@@ -157,15 +158,14 @@ typedef std::unordered_map<std::string, function_t> global_function_t;
 
 // Functions for C
 typedef std::pair<std::string, ctyp::Shared_Typ> c_arg_t;
-typedef std::vector<arg_t> c_arglist_t;
-typedef struct _function {
+typedef std::vector<c_arg_t> c_arglist_t;
+typedef struct _c_function {
   std::string name;
   c_arglist_t arglist;
   ctyp::Shared_Typ return_type;
   std::vector<Shared_Stmt> stmt_list;
 } c_function_t;
 typedef std::unordered_map<std::string, c_function_t> c_global_function_t;
-
 
 // Globals
 extern global_heap_t heap;

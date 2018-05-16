@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 
-void interpret(Shared_Exp, bool print_step);
+using namespace fexp;
+
+void interpret(Shared_Exp root, bool print_step);
 
 #endif

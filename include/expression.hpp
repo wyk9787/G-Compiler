@@ -3,25 +3,33 @@
 #include "global.hpp"
 #include "token.hpp"
 #include "type.hpp"
+#include "c_type.hpp"
+#include "c_expression.hpp"
+#include "statement.hpp"
 #include <iostream>
 #include <memory>
 #include <vector>
-
-namespace fexp {
 
 /****** Helper Functions for Converting to C *****/
 
 std::string fresh_name();
 
-std::tuple<std::string id, std::vector<Shared_Stmt>, Shared_Stmt>
+std::tuple<std::string, std::vector<Shared_Stmt>, Shared_Stmt>
 factor_subexp(fexp::Shared_Exp e);
 
-std::pair<std::vector<Shared_Exp>, std::vector<Shared_Stmt>>
+std::pair<std::vector<cexp::Shared_Exp>, std::vector<Shared_Stmt>>
 factor_subexps(std::vector<fexp::Shared_Exp> es,
-               std::vector<Shared_Exp> exp_so_far,
+               std::vector<cexp::Shared_Exp> exp_so_far,
                std::vector<Shared_Stmt> stmt_so_far);
 
 /*************************************************/
+
+
+
+namespace fexp {
+
+using namespace fexp;
+using namespace ftyp;
 
 /******************************************************************************
                                Helper
@@ -49,7 +57,7 @@ public:
   // Convert to intemediate language (C)
   virtual std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert() {
     // TODO: Place holder
-    std::std::vector<Shared_Stmt> v;
+    std::vector<Shared_Stmt> v;
     return {nullptr, v};
   }
 
@@ -57,7 +65,6 @@ public:
   virtual bool is_bool() { return false; }
   virtual bool is_lit() { return false; }
   virtual bool is_unit() { return false; }
-  virtual bool is_NaN() { return false; }
   virtual bool is_var() { return false; }
   virtual bool is_pair() { return false; }
   virtual bool is_list() { return false; }
@@ -66,26 +73,21 @@ public:
     std::cerr << "Debug: Expecting a boolean!\n";
     exit(1);
   }
-  virtual int get_int() {
+  virtual int get_lit() {
     std::cerr << "Debug: Expecting an integer!\n";
     exit(1);
   }
-  virtual std::string get_NaN() {
-    std::cerr << "Debug: Expecting an integer!\n";
-    exit(1);
-  }
-  virtual double get_float() {
-    std::cerr << "Debug: Expecting a float!\n";
-    exit(1);
-  }
+
   virtual std::string get_var() {
     std::cerr << "Debug: Expecting a variable!\n";
     exit(1);
   }
+
   virtual Shared_EPair get_pair() {
     std::cerr << "Debug: Expecting a pair!\n";
     exit(1);
   }
+
   virtual Shared_EList get_list() {
     std::cerr << "Debug: Expecting a list!\n";
     exit(1);
@@ -107,7 +109,7 @@ class EOperator : public Exp {
 private:
   TokenKind id;
   Shared_Exp e1, e2;
-  Shared_Exp evaluate_num(Shared_Exp e1, Shared_Exp e2, bool is_int);
+  Shared_Exp evaluate_num(Shared_Exp e1, Shared_Exp e2);
 
 public:
   EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
@@ -146,7 +148,7 @@ private:
   int data;
 
 public:
-  ELit(bool __is_int, int _int_data, double _float_data, bool __is_NaN);
+  ELit(int _data);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();

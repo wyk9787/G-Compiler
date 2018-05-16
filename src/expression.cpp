@@ -1,5 +1,4 @@
 #include "expression.hpp"
-#include "c_expression.hpp"
 #include <iostream>
 #include <stdlib.h>
 
@@ -16,25 +15,26 @@ std::string fresh_name() {
   return "_g" + std::to_string(count++) + "comp";
 }
 
-std::tuple<std::string id, std::vector<Shared_Stmt>, Shared_Stmt> factor_subexp(Shared_Exp e) {
+std::tuple<std::string, std::vector<Shared_Stmt>, Shared_Stmt> factor_subexp(Shared_Exp e) {
   std::string name = fresh_name();
   auto conv = e->convert();
   return std::make_tuple(name, conv.second,
-                         std::make_shared<SDecl>(name, std::make_shared<ctyp::Tint>(),
+                         std::make_shared<SDecl>(name, std::make_shared<ctyp::TInt>(),
                                                  conv.first));
 }
 
-std::pair<std::vector<Shared_Exp>, std::vector<Shared_Stmt>> factor_subexps(std::vector<Shared_Exp> es, std::vector<cexp::Shared_Exp> exp_so_far, std::vector<Shared_Stmt> stmt_so_far) {
+std::pair<std::vector<cexp::Shared_Exp>, std::vector<Shared_Stmt>> factor_subexps(std::vector<Shared_Exp> es, std::vector<cexp::Shared_Exp> exp_so_far, std::vector<Shared_Stmt> stmt_so_far) {
   if(es.size() == 0) {
-    return {exp_so_far, stmt_so_far};
+    return std::make_pair(exp_so_far, stmt_so_far);
   } else {
     auto subexp = factor_subexp(es[0]);
-    es.erase(subexp);
+    es.erase(es.begin());
 
     std::vector<cexp::Shared_Exp> new_exp_so_far(exp_so_far);
-    new_exp_so_far.push_back(std::make_shared<cexp::EVar>(std::get<0>(subexp)));
+    // NOTE: Have to use dynamic_pointer_cast to do this conversion for shared_ptr
+    new_exp_so_far.push_back(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(std::get<0>(subexp))));
 
-    std::vector<cexp::Shared_Stmt> new_stmt_so_far(stmt_so_far);
+    std::vector<Shared_Stmt> new_stmt_so_far(stmt_so_far);
     auto new_ss = std::get<1>(subexp);
     new_stmt_so_far.insert(new_stmt_so_far.end(), new_ss.begin(), new_ss.end());
     new_stmt_so_far.push_back(std::get<2>(subexp));
@@ -62,12 +62,10 @@ EOperator::EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2)
     : id(_id), e1(_e1), e2(_e2) {}
 
 // Private method
-Shared_Exp EOperator::evaluate_num(Shared_Exp e1_lit, Shared_Exp e2_lit,
-                                   bool _is_int) {
-  auto e1_data = e1->is_int() ? e1->get_int() : e1->get_float();
-  auto e2_data = e2->is_int() ? e2->get_int() : e2->get_float();
-  bool is_NaN = false;
-  auto temp_data = e1_data + e2_data;
+Shared_Exp EOperator::evaluate_num(Shared_Exp e1_lit, Shared_Exp e2_lit) {
+  auto e1_data = e1->get_lit();
+  auto e2_data = e2->get_lit();
+  int temp_data;
   switch (id) {
   case Plus:
     temp_data = e1_data + e2_data;
@@ -81,26 +79,17 @@ Shared_Exp EOperator::evaluate_num(Shared_Exp e1_lit, Shared_Exp e2_lit,
   case Divide: {
     if (e2_data != 0) {
       temp_data = e1_data / e2_data;
-    } else if (e1_data == 0) { // e1_data = 0 and e2_data = 0
-      is_NaN = true;
     } else {
       std::cerr << "Fatal: Division by 0" << std::endl;
       exit(1);
     }
     break;
   }
-  default:
-    std::cout << e1->string_of_exp() << std::endl;
-    std::cout << e2->string_of_exp() << std::endl;
-    std::cout << id << std::endl;
-    std::cerr << "Expecting arithmetic operation" << std::endl;
+  default: // This should never happen
+    std::cerr << "Debug: Expecting arithmetic operation" << std::endl;
     exit(1);
   }
-  if (_is_int) {
-    return std::make_shared<ELit>(_is_int, temp_data, 0, is_NaN);
-  } else {
-    return std::make_shared<ELit>(_is_int, 0, temp_data, is_NaN);
-  }
+  return std::make_shared<ELit>(temp_data);
 }
 
 Shared_Exp EOperator::step() {
@@ -109,15 +98,11 @@ Shared_Exp EOperator::step() {
   } else if (!e2->is_value()) {
     return std::make_shared<EOperator>(id, e1, e2->step());
   } else {
-    if (e1->is_NaN() || e2->is_NaN()) {
-      return std::make_shared<ELit>(false, 0, 0, true);
-    }
-    if (!e1->is_int() && !e2->is_int() && !e1->is_float() && !e2->is_float()) {
-      std::cerr << "Expecting a literal (integer or value)" << std::endl;
+    if (!e1->is_lit()) {
+      std::cerr << "Expecting a literal (integer)" << std::endl;
       exit(1);
     }
-    bool is_int = e1->is_int() && e2->is_int();
-    return evaluate_num(e1, e2, is_int);
+    return evaluate_num(e1, e2);
   }
 }
 
@@ -134,14 +119,10 @@ std::string EOperator::string_of_exp() {
 Shared_Typ EOperator::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
-  if (dynamic_cast<TInt *>(t1.get()) == nullptr &&
-      dynamic_cast<TFloat *>(t1.get()) == nullptr) {
-    type_error(string_of_exp(), "Int or Float", t1->get_type());
-  } else if (dynamic_cast<TInt *>(t2.get()) == nullptr &&
-             dynamic_cast<TFloat *>(t2.get()) == nullptr) {
-    type_error(string_of_exp(), "Int or Float", t2->get_type());
-  } else if (*t1.get() != *t2.get()) {
-    type_error(string_of_exp(), t1->get_type(), t2->get_type());
+  if (dynamic_cast<TInt *>(t1.get()) == nullptr) {
+    type_error(string_of_exp(), "Int", t1->get_type());
+  } else if (dynamic_cast<TInt *>(t2.get()) == nullptr) {
+    type_error(string_of_exp(), "Int", t2->get_type());
   } else {
     return t1;
   }
@@ -158,7 +139,7 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EOperator::convert() {
   v.insert(v.end(), v2.begin(), v2.end());
   v.push_back(std::get<2>(subexp1));
   v.push_back(std::get<2>(subexp2));
-  return {std::make_shared<cexp::EOperator>(id, std::make_share<EVar>(std::get<0>(subexp1)), std::make_share<EVar>(std::get<0>(subexp2))),v};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EOperator>(id, std::make_shared<cexp::EVar>(std::get<0>(subexp1)), std::make_shared<cexp::EVar>(std::get<0>(subexp2)))),v);
 }
 
 /******************************************************************************
@@ -169,8 +150,8 @@ EComp::EComp(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2)
 
 // Private method
 Shared_Exp EComp::evaluate_bool(Shared_Exp e1, Shared_Exp e2) {
-  auto e1_data = e1->is_int() ? e1->get_int() : e1->get_float();
-  auto e2_data = e2->is_int() ? e2->get_int() : e2->get_float();
+  auto e1_data = e1->get_lit();
+  auto e2_data = e2->get_lit();
 
   bool result;
   switch (id) {
@@ -203,11 +184,8 @@ Shared_Exp EComp::step() {
   } else if (!e2->is_value()) {
     return std::make_shared<EComp>(id, e1, e2->step());
   } else {
-    if (e1->is_NaN() || e2->is_NaN()) {
-      return std::make_shared<ELit>(false, 0, 0, true);
-    }
-    if (!e1->is_int() && !e2->is_int() && !e1->is_float() && !e2->is_float()) {
-      std::cerr << "Expecting a literal (integer or value)" << std::endl;
+    if (!e1->is_lit() || !e2->is_lit()) {
+      std::cerr << "Expecting a literal (integer)" << std::endl;
       exit(1);
     }
     return evaluate_bool(e1, e2);
@@ -252,14 +230,14 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EComp::convert() {
   v.insert(v.end(), v2.begin(), v2.end());
   v.push_back(std::get<2>(subexp1));
   v.push_back(std::get<2>(subexp2));
-  return {std::make_shared<cexp::EOperator>(id, std::make_share<EVar>(std::get<0>(subexp1)), std::make_share<EVar>(std::get<0>(subexp2))),v};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EOperator>(id, std::make_shared<cexp::EVar>(std::get<0>(subexp1)), std::make_shared<cexp::EVar>(std::get<0>(subexp2)))),v);
 }
 
 /******************************************************************************
                         ELit Implementaion
 *******************************************************************************/
 
-ELit::ELit(int _data) : data(_data){};
+ELit::ELit(int _data) : data(_data) {};
 
 Shared_Exp ELit::step() { return std::make_shared<ELit>(data); }
 
@@ -275,13 +253,13 @@ Shared_Typ ELit::typecheck(context_t context) {
 
 bool ELit::is_value() { return true; }
 
-bool ELit::is_Lit() { return true; }
+bool ELit::is_lit() { return true; }
 
 int ELit::get_lit() { return data; }
 
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ELit::convert() {
   std::vector<Shared_Stmt> v;
-  return {std::make_shared<cexp::EInt>(data), v};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::ELit>(data)), v);
 }
 
 /******************************************************************************
@@ -304,7 +282,7 @@ Shared_Typ EBool::typecheck(context_t context) {
 
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EBool::convert() {
   std::vector<Shared_Stmt> v;
-  return {std::make_shared<cexp::EBool>(data), v};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EBool>(data)), v);
 }
 
 bool EBool::is_value() { return true; }
@@ -342,7 +320,7 @@ Shared_Typ EVar::typecheck(context_t context) {
 
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EVar::convert() {
   std::vector<Shared_Stmt> v;
-  return {std::make_shared<cexp::EVar>(data), v};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(data)), v);
 }
 
 bool EVar::is_value() { return true; }
@@ -371,7 +349,7 @@ Shared_Typ EUnit::typecheck(context_t context) {
 
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EUnit::convert() {
   std::vector<Shared_Stmt> v;
-  return {std::make_shared<cexp::EInt>(0), v};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::ELit>(0)), v);
 }
 
 bool EUnit::is_value() { return true; }
@@ -431,16 +409,18 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EIf::convert() {
   std::string ret = fresh_name();
 
   std::vector<Shared_Stmt> ss2(std::get<1>(subexp2));
-  v.push_back(std::get<2>(subexp2));
-  v.push_back(std::make_shared<SDecl>(ret, std::make_shared<ctyp::TInt>(), std::make_shared<cexp::Var>(std::get<0>(subexp3))));
+  ss2.push_back(std::get<2>(subexp2));
+  ss2.push_back(std::make_shared<SAssign>(ret, std::make_shared<cexp::EVar>(std::get<0>(subexp2))));
 
   std::vector<Shared_Stmt> ss3(std::get<1>(subexp3));
-  v.push_back(std::get<2>(subexp3));
-  v.push_back(std::make_shared<SDecl>(ret, std::make_shared<ctyp::TInt>(), std::make_shared<cexp::Var>(std::get<0>(subexp3))));
+  ss3.push_back(std::get<2>(subexp3));
+  ss3.push_back(std::make_shared<SAssign>(ret, std::make_shared<cexp::EVar>(std::get<0>(subexp3))));
 
-  std::vector<Shared_Stmt> res(std::get<0>(subexp1));
+  std::vector<Shared_Stmt> res(std::get<1>(subexp1));
+  res.push_back(std::get<2>(subexp1));
+  res.push_back(std::dynamic_pointer_cast<Stmt>(std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), ret)));
   res.push_back(std::make_shared<SIf>(std::make_shared<cexp::EVar>(std::get<0>(subexp1)), ss2, ss3));
-  return {std::make_shared<cexp::EVar>(ret), rest};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(ret)), res);
 }
 
 /******************************************************************************
@@ -491,9 +471,9 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ELet::convert() {
   std::vector<Shared_Stmt> v(std::get<1>(convert_exp));
   v.push_back(std::make_shared<SDecl>(var, std::make_shared<ctyp::TInt>(), std::get<0>(convert_exp)));
   auto v2 = std::get<1>(subexp1);
-  v.push_back(v.end(), v2.begin(), v2.end());
+  v.insert(v.end(), v2.begin(), v2.end());
   v.push_back(std::get<2>(subexp1));
-  return {std::make_shared<cexp::EVar>(std::get<0>(subexp1)), v};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(std::get<0>(subexp1))), v);
 }
 
 /******************************************************************************
@@ -574,7 +554,7 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EApp::convert() {
   std::vector<cexp::Shared_Exp> exp_so_far;
   std::vector<Shared_Stmt> stmt_so_far;
   auto subexps = factor_subexps(v, exp_so_far, stmt_so_far);
-  return {std::make_shared<cexp::EApp>(id, std::get<0>(subexps)), std::get<1>(subexps)};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EApp>(id, std::get<0>(subexps))), std::get<1>(subexps));
 }
 
 /******************************************************************************
@@ -807,7 +787,7 @@ Shared_Exp ECdr::step() {
   } else {
     Shared_EList l = e->get_list();
     std::vector<Shared_Exp> e_list = l->get_e_list();
-    e_list.erase(e_list.begin(), e_list.begin() + 1);
+    e_list.erase(e_list.begin());
     return std::make_shared<EList>(e_list, l->get_t());
   }
 }
@@ -1016,7 +996,7 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ESeq::convert() {
   v.insert(v.begin(), v2.begin(), v2.end());
   v.push_back(std::get<2>(subexp1));
   v.push_back(std::get<2>(subexp2));
-  return {std::make_shared<cexp::EVar>(std::get<0>(subexp2)), v};
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(std::get<0>(subexp2))), v);
 }
 
 /******************************************************************************

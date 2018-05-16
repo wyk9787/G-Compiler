@@ -1,23 +1,15 @@
-#include <c_type.hpp>
+#include "c_type.hpp"
 
 using namespace ctyp;
 
-//********************************TInt Implementation********************************//
+//********************************TInt
+//Implementation********************************//
 
-class TInt : public Typ {
-public:
-  TInt();
-  std::string string_of_typ() {
-    return "int";
-  }
-};
+TInt::TInt() {}
+std::string TInt::string_of_typ() { return "int"; }
 
-//********************************TBool Implementation*******************************//
+//********************************TBool
+//Implementation*******************************//
 
-class TBool : public Typ {
-public:
-  TBool();
-  std::string string_of_typ() {
-    return "bool";
-  }
-}
+TBool::TBool() {}
+std::string TBool::string_of_typ() { return "bool"; }

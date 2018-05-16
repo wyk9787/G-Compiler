@@ -1,16 +1,13 @@
 #ifndef C_TYPE_HPP
 #define C_TYPE_HPP
 
-#include <expression.hpp>
-#include <unordered_map>
 #include <iostream>
 #include <typeinfo>
-
-class Typ;
-class TInt;
-class TBool;
+#include <unordered_map>
 
 namespace ctyp {
+
+using namespace ctyp;
 
 //********************************Typ Header*********************************//
 
@@ -33,6 +30,7 @@ class TBool : public Typ {
 public:
   TBool();
   std::string string_of_typ();
+};
 }
 
 #endif

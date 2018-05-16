@@ -22,21 +22,16 @@ let inner_product (l1 : {int}, l2 : {int}) : int =
   else car(l1) * car(l2) +  (inner_product (cdr(l1)) (cdr(l2)))
 ;;
 
-let cool_func(x : int, y : int, z : int) : int =
-  (fact x) + (max2 y z)
-;;
-
 let main(a : int) : int =
   let lst1 : <{int}> = ref(1 :: 2 :: 3 :: 4 :: {}:int) in
-  let lst2 : <{int}> = ref(4 :: 3 :: 2 :: 1 :: {}:bool) in
+  let lst2 : <{int}> = ref(4 :: 3 :: 2 :: 1 :: {}:int) in
   let res: <int * int> = ref ( (0, 0) ) in
-  let l : <{int * int}> = ref ( (1, 2) :: (3, 4) :: (5, 6) :: {} : int * int) in
+  let l : <{int * int}> = ref ( (1, 2) :: (3, 4) :: (5, 6) :: {} : int * int) in (5, 6.0) :: {} : int * float) in
   let counter : <int> = ref (0) in
   while ((!counter) < 3) do
     res := (fst(!res) + fst(car(!l)),  snd(!res) + snd(car(!l)));
     l := cdr(!(l));
     counter := (!counter) + 1
   end;
-  let temp : int = fst(!res) in
-    (cool_func temp (cool_func 3 2 1) (list_sum !lst1)) + (inner_product !lst1 !lst2)
+  fst(!res) + (fact 5) + (max2 3 4) + (list_sum !lst1) + (inner_product !lst1 !lst2)
 ;;

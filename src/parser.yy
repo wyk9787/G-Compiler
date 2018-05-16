@@ -17,6 +17,7 @@
 #include "global.hpp"
 class parser_driver;
 using namespace fexp;
+using namespace ftyp;
 }
 
 // The parsing context
@@ -55,13 +56,11 @@ using namespace fexp;
   GEQ          ">="
   LPAREN       "("
   RPAREN       ")"
-  NAN          "NaN"
   IF           "if"
   ELSE         "else"
   THEN         "then"
   TRUE         "true"
   FALSE        "false"
-  FUNC_BODY    "->"
   LET          "let"
   LET_ASSIGN   "="
   IN           "in"
@@ -89,14 +88,12 @@ using namespace fexp;
 ;
 
 %token <int> INT "int"
-%token <double> DOUBLE "double"
 %token <std::string> VAR "var"
 %token <Shared_TInt> TINT "tint"
-%token <Shared_TFloat> TFLOAT "tfloat"
 %token <Shared_TBool> TBOOL "tbool"
 %token <Shared_TUnit> TUNIT "tunit"
 
-%right "->" "::"
+%right "::"
 %right "!" "ref"
 %left ";"
 %left ":="
@@ -125,7 +122,7 @@ using namespace fexp;
 prog:
   decllist "eof"                  {
                                     std::vector<Shared_Exp> v;
-                                    v.push_back(std::make_shared<ELit>(true, 1, 0, false));
+                                    v.push_back(std::make_shared<ELit>(1));
                                     *ret = std::make_shared<EApp>("main", v);
                                   }
 ;
@@ -219,11 +216,9 @@ exp_ops:
 
 exp_base:
   "(" ")"                         { $$ = std::make_shared<EUnit>(); }
-| "int"                           { $$ = std::make_shared<ELit>(true, $1, 0, false); }
-| "double"                        { $$ = std::make_shared<ELit>(false, 0, $1, false); }
+| "int"                           { $$ = std::make_shared<ELit>($1); }
 | "true"                          { $$ = std::make_shared<EBool>(true); }
 | "false"                         { $$ = std::make_shared<EBool>(false); }
-| "NaN"                           { $$ = std::make_shared<ELit>(false, 0, 0, true); }
 | "var"                           { $$ = std::make_shared<EVar>($1); }
 | "if" exp "then" exp "else" exp
                                   { $$ = std::make_shared<EIf>($2, $4, $6); }
@@ -235,11 +230,9 @@ exp_base:
 
 typ:
   "tint"                          { $$ = $1; }
-| "tfloat"                        { $$ = $1; }
 | "tbool"                         { $$ = $1; }
 | "tunit"                         { $$ = $1; }
-| typ "->" typ                    { $$ = std::make_shared<TFunc>($1, $3); }
-| typ "*" typ  %prec "->"         { $$ = std::make_shared<TPair>($1, $3); }
+| typ "*" typ  %prec "::"         { $$ = std::make_shared<TPair>($1, $3); }
 | "{" typ "}"                     { $$ = std::make_shared<TList>($2); }
 | "<" typ ">"                     { $$ = std::make_shared<TRef>($2); }
 | "(" typ ")"                     { $$ = $2; }

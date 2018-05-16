@@ -8,8 +8,8 @@ let cool_func(x : int, y : int, z : int) : int =
 let main(a : int) : int =
   let lst1 : <{int}> = ref(1 :: 2 :: 3 :: 4 :: {}:int) in
   let lst2 : <{int}> = ref(4 :: 3 :: 2 :: 1 :: {}:int) in
-  let res: <int * float> = ref ( (0, 0.0) ) in
-  let l : <{int * float}> = ref ( (1, 2.0) :: (3, 4.0) :: (5, 6.0) :: {} : int * float) in
+  let res: <int * int> = ref ( (0, 0) ) in
+  let l : <{int * int}> = ref ( (1, 2) :: (3, 4) :: (5, 6) :: {} : int * int) in
   let counter : <int> = ref (0) in
   while ((!counter) < true) do
     res := (fst(!res) + fst(car(!l)),  snd(!res) + snd(car(!l)));

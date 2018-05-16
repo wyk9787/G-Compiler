@@ -6,6 +6,8 @@
 # include "parser_driver.h"
 # include "parser.yy.hpp"
 
+using namespace ftyp;
+
 // Work around an incompatibility in flex (at least versions
 // 2.5.31 through 2.5.33): it generates code that does
 // not conform to C89.  See Debian bug 333231
@@ -21,7 +23,6 @@ static yy::location loc;
 var         [a-zA-Z][a-zA-Z_0-9]*
 
 int   [0-9]+
-double [0-9]+"."[0-9]+
 blank [ \t]
 
 %{
@@ -55,16 +56,13 @@ blank [ \t]
 "if"        { return yy::parser::make_IF(loc); }
 "else"      { return yy::parser::make_ELSE(loc); }
 "then"      { return yy::parser::make_THEN(loc); }
-"NaN"       { return yy::parser::make_NAN(loc); }
-"->"        { return yy::parser::make_FUNC_BODY(loc); }
 "let"       { return yy::parser::make_LET(loc); }
 "="         { return yy::parser::make_LET_ASSIGN(loc); }
 "in"        { return yy::parser::make_IN(loc); }
 "rec"       { return yy::parser::make_REC(loc); }
-"int"       { return yy::parser::make_TINT(std::make_shared<TInt>(), loc); }
-"float"     { return yy::parser::make_TFLOAT(std::make_shared<TFloat>(), loc); }
-"bool"      { return yy::parser::make_TBOOL(std::make_shared<TBool>(), loc); }
-"unit"      { return yy::parser::make_TUNIT(std::make_shared<TUnit>(), loc); }
+"int"       { return yy::parser::make_TINT(std::make_shared<ftyp::TInt>(), loc); }
+"bool"      { return yy::parser::make_TBOOL(std::make_shared<ftyp::TBool>(), loc); }
+"unit"      { return yy::parser::make_TUNIT(std::make_shared<ftyp::TUnit>(), loc); }
 ":"         { return yy::parser::make_COL(loc); }
 "["         { return yy::parser::make_LBRA(loc); }
 "]"         { return yy::parser::make_RBRA(loc); }
@@ -87,13 +85,6 @@ blank [ \t]
 "end"       { return yy::parser::make_END(loc); }
 
 {var}       { return yy::parser::make_VAR(yytext, loc);}
-
-{double} {
-    errno = 0;
-    double n = strtod (yytext, NULL);
-
-    return yy::parser::make_DOUBLE(n, loc);
-}
 
 {int} {
     errno = 0;

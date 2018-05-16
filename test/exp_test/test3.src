@@ -1,7 +1,7 @@
-let prog(a : int, b : int) : float = 
+let prog(a : int, b : int) : int =
   if (a >= b)
-  then 3.6 * 2.4
-  else 5.0 + 10.98 / 7.2
+  then 3 * 2
+  else 5 + 11 / 7
 ;;
 
 let main(a : int) : int =
