@@ -34,10 +34,8 @@ void typecheck_all() {
   }
 }
 
-void interpret(Shared_Exp root, bool print_step) {
+Shared_Exp interpret(Shared_Exp root, bool print_step) {
   typecheck_all();
   Shared_Exp result = evaluate(root, print_step);
-  // std::cout << result->string_of_exp() << std::endl;
-  auto c_functions = conv_prog();
-  std::cout << string_of_prog(c_functions) << std::endl;
+  return result;
 }

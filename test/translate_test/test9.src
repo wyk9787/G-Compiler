@@ -1,0 +1,6 @@
+let fun (x:unit) : unit = (())
+;;
+
+let main (a : int) : int = 
+  (fun () )
+;;

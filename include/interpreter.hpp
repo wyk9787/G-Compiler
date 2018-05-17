@@ -8,6 +8,6 @@
 
 using namespace fexp;
 
-void interpret(Shared_Exp root, bool print_step);
+Shared_Exp interpret(Shared_Exp root, bool print_step);
 
 #endif

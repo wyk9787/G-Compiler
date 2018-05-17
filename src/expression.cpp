@@ -341,7 +341,7 @@ Shared_Exp EUnit::substitute(std::string var, Shared_Exp e) {
   return std::make_shared<EUnit>();
 }
 
-std::string EUnit::string_of_exp() { return "()"; }
+std::string EUnit::string_of_exp() { return "0"; }
 
 Shared_Typ EUnit::typecheck(context_t context) {
   return std::make_shared<TUnit>();

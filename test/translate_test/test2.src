@@ -1,0 +1,14 @@
+let prog(a : int) : bool =
+  if 
+    if 2 <= 4 
+    then true
+    else 3 > 4 
+  then 1 <= (a)
+  else false
+;;
+
+let main(a : int) : int =
+  if (prog 2) 
+  then 1 
+  else  2 
+;;

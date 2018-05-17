@@ -1,0 +1,9 @@
+let prog(a : int, b : int) : int =
+  if (a >= b)
+  then 3 * 2
+  else 5 + 11 / 7
+;;
+
+let main(a : int) : int =
+  (prog 2 3) + (prog 3 2)
+;;

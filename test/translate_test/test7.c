@@ -7,7 +7,9 @@ printf("%d\n", fun(_g0comp));
  }
 
 int fun (int x) {
-return 0;
+int _g1comp = 3;
+int _g2comp = 5;
+return (_g1comp + _g2comp);
  }
 
 

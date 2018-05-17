@@ -1,0 +1,10 @@
+
+let max2 (x : int, y : int) : int =
+  if x > y 
+  then x
+  else (y)
+;;
+
+let main (a : int) : int =
+  (max2 3 4)
+;;
