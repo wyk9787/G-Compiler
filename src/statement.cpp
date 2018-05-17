@@ -44,3 +44,9 @@ SDef::SDef(Shared_Typ _t, std::string _name) : t(_t), name(_name){}
 std::string SDef::string_of_stmt() {
   return t->string_of_typ() + " " + name + ";";
 }
+
+SStruct::SStruct(std::string _name, Shared_Stmt _s1, Shared_Stmt _s2) : name(_name), s1(_s1), s2(_s2) {}
+
+std::string SStruct::string_of_stmt() {
+  return "struct " + name + " {\n" + s1->string_of_stmt() + "\n" + s2->string_of_stmt() + "\n};";
+}

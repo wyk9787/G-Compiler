@@ -11,6 +11,7 @@ std::string string_of_blk(std::vector<Shared_Stmt> stmt_list) {
   for(int i = 0; i < stmt_list.size(); i++) {
     ret += stmt_list[i]->string_of_stmt() + "\n";
   }
+
   return ret;
 }
 

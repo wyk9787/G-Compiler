@@ -289,7 +289,7 @@ public:
   Shared_Exp substitute(std::string var, Shared_Exp e);
   std::string string_of_exp();
   Shared_Typ typecheck(context_t context);
-  // std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
+  std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> convert();
 
   bool is_value();
   bool is_pair();

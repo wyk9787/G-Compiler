@@ -15,24 +15,30 @@ std::string fresh_name() {
   return "_g" + std::to_string(count++) + "comp";
 }
 
-std::tuple<std::string, std::vector<Shared_Stmt>, Shared_Stmt> factor_subexp(Shared_Exp e) {
+std::tuple<std::string, std::vector<Shared_Stmt>, Shared_Stmt>
+factor_subexp(Shared_Exp e) {
   std::string name = fresh_name();
   auto conv = e->convert();
   return std::make_tuple(name, conv.second,
-                         std::make_shared<SDecl>(name, std::make_shared<ctyp::TInt>(),
-                                                 conv.first));
+                         std::make_shared<SDecl>(
+                             name, std::make_shared<ctyp::TInt>(), conv.first));
 }
 
-std::pair<std::vector<cexp::Shared_Exp>, std::vector<Shared_Stmt>> factor_subexps(std::vector<Shared_Exp> es, std::vector<cexp::Shared_Exp> exp_so_far, std::vector<Shared_Stmt> stmt_so_far) {
-  if(es.size() == 0) {
+std::pair<std::vector<cexp::Shared_Exp>, std::vector<Shared_Stmt>>
+factor_subexps(std::vector<Shared_Exp> es,
+               std::vector<cexp::Shared_Exp> exp_so_far,
+               std::vector<Shared_Stmt> stmt_so_far) {
+  if (es.size() == 0) {
     return std::make_pair(exp_so_far, stmt_so_far);
   } else {
     auto subexp = factor_subexp(es[0]);
     es.erase(es.begin());
 
     std::vector<cexp::Shared_Exp> new_exp_so_far(exp_so_far);
-    // NOTE: Have to use dynamic_pointer_cast to do this conversion for shared_ptr
-    new_exp_so_far.push_back(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(std::get<0>(subexp))));
+    // NOTE: Have to use dynamic_pointer_cast to do this conversion for
+    // shared_ptr
+    new_exp_so_far.push_back(std::dynamic_pointer_cast<cexp::Exp>(
+        std::make_shared<cexp::EVar>(std::get<0>(subexp))));
 
     std::vector<Shared_Stmt> new_stmt_so_far(stmt_so_far);
     auto new_ss = std::get<1>(subexp);
@@ -139,7 +145,11 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EOperator::convert() {
   v.insert(v.end(), v2.begin(), v2.end());
   v.push_back(std::get<2>(subexp1));
   v.push_back(std::get<2>(subexp2));
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EOperator>(id, std::make_shared<cexp::EVar>(std::get<0>(subexp1)), std::make_shared<cexp::EVar>(std::get<0>(subexp2)))),v);
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EOperator>(
+          id, std::make_shared<cexp::EVar>(std::get<0>(subexp1)),
+          std::make_shared<cexp::EVar>(std::get<0>(subexp2)))),
+      v);
 }
 
 /******************************************************************************
@@ -220,7 +230,8 @@ Shared_Typ EComp::typecheck(context_t context) {
   return nullptr;
 }
 
-// This is exactly the same as the version in EOperator because I only have cexp::EOperator
+// This is exactly the same as the version in EOperator because I only have
+// cexp::EOperator
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EComp::convert() {
   // TODO: Can we save a local variable here?
   auto subexp1 = factor_subexp(e1);
@@ -230,14 +241,18 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EComp::convert() {
   v.insert(v.end(), v2.begin(), v2.end());
   v.push_back(std::get<2>(subexp1));
   v.push_back(std::get<2>(subexp2));
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EOperator>(id, std::make_shared<cexp::EVar>(std::get<0>(subexp1)), std::make_shared<cexp::EVar>(std::get<0>(subexp2)))),v);
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EOperator>(
+          id, std::make_shared<cexp::EVar>(std::get<0>(subexp1)),
+          std::make_shared<cexp::EVar>(std::get<0>(subexp2)))),
+      v);
 }
 
 /******************************************************************************
                         ELit Implementaion
 *******************************************************************************/
 
-ELit::ELit(int _data) : data(_data) {};
+ELit::ELit(int _data) : data(_data){};
 
 Shared_Exp ELit::step() { return std::make_shared<ELit>(data); }
 
@@ -259,7 +274,9 @@ int ELit::get_lit() { return data; }
 
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ELit::convert() {
   std::vector<Shared_Stmt> v;
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::ELit>(data)), v);
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::ELit>(data)),
+      v);
 }
 
 /******************************************************************************
@@ -282,7 +299,9 @@ Shared_Typ EBool::typecheck(context_t context) {
 
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EBool::convert() {
   std::vector<Shared_Stmt> v;
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EBool>(data)), v);
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EBool>(data)),
+      v);
 }
 
 bool EBool::is_value() { return true; }
@@ -320,7 +339,9 @@ Shared_Typ EVar::typecheck(context_t context) {
 
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EVar::convert() {
   std::vector<Shared_Stmt> v;
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(data)), v);
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(data)),
+      v);
 }
 
 bool EVar::is_value() { return true; }
@@ -349,7 +370,8 @@ Shared_Typ EUnit::typecheck(context_t context) {
 
 std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EUnit::convert() {
   std::vector<Shared_Stmt> v;
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::ELit>(0)), v);
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::ELit>(0)), v);
 }
 
 bool EUnit::is_value() { return true; }
@@ -410,17 +432,23 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EIf::convert() {
 
   std::vector<Shared_Stmt> ss2(std::get<1>(subexp2));
   ss2.push_back(std::get<2>(subexp2));
-  ss2.push_back(std::make_shared<SAssign>(ret, std::make_shared<cexp::EVar>(std::get<0>(subexp2))));
+  ss2.push_back(std::make_shared<SAssign>(
+      ret, std::make_shared<cexp::EVar>(std::get<0>(subexp2))));
 
   std::vector<Shared_Stmt> ss3(std::get<1>(subexp3));
   ss3.push_back(std::get<2>(subexp3));
-  ss3.push_back(std::make_shared<SAssign>(ret, std::make_shared<cexp::EVar>(std::get<0>(subexp3))));
+  ss3.push_back(std::make_shared<SAssign>(
+      ret, std::make_shared<cexp::EVar>(std::get<0>(subexp3))));
 
   std::vector<Shared_Stmt> res(std::get<1>(subexp1));
   res.push_back(std::get<2>(subexp1));
-  res.push_back(std::dynamic_pointer_cast<Stmt>(std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), ret)));
-  res.push_back(std::make_shared<SIf>(std::make_shared<cexp::EVar>(std::get<0>(subexp1)), ss2, ss3));
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(ret)), res);
+  res.push_back(std::dynamic_pointer_cast<Stmt>(
+      std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), ret)));
+  res.push_back(std::make_shared<SIf>(
+      std::make_shared<cexp::EVar>(std::get<0>(subexp1)), ss2, ss3));
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(ret)),
+      res);
 }
 
 /******************************************************************************
@@ -469,11 +497,14 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ELet::convert() {
   auto convert_exp = e1->convert();
   auto subexp1 = factor_subexp(e2);
   std::vector<Shared_Stmt> v(std::get<1>(convert_exp));
-  v.push_back(std::make_shared<SDecl>(var, std::make_shared<ctyp::TInt>(), std::get<0>(convert_exp)));
+  v.push_back(std::make_shared<SDecl>(var, std::make_shared<ctyp::TInt>(),
+                                      std::get<0>(convert_exp)));
   auto v2 = std::get<1>(subexp1);
   v.insert(v.end(), v2.begin(), v2.end());
   v.push_back(std::get<2>(subexp1));
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(std::get<0>(subexp1))), v);
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(
+                            std::make_shared<cexp::EVar>(std::get<0>(subexp1))),
+                        v);
 }
 
 /******************************************************************************
@@ -554,7 +585,10 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EApp::convert() {
   std::vector<cexp::Shared_Exp> exp_so_far;
   std::vector<Shared_Stmt> stmt_so_far;
   auto subexps = factor_subexps(v, exp_so_far, stmt_so_far);
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EApp>(id, std::get<0>(subexps))), std::get<1>(subexps));
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(
+          std::make_shared<cexp::EApp>(id, std::get<0>(subexps))),
+      std::get<1>(subexps));
 }
 
 /******************************************************************************
@@ -585,6 +619,29 @@ Shared_Typ EPair::typecheck(context_t context) {
   Shared_Typ t1 = e1->typecheck(context);
   Shared_Typ t2 = e2->typecheck(context);
   return std::make_shared<TPair>(t1, t2);
+}
+
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EPair::convert() {
+  auto subexp1 = factor_subexp(e1);
+  auto subexp2 = factor_subexp(e2);
+
+  std::string ret = fresh_name();
+  std::string name1 = fresh_name();
+  std::string name2 = fresh_name();
+
+  std::vector<Shared_Stmt> v(std::get<1>(subexp1));
+  v.push_back(std::get<2>(subexp1));
+  auto v2 = std::get<1>(subexp2);
+  v.insert(v.begin(), v2.begin(), v2.end());
+  v.push_back(std::get<2>(subexp2));
+
+  v.push_back(std::make_shared<SStruct>(
+      ret, std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), name1),
+      std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), name2)));
+
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(ret)),
+      v);
 }
 
 bool EPair::is_value() { return e1->is_value() && e2->is_value(); }
@@ -996,7 +1053,9 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ESeq::convert() {
   v.insert(v.begin(), v2.begin(), v2.end());
   v.push_back(std::get<2>(subexp1));
   v.push_back(std::get<2>(subexp2));
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(std::get<0>(subexp2))), v);
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(
+                            std::make_shared<cexp::EVar>(std::get<0>(subexp2))),
+                        v);
 }
 
 /******************************************************************************

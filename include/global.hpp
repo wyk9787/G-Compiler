@@ -64,6 +64,9 @@ class SWhile;
 class SIf;
 class SRet;
 class SPrint;
+class SAssign;
+class SDef;
+class SStruct;
 
 /******************************************************************************
                                Alias for shared_ptr
@@ -138,6 +141,9 @@ typedef std::shared_ptr<SWhile> Shared_SWhile;
 typedef std::shared_ptr<SIf> Shared_SIf;
 typedef std::shared_ptr<SRet> Shared_SRet;
 typedef std::shared_ptr<SPrint> Shared_SPrint;
+typedef std::shared_ptr<SAssign> Shared_SAssign;
+typedef std::shared_ptr<SDef> Shared_SDef;
+typedef std::shared_ptr<SStruct> Shared_SStruct;
 /******************************************************************************
 
 *******************************************************************************/

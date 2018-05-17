@@ -82,4 +82,15 @@ public:
   std::string string_of_stmt();
 };
 
+class SStruct : public Stmt {
+private:
+  std::string name;
+  Shared_Stmt s1;
+  Shared_Stmt s2;
+
+public:
+  SStruct(std::string _name, Shared_Stmt _s1, Shared_Stmt _s2);
+  std::string string_of_stmt();
+};
+
 #endif
