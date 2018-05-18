@@ -31,6 +31,18 @@ public:
   TBool();
   std::string string_of_typ();
 };
+
+//********************************TStruct Header*******************************//
+
+class TStruct : public Typ {
+private:
+  std::string name;
+
+public:
+  TStruct(std::string _name);
+  std::string string_of_typ();
+};
+
 }
 
 #endif

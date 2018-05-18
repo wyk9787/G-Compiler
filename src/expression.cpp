@@ -625,9 +625,7 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EPair::convert() {
   auto subexp1 = factor_subexp(e1);
   auto subexp2 = factor_subexp(e2);
 
-  std::string ret = fresh_name();
-  std::string name1 = fresh_name();
-  std::string name2 = fresh_name();
+  std::string struct_name = fresh_name();
 
   std::vector<Shared_Stmt> v(std::get<1>(subexp1));
   v.push_back(std::get<2>(subexp1));
@@ -636,11 +634,20 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EPair::convert() {
   v.push_back(std::get<2>(subexp2));
 
   v.push_back(std::make_shared<SStruct>(
-      ret, std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), name1),
-      std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), name2)));
+      struct_name, std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), "first"),
+      std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), "second")));
+
+  std::string struct_instance = fresh_name();
+  v.push_back(std::make_shared<SDef>(std::make_shared<ctyp::TStruct>(struct_name), struct_instance));
+
+  // Assign the the first and second to the field in the struct
+  cexp::Shared_EDot dot_e1 =  std::make_shared<cexp::EDot>(struct_instance, "first");
+  cexp::Shared_EDot dot_e2 =  std::make_shared<cexp::EDot>(struct_instance, "second");
+  v.push_back(std::make_shared<SAssign>(dot_e1->string_of_exp(), std::make_shared<cexp::EVar>(std::get<0>(subexp1))));
+  v.push_back(std::make_shared<SAssign>(dot_e2->string_of_exp(), std::make_shared<cexp::EVar>(std::get<0>(subexp2))));
 
   return std::make_pair(
-      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(ret)),
+      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(struct_instance)),
       v);
 }
 
@@ -684,6 +691,14 @@ Shared_Typ EFst::typecheck(context_t context) {
   return nullptr;
 }
 
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EFst::convert() {
+  auto conv = e->convert();
+  std::string ret = fresh_name();
+  std::vector<Shared_Stmt> v(std::get<1>(conv));
+  cexp::Shared_EVar e_var = std::dynamic_pointer_cast<cexp::EVar>(conv.first);
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EDot>(e_var->get_var(), "first")), v);
+}
+
 /******************************************************************************
                                ESnd Implementaion
 *******************************************************************************/
@@ -712,6 +727,14 @@ Shared_Typ ESnd::typecheck(context_t context) {
     return t->get_second_subtype();
   }
   return nullptr;
+}
+
+std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ESnd::convert() {
+  auto conv = e->convert();
+  std::string ret = fresh_name();
+  std::vector<Shared_Stmt> v(std::get<1>(conv));
+  cexp::Shared_EVar e_var = std::dynamic_pointer_cast<cexp::EVar>(conv.first);
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EDot>(e_var->get_var(), "second")), v);
 }
 
 /******************************************************************************

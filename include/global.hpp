@@ -40,6 +40,7 @@ class EVar;
 class EIf;
 class EApp;
 class EWhile;
+class EDot;
 }
 
 namespace ftyp {
@@ -56,6 +57,7 @@ namespace ctyp {
 class Typ;
 class TInt;
 class TBool;
+class TStruct;
 }
 
 class Stmt;
@@ -112,6 +114,7 @@ typedef std::shared_ptr<EVar> Shared_EVar;
 typedef std::shared_ptr<EIf> Shared_EIf;
 typedef std::shared_ptr<EApp> Shared_EApp;
 typedef std::shared_ptr<EWhile> Shared_EWhile;
+typedef std::shared_ptr<EDot> Shared_EDot;
 }
 
 namespace ftyp {
@@ -133,6 +136,7 @@ using namespace ctyp;
 typedef std::shared_ptr<Typ> Shared_Typ;
 typedef std::shared_ptr<TInt> Shared_TInt;
 typedef std::shared_ptr<TBool> Shared_TBool;
+typedef std::shared_ptr<TStruct> Shared_TStruct;
 }
 
 typedef std::shared_ptr<Stmt> Shared_Stmt;

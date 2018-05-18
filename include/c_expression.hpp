@@ -100,6 +100,8 @@ public:
   EVar(std::string _data);
 
   std::string string_of_exp();
+
+  std::string get_var();
 };
 
 
@@ -129,6 +131,17 @@ private:
 
 public:
   EApp(std::string _id, std::vector<Shared_Exp> _v);
+
+  std::string string_of_exp();
+};
+
+class EDot : public Exp {
+private:
+  std::string struct_name;
+  std::string field_name;
+
+public:
+  EDot(std::string _struct_name, std::string _field_name);
 
   std::string string_of_exp();
 };

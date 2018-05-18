@@ -127,6 +127,8 @@ EVar::EVar(std::string _data) : data(_data) {}
 
 std::string EVar::string_of_exp() { return data; }
 
+std::string EVar::get_var() { return data; }
+
 /******************************************************************************
                                EIf Implementation
 *******************************************************************************/
@@ -154,4 +156,14 @@ std::string EApp::string_of_exp() {
       ret += v[i]->string_of_exp();
   }
   return ret + ")";
+}
+
+/******************************************************************************
+                               EPair Implementation
+*******************************************************************************/
+
+EDot::EDot(std::string _struct_name, std::string _field_name) : struct_name(_struct_name), field_name(_field_name) {}
+
+std::string EDot::string_of_exp() {
+  return struct_name + "." + field_name;
 }
