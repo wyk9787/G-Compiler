@@ -1,19 +1,23 @@
 # Compiler
 
 ## Overview
-G-compiler is a simple toy compiler written in C/C++ that is able to compile a OCaml-syntax-like programming language. You can find grammar for this language [here](#grammar). G-compiler is able to compile the program into intermediate C program and then compile down to web assembly.
+G-compiler is a simple toy compiler written in C/C++ that is able to compile a OCaml-syntax-like functional programming language with state, named __G__. You can find grammar for __G__ [here](#grammar). G-compiler also supports translating the G program into intermediate C program (see [section](#c-translation) for detail).
 
 ## Usage
 
 ```
 Usage: ./build/compiler [-h|--help] [-l|--length]
-                        [-f|--filename <filename>] [-L|--lex] [-P|--PARSE] [-p|--parse] [-s|--step]
+                        [-f|--filename <filename>]
+                        [-t|--translate <filename>]
+                        [-L|--lex] [-P|--PARSE] [-p|--parse] [-s|--step]
 NOTE:[-f|--filename <filename>] has to present to take the input file
 
 
 Available flags:
 
-* -f --file   take one argument as the filename of the input
+* -f --file <filename>  take one argument as the filename of the input
+
+* -t --translate <filename>  translate the original program into a C program, saved in file <filename>
 
 * -p --parse   generate the abstract syntax tree from parsing
 
@@ -48,6 +52,20 @@ If there are errors present, you can find the error in `./test/diff.txt`
 
 ### Cleaning
 `make clean`
+
+## C-Translation
+
+With the flag `-t <filename>`, G-compiler is able to translate the G program into a C program. Now it supports translating binary operations, if expressions, let bindings and functional applications into a C program. You can then use either `gcc` or `clang` to compile the C program as normal. See [Example](#example) sections for more info.
+
+More translating features are still under development.
+
+## Example
+
+See directory `./test` for examples.
+
+* `./test/exp_test` are examples(tests) for G program
+* `./test/type_test` are examples(tests) for checking type errors in G program
+* `./test/translate_test` are examples(tests) for translating G programs into C programs
 
 ## Language
 
@@ -169,10 +187,6 @@ typ:
 10. ! ref right associative
 
 ```
-
-## Example
-
-See directory `./test` for examples.
 
 ## Author
 Garrett Wang
