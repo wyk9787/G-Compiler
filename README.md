@@ -1,7 +1,7 @@
 # Compiler
 
 ## Overview
-G-compiler is a simple toy compiler written in C/C++ that is able to compile a OCaml-syntax-like functional programming language with state, named __G__. You can find grammar for __G__ [here](#grammar). G-compiler also supports translating the G program into intermediate C program (see [section](#c-translation) for detail).
+G-compiler is a simple toy compiler written in C/C++ that is able to compile a OCaml-syntax-like functional programming language with state, named __G__. You can find grammar for __G__ [here](#grammar). G-compiler also supports translating the G program into intermediate C program (see [C-Translation](#c-translation) for detail).
 
 ## Usage
 
@@ -187,6 +187,17 @@ typ:
 10. ! ref right associative
 
 ```
+
+## Muse
+
+> When it’s 3 A.M., and you’ve been debugging for 12 hours, and you encounter a virtual static friend protected volatile templated function pointer, you want to go into hibernation and awake as a werewolf and then find the people who wrote the C++ standard and bring ruin to the things that they love. The C++ STL, with its dyslexia-inducing syntax blizzard of colons and angle brackets, guarantees that if you try to declare any reasonable data structure, your first seven attempts will result in compiler errors of Wagnerian fierceness:
+
+>
+``` C++
+Syntax error: unmatched thing in thing from std::nonstd::__ map<_Cyrillic, _$$$dollars>const basic_string< epic_ mystery,mongoose_traits &lt; char>, __default_alloc_<casual_ Fridays = maybe>>
+```
+
+From James Mickens' [_The Night Watch_](https://www.usenix.org/system/files/1311_05-08_mickens.pdf)
 
 ## Author
 Garrett Wang
