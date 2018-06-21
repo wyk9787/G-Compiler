@@ -124,7 +124,7 @@ exp_ops:
 | ! ( exp_ops )             
 | exp_ops := exp_ops            
 | exp_ops ; exp_ops             
-// | ( exp_ops ) %prec ->    
+| ( exp_ops ) %prec ->    
 | typ var = { exp_ops }   
 | struct { struct_statement_list }
 | exp_ops  . var              
