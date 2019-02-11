@@ -1,22 +1,22 @@
-#include "expression.hpp"
 #include "c_expression.hpp"
+#include "expression.hpp"
 #include "interpreter.hpp"
 #include "parser_driver.h"
 #include "token.hpp"
 
-#include <cctype>
-#include <cstdio>
-#include <cstring>
 #include <fcntl.h>
-#include <fstream>
 #include <getopt.h>
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <string>
 #include <vector>
 
 static std::string usage =
@@ -29,7 +29,8 @@ static std::string usage =
 static std::string flags =
     "Available flags:\n"
     "\t-f --file <filename>\t\ttake one argument as the filename of the input\n"
-    "\t-t --translate <filename>\ttranslate the original program into a C program, saved in `filename`\n"
+    "\t-t --translate <filename>\ttranslate the original program into a C "
+    "program, saved in `filename`\n"
     "\t-p --parse\t\t\tgenerate the abstract syntax tree from parsing\n"
     "\t-P --PARSE\t\t\tgenerate EXTREMELY verbose parsing stages (Debug use "
     "only)\n"
@@ -49,7 +50,7 @@ void processing(int argc, char **argv) {
     std::cout << usage << std::endl;
     return;
   }
-  parser_driver driver("-"); // Default as stdin input
+  parser_driver driver("-");  // Default as stdin input
   int long_optind = 0;
   static struct option long_options[] = {
       {"help", no_argument, 0, 'h'},
@@ -61,9 +62,9 @@ void processing(int argc, char **argv) {
       {"step", no_argument, 0, 's'},
       {"translate", required_argument, 0, 't'},
       {0, 0, 0, 0}};
-  std::vector<char> options; // Store all the options into the vector options
-  char* f_arg;
-  char* t_arg;
+  std::vector<char> options;  // Store all the options into the vector options
+  char *f_arg;
+  char *t_arg;
   int c;
 
   // NOTE: required_argument needs an colon here
@@ -72,7 +73,7 @@ void processing(int argc, char **argv) {
     options.push_back(c);
     if (c == 'f') {
       f_arg = strdup(optarg);
-    } else if(c == 't') {
+    } else if (c == 't') {
       t_arg = strdup(optarg);
     }
   }
@@ -93,30 +94,30 @@ void processing(int argc, char **argv) {
     std::cerr << "Requires -f for a file" << std::endl;
     exit(1);
   }
-  for (size_t i = 0; i < options.size(); i++) { // Processing flags
+  for (size_t i = 0; i < options.size(); i++) {  // Processing flags
     c = options[i];
-    if (c == 'l') { // -l --length
+    if (c == 'l') {  // -l --length
       for (int i = optind; i < argc; i++) {
         printf("%lu\n", strlen(argv[i]));
       }
-    } else if (c == 'p') { // -p --parse
+    } else if (c == 'p') {  // -p --parse
       prog = driver.parse();
       std::cout << prog->string_of_exp() << std::endl;
       if_interpret = false;
-    } else if (c == 'P') { // -P --PARSE
+    } else if (c == 'P') {  // -P --PARSE
       driver.trace_parsing = true;
       prog = driver.parse();
       driver.trace_parsing = false;
       if_interpret = false;
-    } else if (c == 'L') { // -L --lex
+    } else if (c == 'L') {  // -L --lex
       driver.trace_scanning = true;
       prog = driver.parse();
       driver.trace_scanning = false;
       if_interpret = false;
-    } else if (c == 'f') { // -f --file
+    } else if (c == 'f') {  // -f --file
       new_filename = parse_header(f_arg);
       driver = parser_driver(new_filename);
-    } else if (c == 't') { // -t --translate
+    } else if (c == 't') {  // -t --translate
       c_filename = t_arg;
       if_translate = true;
     } else if (c == 's') {
@@ -130,19 +131,17 @@ void processing(int argc, char **argv) {
     prog = driver.parse();
     auto exp = interpret(prog, print_step);
     std::cout << exp->string_of_exp() << std::endl;
-    if(if_translate) {
-      auto c_functions = conv_prog(); // Convert original program into C
+    if (if_translate) {
+      auto c_functions = conv_prog();  // Convert original program into C
       std::ofstream c_file;
       c_file.open(c_filename);
       c_file << string_of_prog(c_functions) << std::endl;
       c_file.close();
     }
   }
-  if (remove(new_filename.c_str()) != 0)
-    perror("Error deleting file");
+  if (remove(new_filename.c_str()) != 0) perror("Error deleting file");
 
-  if(if_translate)
-    free(t_arg);
+  if (if_translate) free(t_arg);
   free(f_arg);
 }
 
@@ -181,8 +180,7 @@ void dump_file(std::string original_filename, std::ofstream &new_file) {
     // Copy char by char
     while (!original_file.eof()) {
       char c = original_file.get();
-      if (c != EOF)
-        new_file << c;
+      if (c != EOF) new_file << c;
     }
   } else {
     std::cerr << "Unable to open file\n";

@@ -1,6 +1,6 @@
 #include "expression.hpp"
-#include <iostream>
 #include <stdlib.h>
+#include <iostream>
 
 global_heap_t heap;
 global_function_t global_functions;
@@ -15,8 +15,8 @@ std::string fresh_name() {
   return "_g" + std::to_string(count++) + "comp";
 }
 
-std::tuple<std::string, std::vector<Shared_Stmt>, Shared_Stmt>
-factor_subexp(Shared_Exp e) {
+std::tuple<std::string, std::vector<Shared_Stmt>, Shared_Stmt> factor_subexp(
+    Shared_Exp e) {
   std::string name = fresh_name();
   auto conv = e->convert();
   return std::make_tuple(name, conv.second,
@@ -73,27 +73,27 @@ Shared_Exp EOperator::evaluate_num(Shared_Exp e1_lit, Shared_Exp e2_lit) {
   auto e2_data = e2->get_lit();
   int temp_data;
   switch (id) {
-  case Plus:
-    temp_data = e1_data + e2_data;
-    break;
-  case Subtract:
-    temp_data = e1_data - e2_data;
-    break;
-  case Multiply:
-    temp_data = e1_data * e2_data;
-    break;
-  case Divide: {
-    if (e2_data != 0) {
-      temp_data = e1_data / e2_data;
-    } else {
-      std::cerr << "Fatal: Division by 0" << std::endl;
-      exit(1);
+    case Plus:
+      temp_data = e1_data + e2_data;
+      break;
+    case Subtract:
+      temp_data = e1_data - e2_data;
+      break;
+    case Multiply:
+      temp_data = e1_data * e2_data;
+      break;
+    case Divide: {
+      if (e2_data != 0) {
+        temp_data = e1_data / e2_data;
+      } else {
+        std::cerr << "Fatal: Division by 0" << std::endl;
+        exit(1);
+      }
+      break;
     }
-    break;
-  }
-  default: // This should never happen
-    std::cerr << "Debug: Expecting arithmetic operation" << std::endl;
-    exit(1);
+    default:  // This should never happen
+      std::cerr << "Debug: Expecting arithmetic operation" << std::endl;
+      exit(1);
   }
   return std::make_shared<ELit>(temp_data);
 }
@@ -165,24 +165,24 @@ Shared_Exp EComp::evaluate_bool(Shared_Exp e1, Shared_Exp e2) {
 
   bool result;
   switch (id) {
-  case Leq:
-    result = e1_data <= e2_data;
-    break;
-  case Less:
-    result = e1_data < e2_data;
-    break;
-  case Equal:
-    result = e1_data == e2_data;
-    break;
-  case Greater:
-    result = e1_data > e2_data;
-    break;
-  case Geq:
-    result = e1_data >= e2_data;
-    break;
-  default:
-    std::cerr << "Expecting literals (integer or float)" << std::endl;
-    exit(1);
+    case Leq:
+      result = e1_data <= e2_data;
+      break;
+    case Less:
+      result = e1_data < e2_data;
+      break;
+    case Equal:
+      result = e1_data == e2_data;
+      break;
+    case Greater:
+      result = e1_data > e2_data;
+      break;
+    case Geq:
+      result = e1_data >= e2_data;
+      break;
+    default:
+      std::cerr << "Expecting literals (integer or float)" << std::endl;
+      exit(1);
   }
 
   return std::make_shared<EBool>(result);
@@ -634,21 +634,29 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EPair::convert() {
   v.push_back(std::get<2>(subexp2));
 
   v.push_back(std::make_shared<SStruct>(
-      struct_name, std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), "first"),
+      struct_name,
+      std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), "first"),
       std::make_shared<SDef>(std::make_shared<ctyp::TInt>(), "second")));
 
   std::string struct_instance = fresh_name();
-  v.push_back(std::make_shared<SDef>(std::make_shared<ctyp::TStruct>(struct_name), struct_instance));
+  v.push_back(std::make_shared<SDef>(
+      std::make_shared<ctyp::TStruct>(struct_name), struct_instance));
 
   // Assign the the first and second to the field in the struct
-  cexp::Shared_EDot dot_e1 =  std::make_shared<cexp::EDot>(struct_instance, "first");
-  cexp::Shared_EDot dot_e2 =  std::make_shared<cexp::EDot>(struct_instance, "second");
-  v.push_back(std::make_shared<SAssign>(dot_e1->string_of_exp(), std::make_shared<cexp::EVar>(std::get<0>(subexp1))));
-  v.push_back(std::make_shared<SAssign>(dot_e2->string_of_exp(), std::make_shared<cexp::EVar>(std::get<0>(subexp2))));
+  cexp::Shared_EDot dot_e1 =
+      std::make_shared<cexp::EDot>(struct_instance, "first");
+  cexp::Shared_EDot dot_e2 =
+      std::make_shared<cexp::EDot>(struct_instance, "second");
+  v.push_back(std::make_shared<SAssign>(
+      dot_e1->string_of_exp(),
+      std::make_shared<cexp::EVar>(std::get<0>(subexp1))));
+  v.push_back(std::make_shared<SAssign>(
+      dot_e2->string_of_exp(),
+      std::make_shared<cexp::EVar>(std::get<0>(subexp2))));
 
-  return std::make_pair(
-      std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EVar>(struct_instance)),
-      v);
+  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(
+                            std::make_shared<cexp::EVar>(struct_instance)),
+                        v);
 }
 
 bool EPair::is_value() { return e1->is_value() && e2->is_value(); }
@@ -696,7 +704,10 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> EFst::convert() {
   std::string ret = fresh_name();
   std::vector<Shared_Stmt> v(std::get<1>(conv));
   cexp::Shared_EVar e_var = std::dynamic_pointer_cast<cexp::EVar>(conv.first);
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EDot>(e_var->get_var(), "first")), v);
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(
+          std::make_shared<cexp::EDot>(e_var->get_var(), "first")),
+      v);
 }
 
 /******************************************************************************
@@ -734,7 +745,10 @@ std::pair<cexp::Shared_Exp, std::vector<Shared_Stmt>> ESnd::convert() {
   std::string ret = fresh_name();
   std::vector<Shared_Stmt> v(std::get<1>(conv));
   cexp::Shared_EVar e_var = std::dynamic_pointer_cast<cexp::EVar>(conv.first);
-  return std::make_pair(std::dynamic_pointer_cast<cexp::Exp>(std::make_shared<cexp::EDot>(e_var->get_var(), "second")), v);
+  return std::make_pair(
+      std::dynamic_pointer_cast<cexp::Exp>(
+          std::make_shared<cexp::EDot>(e_var->get_var(), "second")),
+      v);
 }
 
 /******************************************************************************

@@ -1,7 +1,7 @@
 #ifndef TOKEN_HPP
 #define TOKEN_HPP
-#include <vector>
 #include <string>
+#include <vector>
 
 // Empty strings are place holders for int, float, bool, var and fun
 const std::vector<std::string> enum_string = {"(", ")",  "+",   "-",  "/", "*",

@@ -1,14 +1,14 @@
 #ifndef C_EXPRESSION_HPP
 #define C_EXPRESSION_HPP
 
-#include "global.hpp"
-#include "token.hpp"
-#include "c_type.hpp"
-#include "statement.hpp"
-#include "expression.hpp"
 #include <iostream>
 #include <memory>
 #include <vector>
+#include "c_type.hpp"
+#include "expression.hpp"
+#include "global.hpp"
+#include "statement.hpp"
+#include "token.hpp"
 
 /************* Print to C file *******************/
 
@@ -41,7 +41,7 @@ using namespace ctyp;
 *******************************************************************************/
 
 class Exp {
-public:
+ public:
   virtual std::string string_of_exp() = 0;
   virtual ~Exp(){};
 };
@@ -51,11 +51,12 @@ public:
 *******************************************************************************/
 
 class EOperator : public Exp {
-private:
+ private:
   TokenKind id;
   Shared_Exp e1;
   Shared_Exp e2;
-public:
+
+ public:
   EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
   std::string string_of_exp();
 };
@@ -65,10 +66,10 @@ public:
 *******************************************************************************/
 
 class ELit : public Exp {
-private:
+ private:
   int data;
 
-public:
+ public:
   ELit(int _data);
 
   std::string string_of_exp();
@@ -79,10 +80,10 @@ public:
 *******************************************************************************/
 
 class EBool : public Exp {
-private:
+ private:
   bool data;
 
-public:
+ public:
   EBool(bool _data);
 
   std::string string_of_exp();
@@ -93,10 +94,10 @@ public:
 *******************************************************************************/
 
 class EVar : public Exp {
-private:
+ private:
   std::string data;
 
-public:
+ public:
   EVar(std::string _data);
 
   std::string string_of_exp();
@@ -104,48 +105,45 @@ public:
   std::string get_var();
 };
 
-
 /******************************************************************************
                                EIf Header
 *******************************************************************************/
 
 class EIf : public Exp {
-private:
+ private:
   Shared_Exp e1, e2, e3;
 
-public:
+ public:
   EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3);
 
   std::string string_of_exp();
 };
-
 
 /******************************************************************************
                                EApp Header
 *******************************************************************************/
 
 class EApp : public Exp {
-private:
+ private:
   std::string id;
   std::vector<Shared_Exp> v;
 
-public:
+ public:
   EApp(std::string _id, std::vector<Shared_Exp> _v);
 
   std::string string_of_exp();
 };
 
 class EDot : public Exp {
-private:
+ private:
   std::string struct_name;
   std::string field_name;
 
-public:
+ public:
   EDot(std::string _struct_name, std::string _field_name);
 
   std::string string_of_exp();
 };
-
 }
 
 #endif

@@ -8,7 +8,7 @@ using namespace ctyp;
 
 std::string string_of_blk(std::vector<Shared_Stmt> stmt_list) {
   std::string ret = "";
-  for(int i = 0; i < stmt_list.size(); i++) {
+  for (int i = 0; i < stmt_list.size(); i++) {
     ret += stmt_list[i]->string_of_stmt() + "\n";
   }
 
@@ -48,7 +48,7 @@ std::string string_of_fn_decl(c_function_t func) {
 std::string string_of_prog(c_global_function_t functions) {
   std::string ret = "#include <stdio.h>\n";
   for (auto cur : functions) {
-    if(cur.first == "main") continue;
+    if (cur.first == "main") continue;
     ret += string_of_fn_decl(cur.second) + "\n";
   }
 
@@ -60,7 +60,9 @@ std::string string_of_prog(c_global_function_t functions) {
 
 /************** Convert Functions ****************/
 
-c_arg_t conv_arg(arg_t arg) { return std::make_pair(arg.first, std::make_shared<TInt>()); }
+c_arg_t conv_arg(arg_t arg) {
+  return std::make_pair(arg.first, std::make_shared<TInt>());
+}
 
 c_function_t conv_fn(function_t func) {
   auto conv_exp = func.e->convert();
@@ -162,8 +164,7 @@ std::string EApp::string_of_exp() {
                                EPair Implementation
 *******************************************************************************/
 
-EDot::EDot(std::string _struct_name, std::string _field_name) : struct_name(_struct_name), field_name(_field_name) {}
+EDot::EDot(std::string _struct_name, std::string _field_name)
+    : struct_name(_struct_name), field_name(_field_name) {}
 
-std::string EDot::string_of_exp() {
-  return struct_name + "." + field_name;
-}
+std::string EDot::string_of_exp() { return struct_name + "." + field_name; }

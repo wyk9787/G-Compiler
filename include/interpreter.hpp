@@ -1,10 +1,10 @@
 #ifndef INTERPRETER_HPP
 #define INTERPRETER_HPP
 
+#include <string>
+#include <vector>
 #include "expression.hpp"
 #include "token.hpp"
-#include <vector>
-#include <string>
 
 using namespace fexp;
 

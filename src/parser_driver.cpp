@@ -1,7 +1,7 @@
 #include "parser_driver.h"
 
-parser_driver::parser_driver(const std::string &f) : file(f), trace_scanning(false), trace_parsing(false) {
-}
+parser_driver::parser_driver(const std::string &f)
+    : file(f), trace_scanning(false), trace_parsing(false) {}
 
 parser_driver::~parser_driver() {}
 

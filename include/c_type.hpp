@@ -12,14 +12,14 @@ using namespace ctyp;
 //********************************Typ Header*********************************//
 
 class Typ {
-public:
+ public:
   virtual std::string string_of_typ() = 0;
 };
 
 //********************************TInt Header********************************//
 
 class TInt : public Typ {
-public:
+ public:
   TInt();
   std::string string_of_typ();
 };
@@ -27,22 +27,22 @@ public:
 //********************************TBool Header*******************************//
 
 class TBool : public Typ {
-public:
+ public:
   TBool();
   std::string string_of_typ();
 };
 
-//********************************TStruct Header*******************************//
+//********************************TStruct
+//Header*******************************//
 
 class TStruct : public Typ {
-private:
+ private:
   std::string name;
 
-public:
+ public:
   TStruct(std::string _name);
   std::string string_of_typ();
 };
-
 }
 
 #endif

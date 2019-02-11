@@ -1,21 +1,21 @@
 #ifndef EXPRESSION_HPP
 #define EXPRESSION_HPP
-#include "global.hpp"
-#include "token.hpp"
-#include "type.hpp"
-#include "c_type.hpp"
-#include "c_expression.hpp"
-#include "statement.hpp"
 #include <iostream>
 #include <memory>
 #include <vector>
+#include "c_expression.hpp"
+#include "c_type.hpp"
+#include "global.hpp"
+#include "statement.hpp"
+#include "token.hpp"
+#include "type.hpp"
 
 /****** Helper Functions for Converting to C *****/
 
 std::string fresh_name();
 
-std::tuple<std::string, std::vector<Shared_Stmt>, Shared_Stmt>
-factor_subexp(fexp::Shared_Exp e);
+std::tuple<std::string, std::vector<Shared_Stmt>, Shared_Stmt> factor_subexp(
+    fexp::Shared_Exp e);
 
 std::pair<std::vector<cexp::Shared_Exp>, std::vector<Shared_Stmt>>
 factor_subexps(std::vector<fexp::Shared_Exp> es,
@@ -23,8 +23,6 @@ factor_subexps(std::vector<fexp::Shared_Exp> es,
                std::vector<Shared_Stmt> stmt_so_far);
 
 /*************************************************/
-
-
 
 namespace fexp {
 
@@ -41,7 +39,7 @@ Shared_Exp evaluate(Shared_Exp exp, bool print_step);
 *******************************************************************************/
 
 class Exp {
-public:
+ public:
   // Step evaluation the program
   virtual Shared_Exp step() = 0;
 
@@ -106,12 +104,12 @@ public:
 *******************************************************************************/
 
 class EOperator : public Exp {
-private:
+ private:
   TokenKind id;
   Shared_Exp e1, e2;
   Shared_Exp evaluate_num(Shared_Exp e1, Shared_Exp e2);
 
-public:
+ public:
   EOperator(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp t);
@@ -125,12 +123,12 @@ public:
 *******************************************************************************/
 
 class EComp : public Exp {
-private:
+ private:
   TokenKind id;
   Shared_Exp e1, e2;
   Shared_Exp evaluate_bool(Shared_Exp e1, Shared_Exp e2);
 
-public:
+ public:
   EComp(TokenKind _id, Shared_Exp _e1, Shared_Exp _e2);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp t);
@@ -144,10 +142,10 @@ public:
 *******************************************************************************/
 
 class ELit : public Exp {
-private:
+ private:
   int data;
 
-public:
+ public:
   ELit(int _data);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -165,10 +163,10 @@ public:
 *******************************************************************************/
 
 class EBool : public Exp {
-private:
+ private:
   bool data;
 
-public:
+ public:
   EBool(bool _data);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -186,10 +184,10 @@ public:
 *******************************************************************************/
 
 class EVar : public Exp {
-private:
+ private:
   std::string data;
 
-public:
+ public:
   EVar(std::string _data);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -207,8 +205,8 @@ public:
 *******************************************************************************/
 
 class EUnit : public Exp {
-private:
-public:
+ private:
+ public:
   EUnit();
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -225,10 +223,10 @@ public:
 *******************************************************************************/
 
 class EIf : public Exp {
-private:
+ private:
   Shared_Exp e1, e2, e3;
 
-public:
+ public:
   EIf(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e3);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -242,12 +240,12 @@ public:
 *******************************************************************************/
 
 class ELet : public Exp {
-private:
+ private:
   std::string var;
   Shared_Typ t;
   Shared_Exp e1, e2;
 
-public:
+ public:
   ELet(std::string _var, Shared_Typ _t, Shared_Exp _e1, Shared_Exp _e2);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -261,11 +259,11 @@ public:
 *******************************************************************************/
 
 class EApp : public Exp {
-private:
+ private:
   std::string id;
   std::vector<Shared_Exp> v;
 
-public:
+ public:
   EApp(std::string _id, std::vector<Shared_Exp> _v);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -279,11 +277,11 @@ public:
 *******************************************************************************/
 
 class EPair : public Exp {
-private:
+ private:
   Shared_Exp e1;
   Shared_Exp e2;
 
-public:
+ public:
   EPair(Shared_Exp _e1, Shared_Exp _e2);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -304,10 +302,10 @@ public:
 *******************************************************************************/
 
 class EFst : public Exp {
-private:
+ private:
   Shared_Exp e;
 
-public:
+ public:
   EFst(Shared_Exp _e);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -321,10 +319,10 @@ public:
 *******************************************************************************/
 
 class ESnd : public Exp {
-private:
+ private:
   Shared_Exp e;
 
-public:
+ public:
   ESnd(Shared_Exp _e);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -338,11 +336,11 @@ public:
 *******************************************************************************/
 
 class EList : public Exp {
-private:
+ private:
   std::vector<Shared_Exp> e_list;
   Shared_Typ t;
 
-public:
+ public:
   EList(std::vector<Shared_Exp> _e_list, Shared_Typ e);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp t);
@@ -363,11 +361,11 @@ public:
 *******************************************************************************/
 
 class ECons : public Exp {
-private:
+ private:
   Shared_Exp e1;
   Shared_Exp e2;
 
-public:
+ public:
   ECons(Shared_Exp _e1, Shared_Exp _e2);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -381,10 +379,10 @@ public:
 *******************************************************************************/
 
 class ECar : public Exp {
-private:
+ private:
   Shared_Exp e;
 
-public:
+ public:
   ECar(Shared_Exp _e);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -398,10 +396,10 @@ public:
 *******************************************************************************/
 
 class ECdr : public Exp {
-private:
+ private:
   Shared_Exp e;
 
-public:
+ public:
   ECdr(Shared_Exp _e);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -415,10 +413,10 @@ public:
 *******************************************************************************/
 
 class EEmpty : public Exp {
-private:
+ private:
   Shared_Exp e;
 
-public:
+ public:
   EEmpty(Shared_Exp _e);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -432,10 +430,10 @@ public:
 *******************************************************************************/
 
 class ERef : public Exp {
-private:
+ private:
   Shared_Exp e;
 
-public:
+ public:
   ERef(Shared_Exp _e);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -449,10 +447,10 @@ public:
 *******************************************************************************/
 
 class EPtr : public Exp {
-private:
+ private:
   size_t n;
 
-public:
+ public:
   EPtr(size_t _n);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -470,10 +468,10 @@ public:
 *******************************************************************************/
 
 class EDeref : public Exp {
-private:
+ private:
   Shared_Exp e;
 
-public:
+ public:
   EDeref(Shared_Exp _e);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -487,11 +485,11 @@ public:
 *******************************************************************************/
 
 class EAssign : public Exp {
-private:
+ private:
   Shared_Exp e1;
   Shared_Exp e2;
 
-public:
+ public:
   EAssign(Shared_Exp _e1, Shared_Exp _e2);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -505,11 +503,11 @@ public:
 *******************************************************************************/
 
 class ESeq : public Exp {
-private:
+ private:
   Shared_Exp e1;
   Shared_Exp e2;
 
-public:
+ public:
   ESeq(Shared_Exp _e1, Shared_Exp _e2);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
@@ -523,12 +521,12 @@ public:
 *******************************************************************************/
 
 class EWhile : public Exp {
-private:
+ private:
   Shared_Exp e1;
   Shared_Exp e2;
   Shared_Exp e_temp;
 
-public:
+ public:
   EWhile(Shared_Exp _e1, Shared_Exp _e2, Shared_Exp _e_temp);
   Shared_Exp step();
   Shared_Exp substitute(std::string var, Shared_Exp e);
