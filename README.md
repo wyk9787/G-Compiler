@@ -1,7 +1,7 @@
 # Compiler
 
 ## Overview
-G-compiler is a simple toy compiler written in C/C++ that is able to compile a OCaml-syntax-like functional programming language with state, named __G__. You can find grammar for __G__ [here](#grammar). G-compiler also supports translating the G program into intermediate C program (see [C-Translation](#c-translation) for detail).
+G-compiler is a compiler written in C/C++ that is able to compile a OCaml-syntax-like functional programming language with state, named __G__. You can find grammar for __G__ [here](#grammar). G-compiler also supports translating the G program into intermediate C program (see [C-Translation](#c-translation) for detail).
 
 ## Usage
 
